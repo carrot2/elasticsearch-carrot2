@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch.plugin;
 
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -39,22 +40,24 @@ public class SimpleClusteringTest {
 
         // Delete any previous documents.
         final String indexName = "test";
-        node.client().deleteByQuery(
-                Requests.deleteByQueryRequest(indexName).query(
-                        QueryBuilders.matchAllQuery())).actionGet();
+        if (new IndicesExistsRequestBuilder(node.client().admin().indices(), indexName).execute().actionGet().isExists()) {
+            node.client().deleteByQuery(
+                    Requests.deleteByQueryRequest(indexName).query(
+                            QueryBuilders.matchAllQuery())).actionGet();
+        }
 
         // Index some sample "documents".
         BulkRequestBuilder bulk = node.client().prepareBulk();
         for (String[] data : SampleDocumentData.SAMPLE_DATA) {
             bulk.add(new IndexRequestBuilder(node.client())
-            .setIndex(indexName)
-            .setType("test")
-            .setSource(XContentFactory.jsonBuilder()
-                    .startObject()
-                        .field("url",     data[0])
-                        .field("title",   data[1])
-                        .field("content", data[2])
-                    .endObject()));
+                .setIndex(indexName)
+                .setType("test")
+                .setSource(XContentFactory.jsonBuilder()
+                        .startObject()
+                            .field("url",     data[0])
+                            .field("title",   data[1])
+                            .field("content", data[2])
+                        .endObject()));
         }
         bulk.setRefresh(true).execute().actionGet();
 
