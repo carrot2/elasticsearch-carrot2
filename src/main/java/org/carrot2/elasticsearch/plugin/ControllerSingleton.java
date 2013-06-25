@@ -8,11 +8,12 @@ import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.node.Node;
 import org.testng.collections.Maps;
 
 /**
- * Holds the {@link Controller} singleton so it's both a module and a service
- * (it needs to clean up upon shutdown).
+ * Holds the {@link Controller} singleton initialized and ready throughout
+ * the {@link Node}'s lifecycle.
  */
 public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
     public static final String CARROT2_PREFIX = "carrot2";

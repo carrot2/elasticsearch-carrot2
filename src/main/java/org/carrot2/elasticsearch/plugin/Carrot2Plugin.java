@@ -10,9 +10,7 @@ import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugins.AbstractPlugin;
 
-/**
- * 
- */
+/** */
 public class Carrot2Plugin extends AbstractPlugin {
     private final Settings settings;
 
