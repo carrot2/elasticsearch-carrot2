@@ -4,6 +4,7 @@ import static org.elasticsearch.common.collect.Lists.newArrayList;
 
 import java.util.Collection;
 
+import org.elasticsearch.action.ActionModule;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.settings.Settings;
@@ -28,6 +29,12 @@ public class Carrot2Plugin extends AbstractPlugin {
     public String description() {
         return "Provides search results clustering via the Carrot2 framework";
     }
+
+    public void onModule(ActionModule actionModule) {
+        actionModule.registerAction(
+                Carrot2ClusteringAction.INSTANCE, 
+                TransportCarrot2ClusteringAction.class);
+    } 
 
     @Override
     public Collection<Class<? extends Module>> modules() {
