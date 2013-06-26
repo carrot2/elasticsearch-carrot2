@@ -7,6 +7,8 @@ import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
@@ -42,6 +44,14 @@ public class TransportCarrot2ClusteringAction
             @Override
             public void onResponse(SearchResponse response) {
                 Controller controller = controllerSingleton.getController();
+
+                // TODO: where to get the query hint from?
+                SearchHits hits = response.getHits();
+                for (SearchHit hit : hits) {
+                    String id = hit.getId();
+                    hit.getHighlightFields();
+                    hit.getFields();
+                }
 
                 // TODO: pick fields, cluster.
                 controller.getStatistics();

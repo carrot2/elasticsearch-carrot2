@@ -89,7 +89,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
         SearchRequest searchRequest = searchRequestParser.apply(request);
 
         // TODO: build a C2clustering request and dispatch.
-        new Carrot2ClusteringRequestBuilder(client)
+        new Carrot2ClusteringActionRequestBuilder(client)
                 .setSearchRequest(searchRequest)
                 .execute(new ActionListener<Carrot2ClusteringActionResponse>() {
                     @Override

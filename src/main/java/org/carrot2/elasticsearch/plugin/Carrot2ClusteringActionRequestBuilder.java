@@ -8,21 +8,21 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.internal.InternalClient;
 
 /* */
-public class Carrot2ClusteringRequestBuilder 
+public class Carrot2ClusteringActionRequestBuilder 
     extends ActionRequestBuilder<Carrot2ClusteringActionRequest, 
                                  Carrot2ClusteringActionResponse, 
-                                 Carrot2ClusteringRequestBuilder> {
+                                 Carrot2ClusteringActionRequestBuilder> {
 
-    public Carrot2ClusteringRequestBuilder(Client client) {
+    public Carrot2ClusteringActionRequestBuilder(Client client) {
         super((InternalClient) client, new Carrot2ClusteringActionRequest());
     }
 
-    public Carrot2ClusteringRequestBuilder setSearchRequest(SearchRequestBuilder builder) {
+    public Carrot2ClusteringActionRequestBuilder setSearchRequest(SearchRequestBuilder builder) {
         super.request.setSearchRequest(builder);
         return this;
     }
 
-    public Carrot2ClusteringRequestBuilder setSearchRequest(SearchRequest searchRequest) {
+    public Carrot2ClusteringActionRequestBuilder setSearchRequest(SearchRequest searchRequest) {
         super.request.setSearchRequest(searchRequest);
         return this;
     }

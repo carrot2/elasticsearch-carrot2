@@ -1,0 +1,19 @@
+Questions and known issues
+--------------------------
+
+- field mapping (title, url, snippet)?
+- highlighter vs. full content?
+- which algorithm to use?
+- how to pass algorithm settings?
+- resource lookup (lexical resources, licensing for Lingo3G)
+
+- add usage instructions and installation help
+
+- performance implications and performance testing (threading inside actions/ dispatched actions)? 
+
+- Should we limit or augment the search window somehow (so that the clustering takes place on, say, 100 top results,
+  but the returned list is only the top-k)? 
+  This is problematic from the technical POV (parsed SearchRequest doesn't expose the internal search request directly;
+  uri parameters get injected as extraSource); in most cases the user will need all document references anyway to link
+  them up from clusters. Leaving for now. The search query determines the number of documents (and the type of aggregation,
+  etc.) to use.

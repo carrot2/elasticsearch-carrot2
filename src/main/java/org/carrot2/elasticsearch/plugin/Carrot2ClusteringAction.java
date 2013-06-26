@@ -6,7 +6,7 @@ import org.elasticsearch.client.Client;
 public class Carrot2ClusteringAction 
     extends Action<Carrot2ClusteringActionRequest, 
                    Carrot2ClusteringActionResponse, 
-                   Carrot2ClusteringRequestBuilder> {
+                   Carrot2ClusteringActionRequestBuilder> {
 
     public static final String NAME = "misc/carrot2";
     public static final Carrot2ClusteringAction INSTANCE = new Carrot2ClusteringAction();
@@ -16,8 +16,8 @@ public class Carrot2ClusteringAction
     }
 
     @Override
-    public Carrot2ClusteringRequestBuilder newRequestBuilder(Client client) {
-        return new Carrot2ClusteringRequestBuilder(client);
+    public Carrot2ClusteringActionRequestBuilder newRequestBuilder(Client client) {
+        return new Carrot2ClusteringActionRequestBuilder(client);
     }
 
     @Override

@@ -9,6 +9,10 @@ Carrot Search can be used for actual clustering implementation.
 In order to install the plugin, simply run: 
 `bin/plugin -install carrot2/elasticsearch-carrot2/master`.
 
+
+Versions and compatibility
+--------------------------
+
     ----------------------------------------------
     | Thrift Plugin | Elasticsearch    | Carrot2 |
     ----------------------------------------------
@@ -19,6 +23,5 @@ In order to install the plugin, simply run:
 License
 -------
 
-    This software is licensed under the Apache 2 license. Full text
-    of the license is in the repository 
-    (`elasticsearch-carrot2.LICENSE`).
+This software is licensed under the Apache 2 license. Full text
+of the license is in the repository (`elasticsearch-carrot2.LICENSE`).
