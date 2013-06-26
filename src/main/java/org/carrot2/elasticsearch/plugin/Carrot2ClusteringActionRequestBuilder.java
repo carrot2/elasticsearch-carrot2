@@ -26,6 +26,24 @@ public class Carrot2ClusteringActionRequestBuilder
         super.request.setSearchRequest(searchRequest);
         return this;
     }
+    
+    public Carrot2ClusteringActionRequestBuilder setQueryHint(String queryHint) {
+        if (queryHint == null) {
+            throw new IllegalArgumentException("Query hint may be empty but must not be null.");
+        }
+        super.request.setQueryHint(queryHint);
+        return this;
+    }
+    
+    public Carrot2ClusteringActionRequestBuilder addFieldMapping(String fieldName, LogicalField logicalField) {
+        super.request.addFieldTo(fieldName, logicalField);
+        return this;
+    }
+
+    public Carrot2ClusteringActionRequestBuilder addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
+        super.request.addHighlightFieldTo(fieldName, logicalField);
+        return this;
+    }
 
     @Override
     protected void doExecute(

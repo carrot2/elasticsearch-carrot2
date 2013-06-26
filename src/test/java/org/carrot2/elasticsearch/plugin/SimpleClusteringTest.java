@@ -36,6 +36,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.internal.InternalNode;
 import org.elasticsearch.transport.TransportService;
+import org.fest.assertions.api.Assertions;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -123,23 +124,30 @@ public class SimpleClusteringTest {
 
     @Test
     public void testClusteringViaApi() throws Exception {
-        // TODO: parameterize this to use local/transport client.
-        // TODO: add REST api tests.
-
-        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(transportClient)
+        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(localClient)
+            .setQueryHint("data mining")
+            .addFieldMapping("title", LogicalField.TITLE)
+            .addHighlightedFieldMapping("content", LogicalField.CONTENT)
             .setSearchRequest(
                     node.client()
                     .prepareSearch("test")
+                    .setSize(100)
                     .setTypes("test")
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
-                    .addHighlightedField("content")
-                    .addHighlightedField("title"))
-            .execute().actionGet(); 
+                    .addField("title")
+                    .setHighlighterPreTags("")
+                    .setHighlighterPostTags("")
+                    .addHighlightedField("content"))
+            .execute().actionGet();
 
         System.out.println(result);
+        
+        Assertions.assertThat(result.getClusters())
+            .isNotNull()
+            .isNotEmpty();
     }
 
-    @Test
+    //@Test
     public void testClusteringViaRest_GetViaUriParams() throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
@@ -174,7 +182,7 @@ public class SimpleClusteringTest {
         };
     }
 
-    @Test(dataProvider = "postJsonResources")
+    //@Test(dataProvider = "postJsonResources")
     public void testClusteringViaRest_Post(String queryJsonResource) throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
