@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch.plugin;
 
+import org.carrot2.core.Controller;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
@@ -16,20 +17,22 @@ public class TransportCarrot2ClusteringAction
                             Carrot2ClusteringActionResponse> {
 
     private final TransportSearchAction searchAction;
+    private final ControllerSingleton controllerSingleton;
 
     @Inject
     protected TransportCarrot2ClusteringAction(Settings settings, ThreadPool threadPool,
             TransportService transportService,
-            TransportSearchAction searchAction) {
+            TransportSearchAction searchAction,
+            ControllerSingleton controllerSingleton) {
         super(settings, threadPool);
         this.searchAction = searchAction;
+        this.controllerSingleton = controllerSingleton;
         transportService.registerHandler(Carrot2ClusteringAction.NAME, new TransportHandler());
     }
 
     @Override
     protected void doExecute(Carrot2ClusteringActionRequest request,
                              final ActionListener<Carrot2ClusteringActionResponse> listener) {
-        
         searchAction.execute(request.getSearchRequest(), new ActionListener<SearchResponse>() {
             @Override
             public void onFailure(Throwable e) {
@@ -38,6 +41,11 @@ public class TransportCarrot2ClusteringAction
 
             @Override
             public void onResponse(SearchResponse response) {
+                Controller controller = controllerSingleton.getController();
+
+                // TODO: pick fields, cluster.
+                controller.getStatistics();
+
                 listener.onResponse(new Carrot2ClusteringActionResponse(response));
             }
         });

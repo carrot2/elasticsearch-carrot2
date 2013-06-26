@@ -9,13 +9,14 @@ import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugins.AbstractPlugin;
+import org.elasticsearch.rest.RestModule;
 
 /** */
 public class Carrot2Plugin extends AbstractPlugin {
-    private final Settings settings;
+    private final boolean moduleEnabled;
 
     public Carrot2Plugin(Settings settings) {
-        this.settings = settings;
+        this.moduleEnabled = settings.getAsBoolean("carrot2.enabled", true);
     }
 
     @Override
@@ -28,16 +29,26 @@ public class Carrot2Plugin extends AbstractPlugin {
         return "Provides search results clustering via the Carrot2 framework";
     }
 
+    /* Invoked on component assembly. */
     public void onModule(ActionModule actionModule) {
-        actionModule.registerAction(
-                Carrot2ClusteringAction.INSTANCE, 
-                TransportCarrot2ClusteringAction.class);
+        if (moduleEnabled) {
+            actionModule.registerAction(
+                    Carrot2ClusteringAction.INSTANCE, 
+                    TransportCarrot2ClusteringAction.class);
+        }
     } 
+
+    /* Invoked on component assembly. */
+    public void onModule(RestModule restModule) {
+        if (moduleEnabled) {
+            restModule.addRestAction(RestCarrot2ClusteringAction.class);
+        }
+    }
 
     @Override
     public Collection<Class<? extends Module>> modules() {
         Collection<Class<? extends Module>> modules = newArrayList();
-        if (settings.getAsBoolean("carrot2.enabled", true)) {
+        if (moduleEnabled) {
             modules.add(Carrot2Module.class);
         }
         return modules;
@@ -47,7 +58,7 @@ public class Carrot2Plugin extends AbstractPlugin {
     @Override
     public Collection<Class<? extends LifecycleComponent>> services() {
         Collection<Class<? extends LifecycleComponent>> services = newArrayList();
-        if (settings.getAsBoolean("carrot2.enabled", true)) {
+        if (moduleEnabled) {
             services.add(ControllerSingleton.class);
         }
         return services;

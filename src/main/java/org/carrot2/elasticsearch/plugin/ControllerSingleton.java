@@ -34,8 +34,12 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
             controller.init(c2SettingsAsMap);
         } catch (Exception e) {
             throw new ElasticSearchException(
-                    "Could not start Carrot2 controller.", e);
+                    "Could not start Carrot2 Controller.", e);
         }
+    }
+
+    public Controller getController() {
+        return controller;
     }
 
     @Override
