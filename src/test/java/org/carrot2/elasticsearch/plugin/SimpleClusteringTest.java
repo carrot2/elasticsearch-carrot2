@@ -124,7 +124,7 @@ public class SimpleClusteringTest {
 
     @Test
     public void testClusteringViaApi() throws Exception {
-        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(localClient)
+        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(transportClient)
             .setQueryHint("data mining")
             .addFieldMapping("title", LogicalField.TITLE)
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)

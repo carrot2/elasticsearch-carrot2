@@ -1,8 +1,10 @@
 Questions and known issues
 --------------------------
 
-- field mapping (title, url, snippet)?
-- highlighter vs. full content?
+- add binary serialization of List<Cluster> so that transportClient works (perhaps introduce a 'mirror' class?)
+- add real tests for localClient and transportClient.
+
+- REST and field mapping (title, url, snippet)?
 - which algorithm to use?
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
