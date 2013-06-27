@@ -1,11 +1,11 @@
 Questions and known issues
 --------------------------
 
-- add usage instructions and installation help
+- add simple demo, usage instructions and help (to the plugin's _site).
 
 - check for error resilience and propagation (invalid query request, for example).
 
-- which algorithm to use?
+- configurable algorithms.
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
 
