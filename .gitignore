@@ -1,5 +1,6 @@
 /target
 .DS_Store
+.idea
 /.project
 /.classpath
 /.settings

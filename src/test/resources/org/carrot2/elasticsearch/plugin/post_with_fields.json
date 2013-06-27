@@ -5,7 +5,8 @@
             "match" : {
               "_all" : "data mining" 
             }
-        }
+        },
+        "size": 100
     },
 
     "query_hint": "data mining",
