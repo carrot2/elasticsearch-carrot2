@@ -5,11 +5,11 @@ import java.util.Map;
 import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
-import org.testng.collections.Maps;
 
 /**
  * Holds the {@link Controller} singleton initialized and ready throughout

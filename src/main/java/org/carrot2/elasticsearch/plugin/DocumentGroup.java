@@ -3,14 +3,13 @@ package org.carrot2.elasticsearch.plugin;
 import java.io.IOException;
 
 import org.carrot2.core.Cluster;
+import org.elasticsearch.common.base.Preconditions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-
-import com.google.common.base.Preconditions;
 
 /**
  * A {@link DocumentGroup} acts as an adapter over {@link Cluster}, providing additional
