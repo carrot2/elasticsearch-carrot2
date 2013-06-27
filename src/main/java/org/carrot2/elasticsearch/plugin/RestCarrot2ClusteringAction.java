@@ -5,17 +5,20 @@ import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
 
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.base.Function;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
@@ -31,11 +34,6 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
      * Action name suffix.
      */
     public static String NAME = "_search_with_clusters";
-    
-    /**
-     * {@link RestSearchAction} parsing to {@link SearchRequest} encapsulation. 
-     */
-    private final Function<RestRequest, SearchRequest> searchRequestParser;
 
     @Inject
     public RestCarrot2ClusteringAction(
@@ -44,37 +42,6 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             RestController controller,
             final RestSearchAction restSearchAction) {
         super(settings, client);
-
-        /*
-         * We don't want to copy-paste and replicate the complexity of search request
-         * parsing present in {@link RestSearchAction} so we delegate this parsing
-         * via reflection. If something goes wrong (security manager, an API change, 
-         * or something else) we just bail out.
-         */
-        try {
-            final Method parseSearchRequestMethod = restSearchAction.getClass().getDeclaredMethod(
-                    "parseSearchRequest",
-                    RestRequest.class);
-            parseSearchRequestMethod.setAccessible(true);
-            searchRequestParser = new Function<RestRequest, SearchRequest>() {
-                @Override
-                public SearchRequest apply(RestRequest request) {
-                    try {
-                        return (SearchRequest) parseSearchRequestMethod.invoke(restSearchAction, request);
-                    } catch (IllegalArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
-        } catch (Exception e) {
-            throw new ElasticSearchException(
-                    "Could not initialize delegation of search request parsing to " + 
-                    restSearchAction.getClass().getName() + "#parseSearchRequest", e);
-        }
 
         controller.registerHandler( GET, "/_search_with_clusters",                this);
         controller.registerHandler(POST, "/_search_with_clusters",                this);
@@ -86,40 +53,118 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
 
     @Override
     public void handleRequest(final RestRequest request, final RestChannel channel) {
-        SearchRequest searchRequest = searchRequestParser.apply(request);
+        // TODO: delegate json parsing to Carrot2ClusteringAction.
+        Carrot2ClusteringActionRequest actionRequest = new Carrot2ClusteringActionRequest();
+        if (request.hasContent()) {
+            fillFromSource(actionRequest, request.content());
+        } else {
+            try {
+                channel.sendResponse(new XContentThrowableRestResponse(request, new RuntimeException("Body-less request unsupported.")));
+            } catch (IOException e) {
+                logger.error("Failed to send failure response", e);
+            }
+        }
 
-        // TODO: build a C2clustering request and dispatch.
-        new Carrot2ClusteringActionRequestBuilder(client)
-                .setSearchRequest(searchRequest)
-                .execute(new ActionListener<Carrot2ClusteringActionResponse>() {
-                    @Override
-                    public void onResponse(Carrot2ClusteringActionResponse response) {
-                        try {
-                            XContentBuilder builder = restContentBuilder(request);
-                            builder.startObject();
-                            response.toXContent(builder, request);
-                            builder.endObject();
-                            channel.sendResponse(
-                                    new XContentRestResponse(
-                                            request, 
-                                            response.getSearchResponse().status(), 
-                                            builder));
-                        } catch (Exception e) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("failed to execute search (building response)", e);
-                            }
-                            onFailure(e);
+        // TODO: parse and fill in request parameters (search, clustering).
+
+        // Build a clustering request and dispatch.
+        client.execute(Carrot2ClusteringAction.INSTANCE, actionRequest, 
+            new ActionListener<Carrot2ClusteringActionResponse>() {
+            @Override
+            public void onResponse(Carrot2ClusteringActionResponse response) {
+                try {
+                    XContentBuilder builder = restContentBuilder(request);
+                    builder.startObject();
+                    response.toXContent(builder, request);
+                    builder.endObject();
+                    channel.sendResponse(
+                            new XContentRestResponse(
+                                    request, 
+                                    response.getSearchResponse().status(), 
+                                    builder));
+                } catch (Exception e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("failed to execute search (building response)", e);
+                    }
+                    onFailure(e);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                try {
+                    channel.sendResponse(new XContentThrowableRestResponse(request, e));
+                } catch (IOException e1) {
+                    logger.error("Failed to send failure response", e1);
+                }
+            }
+        });
+    }
+
+    /**
+     * Parse the clustering/ search request JSON.
+     */
+    @SuppressWarnings("unchecked")
+    private void fillFromSource(
+            Carrot2ClusteringActionRequest actionRequest,
+            BytesReference source) {
+        if (source == null || source.length() == 0) {
+            return;
+        }
+
+        XContentParser parser = null;
+        try {
+            // TODO: we should avoid reparsing here but it's terribly difficult to slice
+            // the underlying byte buffer to get just the search request.
+
+            parser = XContentFactory.xContent(source).createParser(source);
+            Map<String, Object> asMap = parser.mapOrderedAndClose();
+
+            if (asMap.get("query_hint") != null) {
+                actionRequest.setQueryHint((String) asMap.get("query_hint"));
+            }
+            if (asMap.containsKey("field_mapping")) {
+                parseFieldSpecs(actionRequest, (Map<String,List<String>>) asMap.get("field_mapping"));
+            }
+            if (asMap.containsKey("search_request")) {
+                actionRequest.setSearchRequest(
+                        new SearchRequest().source((Map<?,?>) asMap.get("search_request")));
+            }
+        } catch (Exception e) {
+            String sSource = "_na_";
+            try {
+                sSource = XContentHelper.convertToJson(source, false);
+            } catch (Throwable e1) {
+                // ignore
+            }
+            throw new ElasticSearchException("Failed to parse source [" + sSource + "]", e);
+        } finally {
+            if (parser != null) {
+                parser.close();
+            }
+        }        
+    }
+
+    private void parseFieldSpecs(Carrot2ClusteringActionRequest actionRequest,
+            Map<String, List<String>> fieldSpecs) {
+        for (Map.Entry<String,List<String>> e : fieldSpecs.entrySet()) {
+            LogicalField logicalField = LogicalField.valueOfCaseInsensitive(e.getKey());
+            if (logicalField != null) {
+                for (String fieldSpec : e.getValue()) {
+                    if (fieldSpec.startsWith("highlight.")) {
+                        String fieldName = fieldSpec.substring("highlight.".length());
+                        actionRequest.addHighlightFieldTo(fieldName, logicalField);
+                    } else {
+                        if (fieldSpec.startsWith("fields.")) {
+                            String fieldName = fieldSpec.substring("fields.".length());
+                            actionRequest.addFieldTo(fieldName, logicalField);
+                        } else {
+                            throw new ElasticSearchException("Field mapping specification must contain a " +
+                            		" [highlight.] or [fields.] prefix for the field source: " + fieldSpec);
                         }
                     }
-
-                    @Override
-                    public void onFailure(Throwable e) {
-                        try {
-                            channel.sendResponse(new XContentThrowableRestResponse(request, e));
-                        } catch (IOException e1) {
-                            logger.error("Failed to send failure response", e1);
-                        }
-                    }
-                });
+                }
+            }
+        }
     }
 }

@@ -1,15 +1,17 @@
 Questions and known issues
 --------------------------
 
-- add binary serialization of List<Cluster> so that transportClient works (perhaps introduce a 'mirror' class?)
-- add real tests for localClient and transportClient.
-
 - REST and field mapping (title, url, snippet)?
+
+- add usage instructions and installation help
+
+- check for error resilience and propagation (invalid query request, for example).
+
 - which algorithm to use?
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
 
-- add usage instructions and installation help
+- add a test case with yaml body (or other xcontent)
 
 - performance implications and performance testing (threading inside actions/ dispatched actions)? 
 
