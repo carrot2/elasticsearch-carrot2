@@ -1,8 +1,6 @@
 Questions and known issues
 --------------------------
 
-- REST and field mapping (title, url, snippet)?
-
 - add usage instructions and installation help
 
 - check for error resilience and propagation (invalid query request, for example).
@@ -14,6 +12,8 @@ Questions and known issues
 - add a test case with yaml body (or other xcontent)
 
 - performance implications and performance testing (threading inside actions/ dispatched actions)? 
+
+- add/move source() parsing from REST to the request builder/object.
 
 - Should we limit or augment the search window somehow (so that the clustering takes place on, say, 100 top results,
   but the returned list is only the top-k)? 
