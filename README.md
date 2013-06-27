@@ -21,7 +21,7 @@ Usage guide
 -----------
 
 Once installed, restart ElasticSearch and point your browser to:
-http://localhost:9200/_plugin/elasticsearch-carrot2/index.html
+<http://localhost:9200/_plugin/elasticsearch-carrot2/index.html>
 (or wherever your ES node is deployed). That file contains
 some sample data and query examples.
 
@@ -40,4 +40,4 @@ License
 -------
 
 This software is licensed under the Apache 2 license. Full text
-of the license is in the repository (`elasticsearch-carrot2.LICENSE`).
+of the license is in the repository (`elasticsearch-carrot2.LICENSE`). 
