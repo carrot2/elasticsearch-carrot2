@@ -6,8 +6,24 @@ to an ElasticSearch node. Clustering algorithms from the Carrot2
 project (open source) or proprietary Lingo3G algorithm from
 Carrot Search can be used for actual clustering implementation.
 
-In order to install the plugin, simply run: 
-`bin/plugin -install carrot2/elasticsearch-carrot2/master`.
+Installation
+------------
+
+In order to install the plugin, run: 
+    
+    mvn clean package
+    
+and copy the file from `target/releases/*.zip` into ElasticSearch's
+`plugins/elasticsearch-carrot2` folder. This is the only way of
+installing the plugin until a proper release is made to Maven Central.
+
+Usage guide
+-----------
+
+Once installed, restart ElasticSearch and point your browser to:
+http://localhost:9200/_plugin/elasticsearch-carrot2/index.html
+(or wherever your ES node is deployed). That file contains
+some sample data and query examples.
 
 
 Versions and compatibility
