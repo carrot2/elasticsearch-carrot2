@@ -61,10 +61,10 @@ public class DocumentGroup implements ToXContent, Streamable {
     }
     
     public void setScore(Double score) {
-        this.score = score;
+        this.score = (score == null ? 0 : score);
     }
     
-    public Double getScore() {
+    public double getScore() {
         return score;
     }
 
@@ -132,11 +132,13 @@ public class DocumentGroup implements ToXContent, Streamable {
 
         builder.array("documents", documentReferences);
 
-        builder.startArray("clusters");
-        for (DocumentGroup group : subgroups) {
-            group.toXContent(builder, params);
+        if (subgroups.length > 0) {
+            builder.startArray("clusters");
+            for (DocumentGroup group : subgroups) {
+                group.toXContent(builder, params);
+            }
+            builder.endArray();
         }
-        builder.endArray();
 
         builder.endObject();
         return builder;
