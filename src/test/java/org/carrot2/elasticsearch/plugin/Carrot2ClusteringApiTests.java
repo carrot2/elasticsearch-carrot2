@@ -280,7 +280,10 @@ public class Carrot2ClusteringApiTests {
         Assertions.assertThat(clusterList)
             .isNotNull()
             .isNotEmpty();
-    
+
+        Assertions.assertThat(clusterList.size())
+            .isGreaterThan(5);
+
         return map;
     }
 

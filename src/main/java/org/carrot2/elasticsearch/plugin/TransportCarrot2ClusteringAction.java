@@ -1,9 +1,5 @@
 package org.carrot2.elasticsearch.plugin;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
@@ -14,6 +10,8 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
+import org.elasticsearch.common.base.Joiner;
+import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
@@ -25,7 +23,9 @@ import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
 
-import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class TransportCarrot2ClusteringAction  
     extends TransportAction<Carrot2ClusteringActionRequest,
@@ -122,6 +122,7 @@ public class TransportCarrot2ClusteringAction
         StringBuilder title = new StringBuilder();
         StringBuilder content = new StringBuilder();
         StringBuilder url = new StringBuilder();
+        Joiner joiner = Joiner.on(" . ");
 
         for (SearchHit hit : hits) {
             // Prepare logical fields for each hit.
@@ -134,11 +135,17 @@ public class TransportCarrot2ClusteringAction
 
             for (FieldMappingSpec spec : fieldMapping) {
                 // Determine the content source.
-                Object appendContent;
+                Object appendContent = null;
                 if (spec.source == FieldSource.FIELD) {
-                    appendContent = fields.get(spec.field);
+                    SearchHitField searchHitField = fields.get(spec.field);
+                    if (searchHitField != null) {
+                        appendContent = searchHitField.getValue();
+                    }
                 } else {
-                    appendContent = highlightFields.get(spec.field);
+                    HighlightField highlightField = highlightFields.get(spec.field);
+                    if (highlightField != null) {
+                        appendContent = joiner.join(highlightField.fragments());
+                    }
                 }
 
                 // Determine the target field.
@@ -160,13 +167,15 @@ public class TransportCarrot2ClusteringAction
                     }
 
                     // Separate multiple fields with a single dot (prevent accidental phrase gluing).
-                    if (target.length() > 0) {
-                        target.append(" . ");
+                    if (appendContent != null) {
+                        if (target.length() > 0) {
+                            target.append(" . ");
+                        }
+                        target.append(appendContent);
                     }
-                    target.append(appendContent.toString());
                 }
             }
-
+            
             Document doc = new Document(
                     title.toString(),
                     content.toString(),
