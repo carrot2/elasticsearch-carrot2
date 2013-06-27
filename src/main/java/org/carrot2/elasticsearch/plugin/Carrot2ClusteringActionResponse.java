@@ -1,10 +1,7 @@
 package org.carrot2.elasticsearch.plugin;
 
 import java.io.IOException;
-import java.util.List;
 
-import org.carrot2.core.Cluster;
-import org.carrot2.core.Document;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.base.Preconditions;
@@ -23,23 +20,22 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
     }
 
     private SearchResponse searchResponse;
-    private List<Cluster> clusters;
+    private DocumentGroup [] topGroups;
 
     Carrot2ClusteringActionResponse() {
     }
 
-    public Carrot2ClusteringActionResponse(SearchResponse searchResponse, 
-            List<Cluster> clusters) {
+    public Carrot2ClusteringActionResponse(SearchResponse searchResponse, DocumentGroup[] topGroups) {
         this.searchResponse = Preconditions.checkNotNull(searchResponse);
-        this.clusters = Preconditions.checkNotNull(clusters);
+        this.topGroups = Preconditions.checkNotNull(topGroups);
     }
 
     public SearchResponse getSearchResponse() {
         return searchResponse;
     }
 
-    public List<Cluster> getClusters() {
-        return clusters;
+    public DocumentGroup[] getDocumentGroups() {
+        return topGroups;
     }
 
     @Override
@@ -50,42 +46,13 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
         }
 
         builder.startArray(Fields.CLUSTERS);
-        if (clusters != null) {
-            appendToXContent(builder, clusters);
+        if (topGroups != null) {
+            for (DocumentGroup group : topGroups) {
+                group.toXContent(builder, params);
+            }
         }
         builder.endArray();
         return builder;
-    }
-
-    private void appendToXContent(XContentBuilder builder, List<Cluster> clusters) throws IOException {
-        for (Cluster c : clusters) {
-            builder.startObject();
-            builder.field("id", c.getId());
-            builder.field("label", c.getLabel());
-            builder.field("score", c.getScore());
-            builder.array("phrases", c.getPhrases().toArray(new String [c.getPhrases().size()]));
-            if (c.isOtherTopics()) {
-                builder.field("other_topics", true);
-            }
-
-            List<Document> docs = c.getDocuments();
-            builder.startArray("documents");
-            for (Document doc : docs) {
-                builder.startObject();
-                builder.field("id", doc.getStringId());
-                builder.endObject();
-            }
-            builder.endArray();
-
-            List<Cluster> subclusters = c.getSubclusters();
-            if (subclusters != null && !subclusters.isEmpty()) {
-                builder.startArray("clusters");
-                appendToXContent(builder, subclusters);
-                builder.endArray();
-            }
-
-            builder.endObject();
-        }
     }
 
     @Override
@@ -97,8 +64,16 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
             this.searchResponse = new SearchResponse();
             this.searchResponse.readFrom(in);
         }
+
+        int documentGroupsCount = in.readVInt();
+        topGroups = new DocumentGroup [documentGroupsCount];
+        for (int i = 0; i < documentGroupsCount; i++) {
+            DocumentGroup group = new DocumentGroup();
+            group.readFrom(in);
+            topGroups[i] = group;
+        }
     }
-    
+
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
@@ -107,6 +82,13 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
         out.writeBoolean(hasSearchResponse);
         if (hasSearchResponse) {
             this.searchResponse.writeTo(out);
+        }
+
+        out.writeVInt(topGroups == null ? 0 : topGroups.length);
+        if (topGroups != null) {
+            for (DocumentGroup group : topGroups) {
+                group.writeTo(out);
+            }
         }
     }
 

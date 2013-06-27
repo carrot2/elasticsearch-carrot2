@@ -1,9 +1,11 @@
 package org.carrot2.elasticsearch.plugin;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
+import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
 import org.carrot2.core.ProcessingResult;
@@ -69,9 +71,43 @@ public class TransportCarrot2ClusteringAction
                 ProcessingResult result = 
                         controller.process(processingAttrs, LingoClusteringAlgorithm.class);
 
-                listener.onResponse(new Carrot2ClusteringActionResponse(response, result.getClusters()));
+                listener.onResponse(
+                        new Carrot2ClusteringActionResponse(response, adapt(result.getClusters())));
             }
         });
+    }
+
+    /* */
+    protected DocumentGroup[] adapt(List<Cluster> clusters) {
+        DocumentGroup [] groups = new DocumentGroup [clusters.size()];
+        for (int i = 0; i < groups.length; i++) {
+            groups[i] = adapt(clusters.get(i));
+        }
+        return groups;
+    }
+
+    /* */
+    private DocumentGroup adapt(Cluster cluster) {
+        DocumentGroup group = new DocumentGroup();
+        group.setId(cluster.getId());
+        List<String> phrases = cluster.getPhrases();
+        group.setPhrases(phrases.toArray(new String[phrases.size()]));
+        group.setLabel(cluster.getLabel());
+        group.setScore(cluster.getScore());
+        group.setOtherTopics(cluster.isOtherTopics());
+        
+        List<Document> documents = cluster.getDocuments();
+        String[] documentReferences = new String[documents.size()];
+        for (int i = 0; i < documentReferences.length; i++) {
+            documentReferences[i] = documents.get(i).getStringId();
+        }
+        group.setDocumentReferences(documentReferences);
+
+        List<Cluster> subclusters = cluster.getSubclusters();
+        subclusters = (subclusters == null ? Collections.<Cluster> emptyList() : subclusters);
+        group.setSubgroups(adapt(subclusters));
+
+        return group;
     }
 
     /**

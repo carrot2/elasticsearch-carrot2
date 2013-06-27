@@ -124,7 +124,8 @@ public class SimpleClusteringTest {
 
     @Test
     public void testClusteringViaApi() throws Exception {
-        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(transportClient)
+        Client client = transportClient;
+        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .addFieldMapping("title", LogicalField.TITLE)
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)
@@ -142,7 +143,7 @@ public class SimpleClusteringTest {
 
         System.out.println(result);
         
-        Assertions.assertThat(result.getClusters())
+        Assertions.assertThat(result.getDocumentGroups())
             .isNotNull()
             .isNotEmpty();
     }
