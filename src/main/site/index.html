@@ -4,8 +4,15 @@
     <meta charset="UTF-8" />
     <title>Carrot<sup>2</sup> search results clustering plugin for ElasticSearch</title>
 
-    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
     <link href="assets/css/prettify.css" rel="stylesheet" />
+
+    <style>
+      #foamtree, #circles {
+        color: #888;
+        height: 400px;
+      }
+    </style>
   </head>
 
   <body>
@@ -14,7 +21,7 @@
         <div class="span12">
           <div class="page-header">
             <h1>elasticsearch-carrot2</h1>
-            
+
             <p>A plugin for clustering search results in real time. Includes
             clustering algorithms from the
               <a href="http://project.carrot2.org">Carrot<sup>2</sup></a> project.</p>
@@ -22,13 +29,87 @@
         </div>
       </div>
 
-      <h2>Sample data</h2>
       <div class="row">
         <div class="span12">
-          <pre>
-          </pre>
+          <form class="form-inline">
+            <input id="query" type="text" style="width: 30em" value="data mining" />
+            <button class="btn btn-primary" id="search">Search &amp; cluster</button>
+            <span id="progress"></span>
+          </form>
+        </div>
+
+        <div id="foamtree" class="span6">
+          Loading Carrot Search FoamTree visualization...
+        </div>
+        <div id="circles" class="span6">
+          Loading Carrot Search Circles visualization...
         </div>
       </div>
+
+      <script src="assets/js/jquery-2.0.2.min.js"></script>
+      <script src="assets/js/carrotsearch.circles.html5.min.js"></script>
+      <script src="assets/js/carrotsearch.foamtree.html5.min.js"></script>
+      <script>
+        $(document).ready(function () {
+          // Initialize visualizations
+          var circles = new CarrotSearchCircles({
+            id: "circles",
+            groupOutlineColor: "#fff",
+            groupOutlineWidth: 3
+          });
+          var foamtree = new CarrotSearchFoamTree({
+            id: "foamtree",
+            backgroundColor: "#fff"
+          });
+
+          // Initiate search when form is sumitted
+          $("form").submit(function (e) {
+            e.preventDefault();
+
+            var $progress = $("#progress");
+            var query = $("#query").val();
+
+            // ES search request data
+            var request = {
+              "search_request": {
+                "fields": [ "url", "title", "content" ],
+                "query": {
+                  "match": { "_all": query }
+                },
+                "size": 100
+              },
+
+              "query_hint": query,
+              "field_mapping": {
+                "title": ["fields.title", "fields.content"]
+              }
+            };
+
+            $progress.text("loading...");
+            $.post("http://localhost:9200/test/test/_search_with_clusters",
+              JSON.stringify(request), function (result) {
+                if (result.hits.total > 0) {
+                  $progress.text("");
+                } else {
+                  $progress.text("no results found");
+                }
+
+                // Convert the results to the format required by the visualization
+                var visualizationInput = {
+                  groups: result.clusters.map(function mapper(cluster) {
+                    return {
+                      label: cluster.phrases[0],
+                      weight: cluster.documents.length,
+                      groups: (cluster.clusters || []).map(mapper)
+                    }
+                  })
+                };
+                foamtree.set("dataObject", visualizationInput);
+                circles.set("dataObject", visualizationInput);
+            })
+          });
+        });
+      </script>
     </div>
   </body>
 </html>
