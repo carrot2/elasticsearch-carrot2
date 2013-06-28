@@ -12,6 +12,20 @@
         color: #888;
         height: 400px;
       }
+
+      span.step {
+        display: inline-block;
+        margin: 10px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        background-color: rgba(0,0,0,.2);
+        color: white;
+        font-size: 20px;
+      }
+
+      .dropped {
+        margin-top: 15px;
+      }
     </style>
   </head>
 
@@ -30,16 +44,19 @@
       </div>
 
       <div class="row">
-        <div class="span12">
+        <div class="span1"><span class="step">1</span></div>
+        <div class="span11 dropped">
           <form class="form-inline" id="indexform">
             First, <button class="btn btn-primary" id="indexbtn">index sample</button>
-            documents to be clustered. Then, type in a query like:
+            documents to be clustered.
           </form>
         </div>
       </div>
 
       <div class="row">
-        <div class="span12">
+        <div class="span1"><span class="step">2</span></div>
+        <div class="span11 dropped">
+          Then, type in a query like:
           <form class="form-inline" id="searchform">
             <input id="query" type="text" style="width: 30em" value="data mining" />
             and
@@ -47,12 +64,21 @@
             <span id="progress"></span>
           </form>
         </div>
+      </div>
 
+      <div class="row">
         <div id="foamtree" class="span6">
           Loading Carrot Search FoamTree visualization...
         </div>
         <div id="circles" class="span6">
           Loading Carrot Search Circles visualization...
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 10px;">
+        <div class="span1"><span class="step">3</span></div>
+        <div class="span11 dropped">
+          Finally, check out <a href="examples.html">clustering query/response REST API</a> examples.
         </div>
       </div>
 
@@ -90,7 +116,7 @@
               $.post(url, JSON.stringify(data), function(result) {
                 $btn = $("#indexbtn");
                 if (++i < sampleData.length) {
-                  $btn.text("Indexed... " + i);
+                  $btn.text("Indexing... " + i);
                   doIndex(i);
                 } else {
                   $btn.text("[you've indexed]");
