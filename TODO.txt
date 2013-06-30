@@ -1,17 +1,29 @@
-Questions and known issues
---------------------------
+DOCS
+----
 
-- add simple demo, usage instructions and help (to the plugin's _site).
+- add a simple demo, usage instructions and help (to the plugin's _site).
 
-- check for error resilience and propagation (invalid query request, for example).
+
+FEATURES
+--------
 
 - configurable algorithms.
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
 
+
+PERFORMANCE/ ROBUSTNESS
+-----------------------
+
+- check for error resilience and propagation (invalid query request, for example).
+
 - add a test case with yaml body (or other xcontent)
 
 - performance implications and performance testing (threading inside actions/ dispatched actions)? 
+
+
+REFACTORINGS/ ITCHES
+--------------------
 
 - add/move source() parsing from REST to the request builder/object.
 

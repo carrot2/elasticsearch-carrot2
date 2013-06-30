@@ -25,6 +25,10 @@ Once installed, restart ElasticSearch and point your browser to:
 (or wherever your ES node is deployed). That file contains
 some sample data and query examples.
 
+Alternatively, the plugin's folder contains `_site/curl/` sub-folder
+which in turn contains sample `curl` scripts that inject data into
+ES and query the clustering plugin.
+
 
 Versions and compatibility
 --------------------------
@@ -40,4 +44,4 @@ License
 -------
 
 This software is licensed under the Apache 2 license. Full text
-of the license is in the repository (`elasticsearch-carrot2.LICENSE`). 
+of the license is in the repository (`elasticsearch-carrot2.LICENSE`).
