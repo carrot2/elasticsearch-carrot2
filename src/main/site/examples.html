@@ -8,6 +8,17 @@
     <link href="assets/css/prettify.css" rel="stylesheet" />
 
     <style>
+      body {
+        margin: 10px;
+      }
+
+      #reqdump {
+        background-color: #e5e5e5;
+      }
+
+      #sampleIndex {
+        display: none;
+      }
     </style>
   </head>
 
@@ -23,14 +34,43 @@
         </div>
       </div>
 
-      <div class="row">
+      <div class="row" id="sampleIndex">
         <div class="span12">
-          <div class="alert alert-info">
-            <strong>Important!</strong> The examples below
-            assume that you've indexed sample documents available <a href="index.html">here</a> (step 1).
+          <div class="alert alert-block">
+            Indexing sample docs...
+            <div class="progress progress-striped active">
+              <div class="bar" style="width: 0%;"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <script src="assets/js/jquery-2.0.2.min.js"></script>
+    <script src="assets/js/sample-data.js"></script>
+    <script>
+      $(document).ready(function () {
+        // Render the response of all the examples against a live instance.
+        function renderExamples() {
+          // TODO: render examples
+        }
+
+        // Check if we have the document index. If not, index first.
+        $.ajax({
+          url: "/test/test/1",
+          success: renderExamples,
+          error: function() {
+            $("#sampleIndex").show();
+            doIndex(function(current, total) {
+              if (current < total) {
+                $("#sampleIndex .bar").css("width", Math.round(100 * current / total) + "%");
+              } else {
+                $("#sampleIndex").slideUp(1000, renderExamples);
+              }
+            });
+          }
+        });
+      });
+    </script>
   </body>
 </html>
