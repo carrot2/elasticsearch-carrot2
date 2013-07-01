@@ -3,7 +3,8 @@ DOCS
 
 - add highlighter field mapping example (and rationale)
 - add GET request example
-
+- add algorithm picking example
+- add algorithm attributes example
 
 BUGS/ TESTS
 -----------
