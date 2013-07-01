@@ -1,16 +1,14 @@
+
 DOCS
 ----
 
 - add highlighter field mapping example (and rationale)
-- add GET request example
 - add algorithm picking example
 - add algorithm attributes example
 - document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
 
 BUGS/ TESTS
 -----------
-
-- support for GET queries
 
 FEATURES
 --------

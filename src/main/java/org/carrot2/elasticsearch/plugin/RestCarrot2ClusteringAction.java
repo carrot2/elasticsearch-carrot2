@@ -1,6 +1,5 @@
 package org.carrot2.elasticsearch.plugin;
 
-import static org.elasticsearch.rest.RestRequest.Method.GET;
 import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
@@ -44,11 +43,8 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             final RestSearchAction restSearchAction) {
         super(settings, client);
 
-        controller.registerHandler( GET, "/_search_with_clusters",                this);
         controller.registerHandler(POST, "/_search_with_clusters",                this);
-        controller.registerHandler( GET, "/{index}/_search_with_clusters",        this);
         controller.registerHandler(POST, "/{index}/_search_with_clusters",        this);
-        controller.registerHandler( GET, "/{index}/{type}/_search_with_clusters", this);
         controller.registerHandler(POST, "/{index}/{type}/_search_with_clusters", this);
     }
 
@@ -60,7 +56,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             fillFromSource(request, actionRequest, request.content());
         } else {
             try {
-                channel.sendResponse(new XContentThrowableRestResponse(request, new RuntimeException("Body-less request unsupported.")));
+                channel.sendResponse(new XContentThrowableRestResponse(request, new RuntimeException("Request body was expected.")));
             } catch (IOException e) {
                 logger.error("Failed to send failure response", e);
             }

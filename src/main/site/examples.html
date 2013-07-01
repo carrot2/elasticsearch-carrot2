@@ -81,13 +81,9 @@
               <a target="_blank" href="http://search.carrot2.org/stable/search?query=elasticsearch&amp;results=200&amp;view=foamtree">Carrot<sup>2</sup>
               demo page</a> to glimpse at how this can be used in practice.</p>
 
-            <p>Each document passed for clustering is composed of three logical parts: the document's identifier,
-              its title and the main content. Only the identifier field is mandatory, the title and content are optional but
-              at least one of them will be required to make the clustering process reasonable.</p>
-
-            <p>Documents indexed in ElasticSearch do not have to follow any predefined schema so actual fields
-              of a JSON document need to be mapped to the logical layout required by the clustering plugin. An example
-              mapping can look as illustrated below.</p>
+            <p>Each document passed for clustering is composed of several logical parts: the document's identifier,
+              its origin URL, title and the main content. Only the identifier field is mandatory, everything else is optional but
+              at least one of these fields will be required to make the clustering process reasonable.</p>
           </div>
           <div class="span4">
             <div class="alert alert-danger">
@@ -100,6 +96,10 @@
         </div>
         <div class="row">
           <div class="span12">
+            <p>Documents indexed in ElasticSearch do not have to follow any predefined schema so actual fields
+              of a JSON document need to be mapped to the logical layout required by the clustering plugin. An example
+              mapping can look as illustrated below.</p>
+
             <p class="text-center"><img src="assets/img/mapping.png" alt="Logical field mapping" width="500" /></p>
 
             <p>Note that two document fields are mapped to the title. This is not an error, any number of fields can
