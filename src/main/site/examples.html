@@ -16,20 +16,46 @@
         background-color: #e5e5e5;
       }
 
-      #sampleIndex {
+      #sampleIndex, #noes {
         display: none;
+      }
+
+      pre.example, pre.result {
+        height: auto;
+        max-height: 300px;
+        overflow: auto;
+      }
+
+      pre + div.executable-buttons {
+        margin-top: -10px;
+        margin-bottom: 20px;
+      }
+
+      @media print {
+        .executable-buttons {
+          display: none;
+        }
       }
     </style>
   </head>
 
   <body>
     <div class="container">
+      <div class="row" id="noes">
+        <div class="span12">
+          <div class="alert alert-error">
+            <i class="icon-exclamation-sign"></i> <strong>ElasticSearch instance cannot be reached.</strong>
+            This manual requires a running instance of ES to render outputs.
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <div class="span12">
           <div class="page-header">
             <h1>elasticsearch-carrot2</h1>
 
-            <p>REST API examples, step by step.</p>
+            <p>A longer description, API examples, etc.</p>
           </div>
         </div>
       </div>
@@ -44,30 +70,272 @@
           </div>
         </div>
       </div>
+
+      <section>
+        <div class="page-header" id="prereq"><h3>Preliminary concepts</h3></div>
+        <div class="row">
+          <div class="span8">
+            <p>The clustering plugin attempts to automatically group together similar &quot;documents&quot; and
+              assign human-readable labels to these groups. The clusters can be thought-of as &quot;dynamic facets&quot;
+              generated for each unique query and set of search result hits. Take a look at the
+              <a target="_blank" href="http://search.carrot2.org/stable/search?query=elasticsearch&amp;results=200&amp;view=foamtree">Carrot<sup>2</sup>
+              demo page</a> to glimpse at how this can be used in practice.</p>
+
+            <p>Each document passed for clustering is composed of three logical parts: the document's identifier,
+              its title and the main content. Only the identifier field is mandatory, the title and content are optional but
+              at least one of them will be required to make the clustering process reasonable.</p>
+
+            <p>Documents indexed in ElasticSearch do not have to follow any predefined schema so actual fields
+              of a JSON document need to be mapped to the logical layout required by the clustering plugin. An example
+              mapping can look as illustrated below.</p>
+          </div>
+          <div class="span4">
+            <div class="alert alert-danger">
+              <strong>Important!</strong>
+              <p>Read this section first, it contains important
+              information about clustering which will help understand what's going on behind
+              the scenes.</p>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span12">
+            <p class="text-center"><img src="assets/img/mapping.png" alt="Logical field mapping" width="500" /></p>
+
+            <p>Note that two document fields are mapped to the title. This is not an error, any number of fields can
+              be mapped to either the title or the content—the content of those fields
+              will be concatenated and used for clustering.</p>
+
+            <p>The logical fields can also be filled with generated content, for example by applying the
+              <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/">highlighter</a> to
+              the document's fields. This can be useful to decrease the amount of text passed to the clustering
+              algorithm (improves performance) or to make the clustered content more query-specific (this typically
+              clusters better). REST examples below demonstrate the API for field mapping in details.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="page-header"><h3>Java API</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The Java API for clustering search results is fully functional and works the magic behind
+            all REST requests described in the subsequent part of this document. For API examples, see
+            the source code of the plugin at <a href="https://github.com/carrot2/elasticsearch-carrot2">github</a>,
+            especially the unit and integration tests.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="page-header"><h3>REST access URIs</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The clustering plugin binds itself to the following URI schemes (<code>GET</code> or <code>POST</code>):</p>
+            <ul>
+              <li><code>/_search_with_clusters</code></li>
+              <li><code>/{index}/_search_with_clusters</code></li>
+              <li><code>/{index}/{type}/_search_with_clusters</code></li>
+            </ul>
+
+            <p>The <code>index</code> and <code>type</code> URI segments implicitly bind the search request part of the
+              message to a given index and document type, exactly as in the
+              <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
+          </div>
+        </div>
+
+        <div class="page-header"><h3>POST request and response</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>A clustering request is a JSON document composed of a few sections:</p>
+            <dl class="dl-horizontal">
+              <dt><code>search_request</code></dt>
+              <dd><span class="badge badge-info">required</span>
+                The search request to fetch documents to be clustered. This section follows <strong>exactly</strong>
+                what <a href="http://www.elasticsearch.org/guide/reference/api/search/">the search DSL</a> specifies,
+                including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.
+              </dd>
+
+              <dt><code>query_hint</code></dt>
+              <dd><span class="badge badge-info">required</span>
+                This is a string attribute specifying query terms which were used to fetch the matching documents.
+                This hint helps the clustering algorithm to avoid trivial clusters around the query terms. Typically the query
+                terms hint will be identical to what the user typed in the search box. If possible, it should be pruned
+                from any boolean or search-engine specific operators which could affect the clustering process. The query
+                hint is obligatory but may be an empty string.
+              </dd>
+
+              <dt><code>field_mapping</code></dt>
+              <dd><span class="badge badge-info">required</span>
+                Defines how to map actual fields of the documents matching the <code>search_request</code> to
+                logical fields of the documents to be clustered. The value is an array of field source specifications,
+                where all values defined by these specifications are concatenated to form a logical field.
+                <p>A field source specifies whether the value is taken from the document's fields or from the highlighter's
+                output. The syntax is, correspondingly: <code>fields.{fieldname}</code> for the field source (stored field
+                or field reparsed from source document) and <code>highlight.{fieldname}</code> for the highlighter
+                output's value. The highlighter output must also be configured properly in the search request.</p>
+              </dd>
+            </dl>
+
+            <div class="alert alert-danger">
+              <p><strong>Very important</strong></p>
+              <p>Clustering requires at least a few dozen documents (hits) in order to make
+                sense. The clustering plugin clusters search results <strong>only</strong> (it does not look in the index, it does not
+                fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
+                fetch window to be at least 100 documents.
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span12">
+            <p>An example clustering request and response for our
+            <a target="_blank" href="/test/test/1?pretty=true">sample documents</a> can look as shown below.</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "fields": [ "title", "content" ],
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title": ["fields.title"],
+    "content": ["fields.content"]
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#simple-request-result").text(JSON.stringify(response, false, "  "));
+});
+            </pre>
+          </div>
+          <div class="span6">
+            <pre class="result" id="simple-request-result"></pre>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span12">
+            <p>The response format is identical to a plain search request response, but includes an extra field <code>clusters</code>.
+            This field is an array with top-level groups (clusters). Each cluster is an object of the following
+            structure:</p>
+            <pre class="linenums prettyprint">{
+  "id": /* cluster identifier */,
+  "score": /* numeric score */,
+  "label": /* primary cluster label */,
+  "other_topics": /* if present, and true, this cluster groups
+                     unrelated documents (no related topics) */,
+  "phrases": [
+    /* cluster label array, will include primary. */
+  ],
+  "documents": [
+    /* document ID references */
+  ],
+  "clusters": [
+    /* optional subclusters */
+  ]
+}</pre>
+            <p>We could, therefore, dump all top-level cluster labels to the console with the following
+              javascript code:</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title": ["fields.title"],
+    "content": ["fields.content"]
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#cluster-list-result").text("");
+  response.clusters.forEach(function(cluster) {
+    $("#cluster-list-result").append(
+      cluster.id
+        + " => " + cluster.label
+        + " [" + cluster.documents.length
+        + " documents]"
+        + "\n");
+  });
+});
+            </pre>
+          </div>
+          <div class="span6">
+            <pre class="result" id="cluster-list-result"></pre>
+          </div>
+        </div>
+      </section>
     </div>
 
     <script src="assets/js/jquery-2.0.2.min.js"></script>
     <script src="assets/js/sample-data.js"></script>
+    <script src="assets/js/prettify.js"></script>
     <script>
       $(document).ready(function () {
         // Render the response of all the examples against a live instance.
         function renderExamples() {
-          // TODO: render examples
+          $("pre.executable").after(function() {
+            var code = $(this).text();
+
+            var $button = $('<button class="btn btn-mini btn-info runs-example" type="button">Execute</button>').on("click", function() {
+              if ($button.hasClass("disabled")) return;
+              eval.call(null, code);
+            });
+
+            var $buttonline = $('<div class="executable-buttons"></div>').append($button);
+            return $buttonline;
+          });
+
+          // Configure pretty printed listings.
+          $("pre.example").each(function(i,e) {
+            e = $(e);
+            $(e).text($(e).text().trim());
+            e.addClass("linenums prettyprint")
+          });
+          prettyPrint();
+
+          // Run all examples.
+          $(".runs-example").click();
         }
 
         // Check if we have the document index. If not, index first.
         $.ajax({
-          url: "/test/test/1",
-          success: renderExamples,
+          url: "/_stats?pretty=true",
+          success: function(response) {
+            var indexReady = response &&
+                             response.indices &&
+                             response.indices.test;
+            if (!indexReady) {
+              $("#sampleIndex").show();
+              doIndex(function(current, total) {
+                if (current < total) {
+                  $("#sampleIndex .bar").css("width", Math.round(100 * current / total) + "%");
+                } else {
+                  $("#sampleIndex").slideUp(1000, renderExamples);
+                }
+              });
+            } else {
+              renderExamples();
+            }
+          },
           error: function() {
-            $("#sampleIndex").show();
-            doIndex(function(current, total) {
-              if (current < total) {
-                $("#sampleIndex .bar").css("width", Math.round(100 * current / total) + "%");
-              } else {
-                $("#sampleIndex").slideUp(1000, renderExamples);
-              }
-            });
+            $("#noes").slideDown(1000);
           }
         });
       });

@@ -26,11 +26,24 @@
       .dropped {
         margin-top: 15px;
       }
+
+      #noes {
+        display: none;
+      }
     </style>
   </head>
 
   <body>
     <div class="container">
+      <div class="row" id="noes">
+        <div class="span12">
+          <div class="alert alert-error">
+            <i class="icon-exclamation-sign"></i> <strong>ElasticSearch instance cannot be reached.</strong>
+            This manual requires a running instance of ES to render outputs.
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <div class="span12">
           <div class="page-header">
@@ -87,6 +100,7 @@
       <script src="assets/js/carrotsearch.foamtree.html5.min.js"></script>
       <script src="assets/js/sample-data.js"></script>
       <script>
+
         $(document).ready(function () {
           // Initialize visualizations
           var circles = new CarrotSearchCircles({
@@ -95,8 +109,7 @@
             groupOutlineWidth: 3,
             titleBar: "inscribed",
             titleBarTextColor: "rgba(0,0,0,.5)",
-            visibleGroupCount: 10,
-
+            visibleGroupCount: 10
           });
           var foamtree = new CarrotSearchFoamTree({
             id: "foamtree",
@@ -158,6 +171,14 @@
                 foamtree.set("dataObject", visualizationInput);
                 circles.set("dataObject", visualizationInput);
             })
+          });
+
+          // Check if we have the ES available at all.
+          $.ajax({
+            url: "/_stats?pretty=true",
+            error: function() {
+              $("#noes").slideDown(1000);
+            }
           });
         });
       </script>
