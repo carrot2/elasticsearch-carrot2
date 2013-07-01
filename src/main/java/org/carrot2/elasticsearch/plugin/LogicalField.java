@@ -7,8 +7,8 @@ import org.elasticsearch.common.collect.Maps;
 /**
  * Logical fields of a document to be clustered.
  * 
- * @see Carrot2ClusteringActionRequest#addFieldTo(String, LogicalField)
- * @see Carrot2ClusteringActionRequest#addHighlightFieldTo(String, LogicalField)
+ * @see Carrot2ClusteringActionRequest#addFieldMapping(String, LogicalField)
+ * @see Carrot2ClusteringActionRequest#addHighlightedFieldMapping(String, LogicalField)
  */
 public enum LogicalField {
     URL,

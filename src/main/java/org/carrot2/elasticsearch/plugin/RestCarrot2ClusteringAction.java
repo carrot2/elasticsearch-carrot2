@@ -151,18 +151,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             LogicalField logicalField = LogicalField.valueOfCaseInsensitive(e.getKey());
             if (logicalField != null) {
                 for (String fieldSpec : e.getValue()) {
-                    if (fieldSpec.startsWith("highlight.")) {
-                        String fieldName = fieldSpec.substring("highlight.".length());
-                        actionRequest.addHighlightFieldTo(fieldName, logicalField);
-                    } else {
-                        if (fieldSpec.startsWith("fields.")) {
-                            String fieldName = fieldSpec.substring("fields.".length());
-                            actionRequest.addFieldTo(fieldName, logicalField);
-                        } else {
-                            throw new ElasticSearchException("Field mapping specification must contain a " +
-                            		" [highlight.] or [fields.] prefix for the field source: " + fieldSpec);
-                        }
-                    }
+                    actionRequest.addFieldMappingSpec(fieldSpec, logicalField);
                 }
             }
         }

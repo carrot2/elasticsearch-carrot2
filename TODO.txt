@@ -9,9 +9,6 @@ DOCS
 BUGS/ TESTS
 -----------
 
-- fields.{x} should work even if the search spec doesn't expose it (so that we can cluster on larger fields without propagating
-  the content over the network).
-
 - add a test verifying these schemes work: 
   <li><code>/{index}/_search_with_clusters</code></li>
   <li><code>/{index}/{type}/_search_with_clusters</code></li>

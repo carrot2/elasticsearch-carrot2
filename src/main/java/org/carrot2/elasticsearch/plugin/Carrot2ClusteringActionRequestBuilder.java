@@ -36,12 +36,22 @@ public class Carrot2ClusteringActionRequestBuilder
     }
     
     public Carrot2ClusteringActionRequestBuilder addFieldMapping(String fieldName, LogicalField logicalField) {
-        super.request.addFieldTo(fieldName, logicalField);
+        super.request.addFieldMapping(fieldName, logicalField);
+        return this;
+    }
+
+    public Carrot2ClusteringActionRequestBuilder addSourceFieldMapping(String fieldName, LogicalField logicalField) {
+        super.request.addSourceFieldMapping(fieldName, logicalField);
         return this;
     }
 
     public Carrot2ClusteringActionRequestBuilder addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
-        super.request.addHighlightFieldTo(fieldName, logicalField);
+        super.request.addHighlightedFieldMapping(fieldName, logicalField);
+        return this;
+    }
+
+    public Carrot2ClusteringActionRequestBuilder addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
+        super.request.addFieldMappingSpec(fieldSpec, logicalField);
         return this;
     }
 

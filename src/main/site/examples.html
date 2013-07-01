@@ -170,10 +170,23 @@
                 Defines how to map actual fields of the documents matching the <code>search_request</code> to
                 logical fields of the documents to be clustered. The value is an array of field source specifications,
                 where all values defined by these specifications are concatenated to form a logical field.
+
                 <p>A field source specifies whether the value is taken from the document's fields or from the highlighter's
-                output. The syntax is, correspondingly: <code>fields.{fieldname}</code> for the field source (stored field
-                or field reparsed from source document) and <code>highlight.{fieldname}</code> for the highlighter
-                output's value. The highlighter output must also be configured properly in the search request.</p>
+                output. The syntax for a field source is as follows:</p>
+
+                <dl class="dl-horizontal">
+                  <dt><code>fields.{fieldname}</code></dt>
+                  <dd>Defines a search hit's field (stored field or field reparsed from source document but requested and
+                    returned in the search request).</dd>
+
+                  <dt><code>highlight.{fieldname}</code></dt>
+                  <dd>Defines a search hit's highlighted field. The highlighter output must also be configured
+                    properly in the search request (see examples below).</dd>
+
+                  <dt><code>_source.{fieldname}</code></dt>
+                  <dd>Defines a source document's field (top-level property of the json document). This will
+                    reparse the source document and fetch the appropriate value from there.</dd>
+                </dl>
               </dd>
             </dl>
 
@@ -258,8 +271,8 @@ var request = {
 
   "query_hint": "data mining",
   "field_mapping": {
-    "title": ["fields.title"],
-    "content": ["fields.content"]
+    "title": ["_source.title"],
+    "content": ["_source.content"]
   }
 };
 

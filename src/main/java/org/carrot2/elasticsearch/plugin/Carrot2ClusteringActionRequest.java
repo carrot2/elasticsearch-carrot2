@@ -5,6 +5,7 @@ import static org.elasticsearch.action.ValidateActions.addValidationError;
 import java.io.IOException;
 import java.util.List;
 
+import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.search.SearchRequest;
@@ -62,8 +63,17 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
      * Map a hit's field to a logical section of a document to be clustered (title, content or URL).
      * @see LogicalField
      */
-    public void addFieldTo(String fieldName, LogicalField logicalField) {
+    public void addFieldMapping(String fieldName, LogicalField logicalField) {
         fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.FIELD));
+    }
+
+    /**
+     * Map a hit's source field (field unpacked from the <code>_source</code> document)
+     * to a logical section of a document to be clustered (title, content or URL).
+     * @see LogicalField
+     */
+    public void addSourceFieldMapping(String sourceFieldName, LogicalField logicalField) {
+        fieldMapping.add(new FieldMappingSpec(sourceFieldName, logicalField, FieldSource.SOURCE));
     }
 
     /**
@@ -72,8 +82,39 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
      * passed to the clustering engine but also to "focus" the clustering engine on the context
      * of the query.
      */
-    public void addHighlightFieldTo(String fieldName, LogicalField logicalField) {
+    public void addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
         fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.HIGHLIGHT));
+    }
+
+    /**
+     * Add a (valid!) field mapping specification to a logical field.
+     * @see FieldSource
+     */
+    public void addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
+        FieldSource.ParsedFieldSource pfs = FieldSource.parseSpec(fieldSpec);
+        if (pfs.source != null) {
+            switch (pfs.source) {
+                case HIGHLIGHT:
+                    addHighlightedFieldMapping(pfs.fieldName, logicalField);
+                    break;
+
+                case FIELD:
+                    addFieldMapping(pfs.fieldName, logicalField);
+                    break;
+
+                case SOURCE:
+                    addSourceFieldMapping(pfs.fieldName, logicalField);
+                    break;
+
+                default:
+                    throw new RuntimeException();
+            }
+        }
+
+        if (pfs.source == null) {
+            throw new ElasticSearchException("Field mapping specification must contain a " +
+                    " valid source prefix for the field source: " + fieldSpec);
+        }
     }
 
     /** Access to prepared field mapping. */

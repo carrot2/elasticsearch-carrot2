@@ -168,6 +168,7 @@ public class Carrot2ClusteringApiTests {
     public static Object[][] postJsonResources() {
         return new Object[][] {
                 {"post_with_fields.json"},
+                {"post_with_source_fields.json"},
                 {"post_with_highlighted_fields.json"},
                 {"post_multiple_field_mapping.json"}
         };

@@ -136,16 +136,31 @@ public class TransportCarrot2ClusteringAction
             for (FieldMappingSpec spec : fieldMapping) {
                 // Determine the content source.
                 Object appendContent = null;
-                if (spec.source == FieldSource.FIELD) {
-                    SearchHitField searchHitField = fields.get(spec.field);
-                    if (searchHitField != null) {
-                        appendContent = searchHitField.getValue();
-                    }
-                } else {
-                    HighlightField highlightField = highlightFields.get(spec.field);
-                    if (highlightField != null) {
-                        appendContent = joiner.join(highlightField.fragments());
-                    }
+                Map<String,Object> sourceAsMap = null;
+                switch (spec.source) {
+                    case FIELD:
+                        SearchHitField searchHitField = fields.get(spec.field);
+                        if (searchHitField != null) {
+                            appendContent = searchHitField.getValue();
+                        }
+                        break;
+                    
+                    case HIGHLIGHT:
+                        HighlightField highlightField = highlightFields.get(spec.field);
+                        if (highlightField != null) {
+                            appendContent = joiner.join(highlightField.fragments());
+                        }
+                        break;
+
+                    case SOURCE:
+                        if (sourceAsMap == null) {
+                            sourceAsMap = hit.getSource();
+                        }
+                        appendContent = sourceAsMap.get(spec.field);
+                        break;
+
+                    default:
+                        throw new RuntimeException();
                 }
 
                 // Determine the target field.
