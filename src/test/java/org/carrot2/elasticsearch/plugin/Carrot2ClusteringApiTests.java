@@ -152,29 +152,6 @@ public class Carrot2ClusteringApiTests {
         checkViaJavaAPI(transportClient);
     }
 
-    // @Test
-    public void testRestApiViaUriParams() throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
-        try {
-            URI uri = URI.create(restBaseUrl 
-                    + "/" + RestCarrot2ClusteringAction.NAME 
-                    + "?"
-                    + URLEncodedUtils.format(
-                            ImmutableList.of(
-                                    new BasicNameValuePair("q", "content:data"),
-                                    new BasicNameValuePair("fields", "title,url,content"),
-                                    new BasicNameValuePair("size", "100"),
-                                    new BasicNameValuePair("pretty", "true")), 
-                            Charsets.UTF_8));
-            HttpGet request = new HttpGet(uri);
-            HttpResponse response = httpClient.execute(request);
-
-            checkHttpResponse(response);
-        } finally {
-            httpClient.getConnectionManager().shutdown();
-        }
-    }
-
     @DataProvider(name = "postJsonResources")
     public static Object[][] postJsonResources() {
         return new Object[][] {
