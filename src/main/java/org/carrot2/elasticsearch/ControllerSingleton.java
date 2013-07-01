@@ -1,8 +1,9 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_CONFIG_FILE;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
+import static org.carrot2.elasticsearch.ClusteringPlugin.PLUGIN_CONFIG_FILE_NAME;
 
 import java.io.File;
 import java.util.Collections;
@@ -24,6 +25,8 @@ import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
@@ -42,11 +45,13 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     private final Environment environment;
     private Controller controller;
     private List<String> algorithms;
+    private ESLogger logger;
 
     @Inject
     protected ControllerSingleton(Settings settings, Environment environment) {
         super(settings);
         this.environment = environment;
+        this.logger = Loggers.getLogger("plugin.carrot2", settings);
     }
 
     @Override
@@ -54,9 +59,9 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
         try {
             Builder builder = ImmutableSettings.builder();
             for (String configName : new String [] {
-                    DEFAULT_CONFIG_FILE + ".yml",
-                    DEFAULT_CONFIG_FILE + ".json",
-                    DEFAULT_CONFIG_FILE + ".properties"
+                    PLUGIN_CONFIG_FILE_NAME + ".yml",
+                    PLUGIN_CONFIG_FILE_NAME + ".json",
+                    PLUGIN_CONFIG_FILE_NAME + ".properties"
             }) {
                 try {
                     builder.loadFromUrl(environment.resolveConfig(configName));
@@ -82,7 +87,9 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).
-            final String suiteResource = c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME, "carrot2.suite.xml");
+            final String suiteResource = c2Settings.get(
+                    DEFAULT_SUITE_PROPERTY_NAME, 
+                    DEFAULT_SUITE_RESOURCE);
             final List<String> failed = Lists.newArrayList();
             final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
                 public ProcessingComponentSuite call() throws Exception {

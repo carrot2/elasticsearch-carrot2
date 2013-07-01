@@ -13,17 +13,40 @@ import org.elasticsearch.rest.RestModule;
 
 /** */
 public class ClusteringPlugin extends AbstractPlugin {
-    public static final String DEFAULT_CONFIG_FILE = "carrot2";
-
-    public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
-    public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
-
+    /**
+     * Master on/off switch property for the plugin (general settings).
+     */
     public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
 
-    private final boolean moduleEnabled;
+    /**
+     * Plugin's main configuration file (under ES/conf).
+     */
+    public static final String PLUGIN_CONFIG_FILE_NAME = "carrot2";
+
+    /**
+     * A property key in {@link #PLUGIN_CONFIG_FILE_NAME} holding
+     * the default component suite's resource name.
+     */
+    public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
+
+    /**
+     * The default suite resource. 
+     * @see #DEFAULT_SUITE_PROPERTY_NAME
+     */
+    public static final String DEFAULT_SUITE_RESOURCE = "carrot2.suite.xml";
+
+    /**
+     * A property key in {@link #PLUGIN_CONFIG_FILE_NAME} holding
+     * the default location of additional resources (stopwords, etc.) for
+     * algorithms. The location is resolved relative to <code>es/conf</code>
+     * but can be absolute. By default it is <code>.</code>.
+     */
+    public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
+
+    private final boolean pluginEnabled;
 
     public ClusteringPlugin(Settings settings) {
-        this.moduleEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
+        this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
     }
 
     @Override
@@ -38,7 +61,7 @@ public class ClusteringPlugin extends AbstractPlugin {
 
     /* Invoked on component assembly. */
     public void onModule(ActionModule actionModule) {
-        if (moduleEnabled) {
+        if (pluginEnabled) {
             actionModule.registerAction(
                     ClusteringAction.INSTANCE, 
                     TransportCarrot2ClusteringAction.class);
@@ -47,7 +70,7 @@ public class ClusteringPlugin extends AbstractPlugin {
 
     /* Invoked on component assembly. */
     public void onModule(RestModule restModule) {
-        if (moduleEnabled) {
+        if (pluginEnabled) {
             restModule.addRestAction(RestCarrot2ClusteringAction.class);
         }
     }
@@ -55,7 +78,7 @@ public class ClusteringPlugin extends AbstractPlugin {
     @Override
     public Collection<Class<? extends Module>> modules() {
         Collection<Class<? extends Module>> modules = newArrayList();
-        if (moduleEnabled) {
+        if (pluginEnabled) {
             modules.add(ClusteringModule.class);
         }
         return modules;
@@ -65,7 +88,7 @@ public class ClusteringPlugin extends AbstractPlugin {
     @Override
     public Collection<Class<? extends LifecycleComponent>> services() {
         Collection<Class<? extends LifecycleComponent>> services = newArrayList();
-        if (moduleEnabled) {
+        if (pluginEnabled) {
             services.add(ControllerSingleton.class);
         }
         return services;

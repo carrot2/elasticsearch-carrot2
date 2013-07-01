@@ -4,7 +4,8 @@ DOCS
 
 - add highlighter field mapping example (and rationale)
 - add algorithm picking example
-- add algorithm attributes example
+- add runtime algorithm attributes example
+- add static configuration overview (files, locations)
 - document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
 
 BUGS/ TESTS
@@ -13,8 +14,7 @@ BUGS/ TESTS
 FEATURES
 --------
 
-- how to pass algorithm settings?
-- resource lookup (lexical resources, licensing for Lingo3G)
+- runtime algorithm attribute overrides
 - add an action to return supported clustering algorithms.
 
 
