@@ -227,28 +227,39 @@
         <div class="page-header"><h3>POST response</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The response format is identical to a plain search request response, but includes an extra field <code>clusters</code>.
-            This field is an array with top-level groups (clusters). Each cluster is an object of the following
-            structure:</p>
+            <p>The response format is identical to a
+              <a href="http://www.elasticsearch.org/guide/reference/api/search/request-body/">plain search request response</a>, with extra properties
+              presented in the schematic output below.</p>
             <pre class="linenums prettyprint">{
-  "id": /* cluster identifier */,
-  "score": /* numeric score */,
-  "label": /* primary cluster label */,
-  "other_topics": /* if present, and true, this cluster groups
-                     unrelated documents (no related topics) */,
-  "phrases": [
-    /* cluster label array, will include primary. */
-  ],
-  "documents": [
-    /* document ID references */
-  ],
+  /* Typical search response fields. */
+  "hits": { /* ... */ },
+
+  /* Clustering response fields. */
   "clusters": [
-    /* optional subclusters */
+    /* cluster 1 */
+    {
+      "id": /* cluster identifier */,
+      "score": /* numeric score */,
+      "label": /* primary cluster label */,
+      "other_topics": /* if present, and true, this cluster groups
+                         unrelated documents (no related topics) */,
+      "phrases": [
+        /* cluster label array, will include primary. */
+      ],
+      "documents": [
+        /* document ID references */
+      ],
+      "clusters": [
+        /* optional subclusters */
+      ],
+    },
+    /* ...more clusters */
   ],
   "info": {
     /* additional information about the clustering process */
   }
-}</pre>
+}
+</pre>
             <p>We can dump all top-level cluster labels to the console with the following snippet of javascript:</p>
           </div>
         </div>
