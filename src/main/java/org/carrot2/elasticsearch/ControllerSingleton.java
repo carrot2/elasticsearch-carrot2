@@ -1,5 +1,10 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_CONFIG_FILE;
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
+
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +15,7 @@ import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.carrot2.core.ProcessingComponentDescriptor;
 import org.carrot2.core.ProcessingComponentSuite;
+import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
@@ -27,8 +33,6 @@ import org.elasticsearch.node.Node;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-
-import static org.carrot2.elasticsearch.ClusteringPlugin.*;
 
 /**
  * Holds the {@link Controller} singleton initialized and ready throughout
@@ -64,8 +68,17 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             Settings c2Settings = builder.build();
 
+            final String resourcesPath = c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, ".");
+            final File resourcesDir;
+            if (new File(resourcesPath).isAbsolute()) {
+                resourcesDir = new File(resourcesPath);
+            } else {
+                resourcesDir = new File(environment.configFile(), resourcesPath);
+            }
+            logger.info("Resources dir: {}", resourcesDir.getAbsolutePath());
+
             final ResourceLookup resourceLookup = new ResourceLookup(
-                    new DirLocator(environment.configFile()),
+                    new DirLocator(resourcesDir),
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).
@@ -91,10 +104,17 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             algorithms = Collections.unmodifiableList(algorithms);
 
-            logger.info("Available clustering components: {}", Joiner.on(", ").join(algorithms));
-            logger.info("Unavailable clustering components: {}", Joiner.on(", ").join(failed));
+            if (!algorithms.isEmpty()) {
+                logger.info("Available clustering components: {}", Joiner.on(", ").join(algorithms));
+            }
+            if (!failed.isEmpty()) {
+                logger.info("Unavailable clustering components: {}", Joiner.on(", ").join(failed));
+            }
 
+            // Change the default resource lookup to include the configured location.
             Map<String, Object> c2SettingsAsMap = Maps.newHashMap();
+            DefaultLexicalDataFactoryDescriptor.attributeBuilder(c2SettingsAsMap)
+                .resourceLookup(resourceLookup);
             c2SettingsAsMap.putAll(c2Settings.getAsMap());
 
             controller = ControllerFactory.createPooling();

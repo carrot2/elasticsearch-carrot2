@@ -14,7 +14,10 @@ import org.elasticsearch.rest.RestModule;
 /** */
 public class ClusteringPlugin extends AbstractPlugin {
     public static final String DEFAULT_CONFIG_FILE = "carrot2";
+
     public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
+    public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
+
     public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
 
     private final boolean moduleEnabled;

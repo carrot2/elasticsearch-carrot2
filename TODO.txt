@@ -15,6 +15,7 @@ FEATURES
 
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
+- add an action to return supported clustering algorithms.
 
 
 PERFORMANCE/ ROBUSTNESS
