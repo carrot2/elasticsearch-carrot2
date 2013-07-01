@@ -1,7 +1,9 @@
 DOCS
 ----
 
-- add a simple demo, usage instructions and help (to the plugin's _site).
+- add highlighter field mapping example (and rationale)
+- add GET request example
+
 
 BUGS/ TESTS
 -----------
