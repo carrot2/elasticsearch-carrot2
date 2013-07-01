@@ -5,6 +5,7 @@ DOCS
 - add GET request example
 - add algorithm picking example
 - add algorithm attributes example
+- document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
 
 BUGS/ TESTS
 -----------
@@ -14,7 +15,6 @@ BUGS/ TESTS
 FEATURES
 --------
 
-- configurable algorithms.
 - how to pass algorithm settings?
 - resource lookup (lexical resources, licensing for Lingo3G)
 

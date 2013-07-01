@@ -1,11 +1,16 @@
 package org.carrot2.elasticsearch.plugin;
 
-import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
+import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
@@ -22,10 +27,6 @@ import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class TransportCarrot2ClusteringAction  
     extends TransportAction<Carrot2ClusteringActionRequest,
@@ -46,9 +47,11 @@ public class TransportCarrot2ClusteringAction
     }
 
     @Override
-    protected void doExecute(final Carrot2ClusteringActionRequest request,
+    protected void doExecute(final Carrot2ClusteringActionRequest clusteringRequest,
                              final ActionListener<Carrot2ClusteringActionResponse> listener) {
-        searchAction.execute(request.getSearchRequest(), new ActionListener<SearchResponse>() {
+        final Map<String,String> info = Maps.newLinkedHashMap();
+        final long tsSearchStart = System.nanoTime();
+        searchAction.execute(clusteringRequest.getSearchRequest(), new ActionListener<SearchResponse>() {
             @Override
             public void onFailure(Throwable e) {
                 listener.onFailure(e);
@@ -56,6 +59,19 @@ public class TransportCarrot2ClusteringAction
 
             @Override
             public void onResponse(SearchResponse response) {
+                final long tsSearchEnd = System.nanoTime();
+
+                List<String> algorithmComponentIds = controllerSingleton.getAlgorithms();
+                String algorithmId = clusteringRequest.getAlgorithm();
+                if (algorithmId == null) {
+                    algorithmId = algorithmComponentIds.get(0);                    
+                } else {
+                    if (!algorithmComponentIds.contains(algorithmId)) {
+                        listener.onFailure(new ElasticSearchException("No such algorithm: " + algorithmId));
+                        return;
+                    }
+                }
+
                 /*
                  * This is where the main clustering "logic" takes place.
                  * TODO: is this the right place (thread)?
@@ -64,15 +80,23 @@ public class TransportCarrot2ClusteringAction
 
                 Map<String,Object> processingAttrs = Maps.newHashMap();
                 CommonAttributesDescriptor.attributeBuilder(processingAttrs)
-                    .documents(prepareDocumentsForClustering(request, response))
-                    .query(request.getQueryHint());
+                    .documents(prepareDocumentsForClustering(clusteringRequest, response))
+                    .query(clusteringRequest.getQueryHint());
 
-                // TODO: algorithm picking, initialization options?
-                ProcessingResult result = 
-                        controller.process(processingAttrs, LingoClusteringAlgorithm.class);
+                final long tsClusteringStart = System.nanoTime();
+                final ProcessingResult result = controller.process(processingAttrs, algorithmId);
+                final DocumentGroup[] groups = adapt(result.getClusters());
+                final long tsClusteringEnd = System.nanoTime();
 
-                listener.onResponse(
-                        new Carrot2ClusteringActionResponse(response, adapt(result.getClusters())));
+                info.put("algorithm", algorithmId);
+                info.put("search-millis", 
+                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)));
+                info.put("clustering-millis", 
+                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)));
+                info.put("total-millis", 
+                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
+
+                listener.onResponse(new Carrot2ClusteringActionResponse(response, groups, info));
             }
         });
     }
@@ -95,7 +119,7 @@ public class TransportCarrot2ClusteringAction
         group.setLabel(cluster.getLabel());
         group.setScore(cluster.getScore());
         group.setOtherTopics(cluster.isOtherTopics());
-        
+
         List<Document> documents = cluster.getDocuments();
         String[] documentReferences = new String[documents.size()];
         for (int i = 0; i < documentReferences.length; i++) {

@@ -19,6 +19,7 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
     private SearchRequest searchRequest;
     private String queryHint;
     private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
+    private String algorithm;
 
     /**
      * Set the {@link SearchRequest} to use for fetching documents to be clustered.
@@ -57,6 +58,21 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
      */
     public String getQueryHint() {
         return queryHint;
+    }
+
+    /**
+     * Sets the identifier of the clustering algorithm to use. If <code>null</code>, the default
+     * algorithm will be used (depending on what's available).
+     */
+    public void setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
+    }
+    
+    /**
+     * @see #setAlgorithm
+     */
+    public String getAlgorithm() {
+        return algorithm;
     }
 
     /**

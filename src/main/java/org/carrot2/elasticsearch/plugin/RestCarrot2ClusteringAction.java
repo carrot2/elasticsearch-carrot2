@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mahout.math.Arrays;
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
@@ -103,7 +102,6 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
 
     /**
      * Parse the clustering/ search request JSON.
-     * @param request 
      */
     @SuppressWarnings("unchecked")
     private void fillFromSource(
@@ -134,6 +132,9 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
                 searchRequest.source((Map<?,?>) asMap.get("search_request"));
                 searchRequest.types(RestActions.splitTypes(restRequest.param("type")));
                 clusteringRequest.setSearchRequest(searchRequest);
+            }
+            if (asMap.containsKey("algorithm")) {
+                clusteringRequest.setAlgorithm((String) asMap.get("algorithm"));
             }
         } catch (Exception e) {
             String sSource = "_na_";

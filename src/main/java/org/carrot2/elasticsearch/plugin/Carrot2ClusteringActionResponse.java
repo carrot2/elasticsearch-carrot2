@@ -1,6 +1,7 @@
 package org.carrot2.elasticsearch.plugin;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -12,22 +13,30 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
+import com.google.common.collect.Maps;
+
 /** */
 public class Carrot2ClusteringActionResponse extends ActionResponse implements ToXContent {
     static final class Fields {
         static final XContentBuilderString SEARCH_RESPONSE = new XContentBuilderString("search_response");
         static final XContentBuilderString CLUSTERS = new XContentBuilderString("clusters");
+        static final XContentBuilderString INFO = new XContentBuilderString("info");
     }
 
     private SearchResponse searchResponse;
     private DocumentGroup [] topGroups;
+    private Map<String,String> info;
 
     Carrot2ClusteringActionResponse() {
     }
 
-    public Carrot2ClusteringActionResponse(SearchResponse searchResponse, DocumentGroup[] topGroups) {
+    public Carrot2ClusteringActionResponse(
+            SearchResponse searchResponse, 
+            DocumentGroup[] topGroups,
+            Map<String,String> info) {
         this.searchResponse = Preconditions.checkNotNull(searchResponse);
         this.topGroups = Preconditions.checkNotNull(topGroups);
+        this.info = Preconditions.checkNotNull(info);
     }
 
     public SearchResponse getSearchResponse() {
@@ -52,7 +61,34 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
             }
         }
         builder.endArray();
+        builder.field(Fields.INFO, info);
         return builder;
+    }
+
+    @Override
+    public void writeTo(StreamOutput out) throws IOException {
+        super.writeTo(out);
+        
+        boolean hasSearchResponse = searchResponse != null;
+        out.writeBoolean(hasSearchResponse);
+        if (hasSearchResponse) {
+            this.searchResponse.writeTo(out);
+        }
+
+        out.writeVInt(topGroups == null ? 0 : topGroups.length);
+        if (topGroups != null) {
+            for (DocumentGroup group : topGroups) {
+                group.writeTo(out);
+            }
+        }
+        
+        out.writeVInt(info == null ? 0 : info.size());
+        if (info != null) {
+            for (Map.Entry<String,String> e : info.entrySet()) {
+                out.writeOptionalString(e.getKey());
+                out.writeOptionalString(e.getValue());
+            }
+        }
     }
 
     @Override
@@ -72,23 +108,11 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
             group.readFrom(in);
             topGroups[i] = group;
         }
-    }
-
-    @Override
-    public void writeTo(StreamOutput out) throws IOException {
-        super.writeTo(out);
         
-        boolean hasSearchResponse = searchResponse != null;
-        out.writeBoolean(hasSearchResponse);
-        if (hasSearchResponse) {
-            this.searchResponse.writeTo(out);
-        }
-
-        out.writeVInt(topGroups == null ? 0 : topGroups.length);
-        if (topGroups != null) {
-            for (DocumentGroup group : topGroups) {
-                group.writeTo(out);
-            }
+        int entries = in.readVInt();
+        info = Maps.newLinkedHashMap();
+        for (int i = 0; i < entries; i++) {
+            info.put(in.readOptionalString(), in.readOptionalString());
         }
     }
 

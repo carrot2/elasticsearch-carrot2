@@ -144,35 +144,53 @@
           </div>
         </div>
 
-        <div class="page-header"><h3>POST request and response</h3></div>
+        <div class="page-header"><h3>POST request</h3></div>
         <div class="row">
           <div class="span12">
-            <p>A clustering request is a JSON document composed of a few sections:</p>
+            <p>A clustering request is a JSON document composed of the following sections:</p>
             <dl class="dl-horizontal">
               <dt><code>search_request</code></dt>
-              <dd><span class="badge badge-info">required</span>
+              <dd><p><span class="badge badge-info">required</span>
                 The search request to fetch documents to be clustered. This section follows <strong>exactly</strong>
                 what <a href="http://www.elasticsearch.org/guide/reference/api/search/">the search DSL</a> specifies,
-                including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.
+                including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.</p>
               </dd>
 
               <dt><code>query_hint</code></dt>
-              <dd><span class="badge badge-info">required</span>
+              <dd><p><span class="badge badge-info">required</span>
                 This is a string attribute specifying query terms which were used to fetch the matching documents.
                 This hint helps the clustering algorithm to avoid trivial clusters around the query terms. Typically the query
                 terms hint will be identical to what the user typed in the search box. If possible, it should be pruned
                 from any boolean or search-engine specific operators which could affect the clustering process. The query
-                hint is obligatory but may be an empty string.
+                hint is obligatory but may be an empty string.</p>
               </dd>
 
               <dt><code>field_mapping</code></dt>
-              <dd><span class="badge badge-info">required</span>
+              <dd><p><span class="badge badge-info">required</span>
                 Defines how to map actual fields of the documents matching the <code>search_request</code> to
-                logical fields of the documents to be clustered. The value is an array of field source specifications,
-                where all values defined by these specifications are concatenated to form a logical field.
+                logical fields of the documents to be clustered. The value should be a hash where keys indicate logical
+                document fields and values are arrays with field source specifications (content of fields
+                defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
 
-                <p>A field source specifies whether the value is taken from the document's fields or from the highlighter's
-                output. The syntax for a field source is as follows:</p>
+                <pre class="linenums prettyprint">{
+  "url":     [_source.urlSource],
+  "title":   [fields.subject],
+  "content": [_source.abstract, highlight.main]
+}
+                </pre>
+
+                <p>Any of the following logical field names are valid:</p>
+                <dl class="dl-horizontal">
+                  <dt><code>url</code></dt>
+                  <dd><p>The URL of the document.</p></dd>
+                  <dt><code>title</code></dt>
+                  <dd><p>The title of the document.</p></dd>
+                  <dt><code>content</code></dt>
+                  <dd><p>The main body (content) of the document.</p></dd>
+                </dl>
+
+                <p>A field source specification defines where the value is taken from: the search hit's fields, stored document's content,
+                  or from the highlighter's output. The syntax of field source specification is as follows:</p>
 
                 <dl class="dl-horizontal">
                   <dt><code>fields.{fieldname}</code></dt>
@@ -188,6 +206,12 @@
                     reparse the source document and fetch the appropriate value from there.</dd>
                 </dl>
               </dd>
+
+              <dt><code>algorithm</code></dt>
+              <dd><p><span class="badge">optional</span>
+                Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
+                algorithms are logged at startup. If not present, the default algorithm is used.</p>
+              </dd>
             </dl>
 
             <div class="alert alert-danger">
@@ -200,40 +224,7 @@
           </div>
         </div>
 
-        <div class="row">
-          <div class="span12">
-            <p>An example clustering request and response for our
-            <a target="_blank" href="/test/test/1?pretty=true">sample documents</a> can look as shown below.</p>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="span6">
-            <pre class="executable example">
-var request = {
-  "search_request": {
-    "fields": [ "title", "content" ],
-    "query": {"match" : { "_all": "data mining" }},
-    "size": 100
-  },
-
-  "query_hint": "data mining",
-  "field_mapping": {
-    "title": ["fields.title"],
-    "content": ["fields.content"]
-  }
-};
-
-$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
-  $("#simple-request-result").text(JSON.stringify(response, false, "  "));
-});
-            </pre>
-          </div>
-          <div class="span6">
-            <pre class="result" id="simple-request-result"></pre>
-          </div>
-        </div>
-
+        <div class="page-header"><h3>POST response</h3></div>
         <div class="row">
           <div class="span12">
             <p>The response format is identical to a plain search request response, but includes an extra field <code>clusters</code>.
@@ -253,7 +244,10 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
   ],
   "clusters": [
     /* optional subclusters */
-  ]
+  ],
+  "info": {
+    /* additional information about the clustering process */
+  }
 }</pre>
             <p>We can dump all top-level cluster labels to the console with the following snippet of javascript:</p>
           </div>
@@ -292,6 +286,90 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
             <pre class="result" id="cluster-list-result"></pre>
           </div>
         </div>
+
+
+        <div class="row">
+          <div class="span12">
+            <p>The output will vary depending on the choice of clustering algorithm
+            (and particular documents that made it to the hit list if search is not
+            deterministic). The following example shows a pseudo-clustering algorithm
+            that uses the logical <code>url</code> field to produce clusters based on the
+            components of each document's domain.</p>
+          </div>
+
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "url": ["_source.url"]
+  },
+  "algorithm": "byurl"
+};
+
+var dumpClusters = function(clusters, indent) {
+  clusters.forEach(function(cluster) {
+    $("#cluster-list-result2").append(
+        indent + cluster.label
+        + " [" + cluster.documents.length
+        + " documents]"
+        + "\n");
+    if (cluster.clusters) {
+      dumpClusters(cluster.clusters, indent + "  ");
+    }
+  });
+}
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#cluster-list-result2").text("");
+  dumpClusters(response.clusters, "  ");
+});
+            </pre>
+          </div>
+          <div class="span6">
+            <pre class="result" id="cluster-list-result2"></pre>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span12">
+            <p>A full response for a clustering request can look as shown below (note the difference in
+              field mapping in this example).</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "fields": [ "title", "content" ],
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title": ["fields.title"],
+    "content": ["fields.content"]
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#simple-request-result").text(JSON.stringify(response, false, "  "));
+});
+            </pre>
+          </div>
+          <div class="span6">
+            <pre class="result" id="simple-request-result"></pre>
+          </div>
+        </div>
+
       </section>
     </div>
 

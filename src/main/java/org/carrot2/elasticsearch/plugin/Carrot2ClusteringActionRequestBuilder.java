@@ -34,7 +34,12 @@ public class Carrot2ClusteringActionRequestBuilder
         super.request.setQueryHint(queryHint);
         return this;
     }
-    
+
+    public Carrot2ClusteringActionRequestBuilder setAlgorithm(String algorithm) {
+        super.request.setAlgorithm(algorithm);
+        return this;
+    }
+
     public Carrot2ClusteringActionRequestBuilder addFieldMapping(String fieldName, LogicalField logicalField) {
         super.request.addFieldMapping(fieldName, logicalField);
         return this;
