@@ -1,6 +1,9 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
-public enum FieldSource {
+/**
+ * The source of data for a logical document field.
+ */
+enum FieldSource {
     HIGHLIGHT("highlight."),
     FIELD("fields."),
     SOURCE("_source.");

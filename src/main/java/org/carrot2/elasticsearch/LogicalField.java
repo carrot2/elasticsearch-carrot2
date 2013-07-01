@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.util.HashMap;
 
@@ -7,8 +7,10 @@ import org.elasticsearch.common.collect.Maps;
 /**
  * Logical fields of a document to be clustered.
  * 
- * @see Carrot2ClusteringActionRequest#addFieldMapping(String, LogicalField)
- * @see Carrot2ClusteringActionRequest#addHighlightedFieldMapping(String, LogicalField)
+ * @see ClusteringActionRequest#addFieldMappingSpec(String, LogicalField)
+ * @see ClusteringActionRequest#addFieldMapping(String, LogicalField)
+ * @see ClusteringActionRequest#addHighlightedFieldMapping(String, LogicalField)
+ * @see ClusteringActionRequest#addSourceFieldMapping(String, LogicalField)
  */
 public enum LogicalField {
     URL,

@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
@@ -51,7 +51,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
     @Override
     public void handleRequest(final RestRequest request, final RestChannel channel) {
         // TODO: delegate json parsing to Carrot2ClusteringAction.
-        Carrot2ClusteringActionRequest actionRequest = new Carrot2ClusteringActionRequest();
+        ClusteringActionRequest actionRequest = new ClusteringActionRequest();
         if (request.hasContent()) {
             fillFromSource(request, actionRequest, request.content());
         } else {
@@ -63,10 +63,10 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
         }
 
         // Build a clustering request and dispatch.
-        client.execute(Carrot2ClusteringAction.INSTANCE, actionRequest, 
-            new ActionListener<Carrot2ClusteringActionResponse>() {
+        client.execute(ClusteringAction.INSTANCE, actionRequest, 
+            new ActionListener<ClusteringActionResponse>() {
             @Override
-            public void onResponse(Carrot2ClusteringActionResponse response) {
+            public void onResponse(ClusteringActionResponse response) {
                 try {
                     XContentBuilder builder = restContentBuilder(request);
                     builder.startObject();
@@ -102,7 +102,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
     @SuppressWarnings("unchecked")
     private void fillFromSource(
             RestRequest restRequest, 
-            Carrot2ClusteringActionRequest clusteringRequest,
+            ClusteringActionRequest clusteringRequest,
             BytesReference source) {
         if (source == null || source.length() == 0) {
             return;
@@ -147,7 +147,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
         }        
     }
 
-    private void parseFieldSpecs(Carrot2ClusteringActionRequest actionRequest,
+    private void parseFieldSpecs(ClusteringActionRequest actionRequest,
             Map<String, List<String>> fieldSpecs) {
         for (Map.Entry<String,List<String>> e : fieldSpecs.entrySet()) {
             LogicalField logicalField = LogicalField.valueOfCaseInsensitive(e.getKey());

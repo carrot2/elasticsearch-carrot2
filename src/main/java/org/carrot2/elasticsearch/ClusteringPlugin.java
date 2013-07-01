@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.common.collect.Lists.newArrayList;
 
@@ -12,16 +12,20 @@ import org.elasticsearch.plugins.AbstractPlugin;
 import org.elasticsearch.rest.RestModule;
 
 /** */
-public class Carrot2Plugin extends AbstractPlugin {
+public class ClusteringPlugin extends AbstractPlugin {
+    public static final String DEFAULT_CONFIG_FILE = "carrot2";
+    public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
+    public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
+
     private final boolean moduleEnabled;
 
-    public Carrot2Plugin(Settings settings) {
-        this.moduleEnabled = settings.getAsBoolean("carrot2.enabled", true);
+    public ClusteringPlugin(Settings settings) {
+        this.moduleEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
     }
 
     @Override
     public String name() {
-        return "misc-carrot2";
+        return "clustering-carrot2";
     }
 
     @Override
@@ -33,7 +37,7 @@ public class Carrot2Plugin extends AbstractPlugin {
     public void onModule(ActionModule actionModule) {
         if (moduleEnabled) {
             actionModule.registerAction(
-                    Carrot2ClusteringAction.INSTANCE, 
+                    ClusteringAction.INSTANCE, 
                     TransportCarrot2ClusteringAction.class);
         }
     } 
@@ -49,7 +53,7 @@ public class Carrot2Plugin extends AbstractPlugin {
     public Collection<Class<? extends Module>> modules() {
         Collection<Class<? extends Module>> modules = newArrayList();
         if (moduleEnabled) {
-            modules.add(Carrot2Module.class);
+            modules.add(ClusteringModule.class);
         }
         return modules;
     }

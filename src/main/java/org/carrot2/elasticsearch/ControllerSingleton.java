@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,14 +28,13 @@ import org.elasticsearch.node.Node;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
+import static org.carrot2.elasticsearch.ClusteringPlugin.*;
+
 /**
  * Holds the {@link Controller} singleton initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
-public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
-    public static final String DEFAULT_CONFIG_FILE = "carrot2";
-    public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
-
+class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
     private final Environment environment;
     private Controller controller;
     private List<String> algorithms;

@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
@@ -9,7 +9,9 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.carrot2.elasticsearch.plugin.Carrot2ClusteringActionResponse.Fields;
+import org.carrot2.elasticsearch.ClusteringActionResponse;
+import org.carrot2.elasticsearch.DocumentGroup;
+import org.carrot2.elasticsearch.ClusteringActionResponse.Fields;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
@@ -125,7 +127,7 @@ public class AbstractApiTest {
     /**
      * Roundtrip to/from JSON.
      */
-    protected static void checkJsonSerialization(Carrot2ClusteringActionResponse result) throws IOException {
+    protected static void checkJsonSerialization(ClusteringActionResponse result) throws IOException {
         XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
         builder.startObject();
         result.toXContent(builder, ToXContent.EMPTY_PARAMS);
@@ -141,7 +143,7 @@ public class AbstractApiTest {
     /**
      * Check valid response?
      */
-    protected static void checkValid(Carrot2ClusteringActionResponse result) {
+    protected static void checkValid(ClusteringActionResponse result) {
         Assertions.assertThat(result.getDocumentGroups())
             .isNotNull()
             .isNotEmpty();

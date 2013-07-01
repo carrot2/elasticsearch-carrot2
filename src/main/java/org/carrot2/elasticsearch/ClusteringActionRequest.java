@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
 
@@ -15,7 +15,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 
 /** */
-public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2ClusteringActionRequest> {
+public class ClusteringActionRequest extends ActionRequest<ClusteringActionRequest> {
     private SearchRequest searchRequest;
     private String queryHint;
     private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
@@ -26,7 +26,7 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
      * The search request must fetch enough documents for clustering to make sense
      * (set <code>size</code> appropriately).
      */
-    public Carrot2ClusteringActionRequest setSearchRequest(SearchRequest searchRequest) {
+    public ClusteringActionRequest setSearchRequest(SearchRequest searchRequest) {
         this.searchRequest = searchRequest;
         return this;
     }
@@ -34,7 +34,7 @@ public class Carrot2ClusteringActionRequest extends ActionRequest<Carrot2Cluster
     /**
      * @see #setSearchRequest(SearchRequest)
      */
-    public Carrot2ClusteringActionRequest setSearchRequest(SearchRequestBuilder builder) {
+    public ClusteringActionRequest setSearchRequest(SearchRequestBuilder builder) {
         return setSearchRequest(builder.request());
     }
 

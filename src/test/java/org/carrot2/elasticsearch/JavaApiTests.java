@@ -1,7 +1,10 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.io.IOException;
 
+import org.carrot2.elasticsearch.ClusteringActionRequestBuilder;
+import org.carrot2.elasticsearch.ClusteringActionResponse;
+import org.carrot2.elasticsearch.LogicalField;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.testng.annotations.Test;
@@ -21,7 +24,7 @@ public class JavaApiTests extends AbstractApiTest {
     }
 
     private static void testApiViaClient(Client client) throws IOException {
-        Carrot2ClusteringActionResponse result = new Carrot2ClusteringActionRequestBuilder(client)
+        ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .addFieldMapping("title", LogicalField.TITLE)
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)

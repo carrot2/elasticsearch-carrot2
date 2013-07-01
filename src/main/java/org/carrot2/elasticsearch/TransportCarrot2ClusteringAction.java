@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,8 +29,8 @@ import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
 
 public class TransportCarrot2ClusteringAction  
-    extends TransportAction<Carrot2ClusteringActionRequest,
-                            Carrot2ClusteringActionResponse> {
+    extends TransportAction<ClusteringActionRequest,
+                            ClusteringActionResponse> {
 
     private final TransportSearchAction searchAction;
     private final ControllerSingleton controllerSingleton;
@@ -43,12 +43,12 @@ public class TransportCarrot2ClusteringAction
         super(settings, threadPool);
         this.searchAction = searchAction;
         this.controllerSingleton = controllerSingleton;
-        transportService.registerHandler(Carrot2ClusteringAction.NAME, new TransportHandler());
+        transportService.registerHandler(ClusteringAction.NAME, new TransportHandler());
     }
 
     @Override
-    protected void doExecute(final Carrot2ClusteringActionRequest clusteringRequest,
-                             final ActionListener<Carrot2ClusteringActionResponse> listener) {
+    protected void doExecute(final ClusteringActionRequest clusteringRequest,
+                             final ActionListener<ClusteringActionResponse> listener) {
         final Map<String,String> info = Maps.newLinkedHashMap();
         final long tsSearchStart = System.nanoTime();
         searchAction.execute(clusteringRequest.getSearchRequest(), new ActionListener<SearchResponse>() {
@@ -96,7 +96,7 @@ public class TransportCarrot2ClusteringAction
                 info.put("total-millis", 
                         Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
 
-                listener.onResponse(new Carrot2ClusteringActionResponse(response, groups, info));
+                listener.onResponse(new ClusteringActionResponse(response, groups, info));
             }
         });
     }
@@ -138,7 +138,7 @@ public class TransportCarrot2ClusteringAction
      * Map {@link SearchHit} fields to logical fields of Carrot2 {@link Document}.
      */
     private List<Document> prepareDocumentsForClustering(
-            final Carrot2ClusteringActionRequest request,
+            final ClusteringActionRequest request,
             SearchResponse response) {
         SearchHit [] hits = response.getHits().hits();
         List<Document> documents = Lists.newArrayListWithCapacity(hits.length);
@@ -184,7 +184,7 @@ public class TransportCarrot2ClusteringAction
                         break;
 
                     default:
-                        throw new RuntimeException();
+                        throw Preconditions.unreachable();
                 }
 
                 // Determine the target field.
@@ -202,7 +202,7 @@ public class TransportCarrot2ClusteringAction
                             target = content;
                             break;
                         default:
-                            throw new RuntimeException("Unreachable.");
+                            throw Preconditions.unreachable();
                     }
 
                     // Separate multiple fields with a single dot (prevent accidental phrase gluing).
@@ -228,18 +228,18 @@ public class TransportCarrot2ClusteringAction
         return documents;
     }
 
-    private final class TransportHandler extends BaseTransportRequestHandler<Carrot2ClusteringActionRequest> {
+    private final class TransportHandler extends BaseTransportRequestHandler<ClusteringActionRequest> {
         @Override
-        public Carrot2ClusteringActionRequest newInstance() {
-            return new Carrot2ClusteringActionRequest();
+        public ClusteringActionRequest newInstance() {
+            return new ClusteringActionRequest();
         }
 
         @Override
-        public void messageReceived(final Carrot2ClusteringActionRequest request, final TransportChannel channel) throws Exception {
+        public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel) throws Exception {
             request.listenerThreaded(false);
-            execute(request, new ActionListener<Carrot2ClusteringActionResponse>() {
+            execute(request, new ActionListener<ClusteringActionResponse>() {
                 @Override
-                public void onResponse(Carrot2ClusteringActionResponse response) {
+                public void onResponse(ClusteringActionResponse response) {
                     try {
                         channel.sendResponse(response);
                     } catch (Exception e) {
@@ -253,7 +253,7 @@ public class TransportCarrot2ClusteringAction
                         channel.sendResponse(e);
                     } catch (Exception e1) {
                         logger.warn("Failed to send error response for action ["
-                                + Carrot2ClusteringAction.NAME + "] and request [" + request + "]", e1);
+                                + ClusteringAction.NAME + "] and request [" + request + "]", e1);
                     }
                 }
             });

@@ -1,11 +1,9 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import org.elasticsearch.common.inject.AbstractModule;
 
-/**
- * 
- */
-public class Carrot2Module extends AbstractModule {
+/** */
+public class ClusteringModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(ControllerSingleton.class).asEagerSingleton();

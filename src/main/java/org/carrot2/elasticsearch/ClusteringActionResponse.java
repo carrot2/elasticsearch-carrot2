@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.io.IOException;
 import java.util.Map;
@@ -16,7 +16,10 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import com.google.common.collect.Maps;
 
 /** */
-public class Carrot2ClusteringActionResponse extends ActionResponse implements ToXContent {
+public class ClusteringActionResponse extends ActionResponse implements ToXContent {
+    /**
+     * Clustering-related response fields. 
+     */
     static final class Fields {
         static final XContentBuilderString SEARCH_RESPONSE = new XContentBuilderString("search_response");
         static final XContentBuilderString CLUSTERS = new XContentBuilderString("clusters");
@@ -27,10 +30,10 @@ public class Carrot2ClusteringActionResponse extends ActionResponse implements T
     private DocumentGroup [] topGroups;
     private Map<String,String> info;
 
-    Carrot2ClusteringActionResponse() {
+    ClusteringActionResponse() {
     }
 
-    public Carrot2ClusteringActionResponse(
+    public ClusteringActionResponse(
             SearchResponse searchResponse, 
             DocumentGroup[] topGroups,
             Map<String,String> info) {

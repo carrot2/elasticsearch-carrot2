@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch.plugin;
+package org.carrot2.elasticsearch;
 
 import java.io.IOException;
 
@@ -28,7 +28,7 @@ public class DocumentGroup implements ToXContent, Streamable {
     private boolean otherTopics;
 
     public DocumentGroup[] getSubgroups() {
-        return null;
+        return subgroups;
     }
 
     public void setSubgroups(DocumentGroup[] subclusters) {
