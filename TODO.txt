@@ -9,10 +9,6 @@ DOCS
 BUGS/ TESTS
 -----------
 
-- add a test verifying these schemes work: 
-  <li><code>/{index}/_search_with_clusters</code></li>
-  <li><code>/{index}/{type}/_search_with_clusters</code></li>
-
 - support for GET queries
 
 FEATURES

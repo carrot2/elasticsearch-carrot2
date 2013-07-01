@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.mahout.math.Arrays;
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
@@ -26,6 +27,7 @@ import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.XContentRestResponse;
 import org.elasticsearch.rest.XContentThrowableRestResponse;
 import org.elasticsearch.rest.action.search.RestSearchAction;
+import org.elasticsearch.rest.action.support.RestActions;
 
 /**
  */
@@ -56,7 +58,7 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
         // TODO: delegate json parsing to Carrot2ClusteringAction.
         Carrot2ClusteringActionRequest actionRequest = new Carrot2ClusteringActionRequest();
         if (request.hasContent()) {
-            fillFromSource(actionRequest, request.content());
+            fillFromSource(request, actionRequest, request.content());
         } else {
             try {
                 channel.sendResponse(new XContentThrowableRestResponse(request, new RuntimeException("Body-less request unsupported.")));
@@ -64,8 +66,6 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
                 logger.error("Failed to send failure response", e);
             }
         }
-
-        // TODO: parse and fill in request parameters (search, clustering).
 
         // Build a clustering request and dispatch.
         client.execute(Carrot2ClusteringAction.INSTANCE, actionRequest, 
@@ -103,10 +103,12 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
 
     /**
      * Parse the clustering/ search request JSON.
+     * @param request 
      */
     @SuppressWarnings("unchecked")
     private void fillFromSource(
-            Carrot2ClusteringActionRequest actionRequest,
+            RestRequest restRequest, 
+            Carrot2ClusteringActionRequest clusteringRequest,
             BytesReference source) {
         if (source == null || source.length() == 0) {
             return;
@@ -121,14 +123,17 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             Map<String, Object> asMap = parser.mapOrderedAndClose();
 
             if (asMap.get("query_hint") != null) {
-                actionRequest.setQueryHint((String) asMap.get("query_hint"));
+                clusteringRequest.setQueryHint((String) asMap.get("query_hint"));
             }
             if (asMap.containsKey("field_mapping")) {
-                parseFieldSpecs(actionRequest, (Map<String,List<String>>) asMap.get("field_mapping"));
+                parseFieldSpecs(clusteringRequest, (Map<String,List<String>>) asMap.get("field_mapping"));
             }
             if (asMap.containsKey("search_request")) {
-                actionRequest.setSearchRequest(
-                        new SearchRequest().source((Map<?,?>) asMap.get("search_request")));
+                SearchRequest searchRequest = new SearchRequest();
+                searchRequest.indices(RestActions.splitIndices(restRequest.param("index")));
+                searchRequest.source((Map<?,?>) asMap.get("search_request"));
+                searchRequest.types(RestActions.splitTypes(restRequest.param("type")));
+                clusteringRequest.setSearchRequest(searchRequest);
             }
         } catch (Exception e) {
             String sSource = "_na_";

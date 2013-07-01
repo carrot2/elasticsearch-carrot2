@@ -122,6 +122,17 @@ public class Carrot2ClusteringApiTests {
                             .field("content", data[2])
                         .endObject()));
         }
+
+        bulk.add(new IndexRequestBuilder(node.client())
+            .setIndex(INDEX_NAME)
+            .setType("empty")
+            .setSource(XContentFactory.jsonBuilder()
+                    .startObject()
+                        .field("url",     "")
+                        .field("title",   "")
+                        .field("content", "")
+                    .endObject()));
+
         bulk.setRefresh(true).execute().actionGet();
     }
 
@@ -183,7 +194,39 @@ public class Carrot2ClusteringApiTests {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
             post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
             HttpResponse response = httpClient.execute(post);
-            checkHttpResponse(response);
+            
+            Map<?,?> map = checkHttpResponse(response);
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            Assertions.assertThat(clusterList)
+                .isNotNull()
+                .isNotEmpty();
+
+            Assertions.assertThat(clusterList.size())
+                .isGreaterThan(5);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    @Test
+    public void testRestApiPathParams() throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            String requestJson = resourceString("post_with_fields.json");
+
+            HttpPost post = new HttpPost(restBaseUrl 
+                    + "/" + INDEX_NAME 
+                    + "/empty/" 
+                    + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            HttpResponse response = httpClient.execute(post);
+            Map<?,?> map = checkHttpResponse(response);
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            Assertions.assertThat(clusterList)
+                .isNotNull()
+                .isEmpty();
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
@@ -277,14 +320,6 @@ public class Carrot2ClusteringApiTests {
             .describedAs(responseDescription)
             .containsKey("clusters");
     
-        List<?> clusterList = (List<?>) map.get("clusters");
-        Assertions.assertThat(clusterList)
-            .isNotNull()
-            .isNotEmpty();
-
-        Assertions.assertThat(clusterList.size())
-            .isGreaterThan(5);
-
         return map;
     }
 
