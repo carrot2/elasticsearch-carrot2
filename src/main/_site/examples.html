@@ -143,7 +143,9 @@
               <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
           </div>
         </div>
+      </section>
 
+      <section>
         <div class="page-header"><h3>POST request</h3></div>
         <div class="row">
           <div class="span12">
@@ -223,7 +225,9 @@
             </div>
           </div>
         </div>
+      </section>
 
+      <section>
         <div class="page-header"><h3>POST response</h3></div>
         <div class="row">
           <div class="span12">
@@ -261,8 +265,7 @@
     /* Additional information about the clustering: execution times,
        the algorithm used, etc. */
   }
-}
-</pre>
+}</pre>
             <p>Given the following function that recursively dumps clusters:</p>
             <pre class="linenums prettyprint" id="defineDumpClusters">
 window.dumpClusters = function(arr, clusters, indent) {
@@ -384,7 +387,115 @@ $.post("/test/test/_search_with_clusters",
             <pre class="result" id="simple-request-result"></pre>
           </div>
         </div>
+      </section>
 
+
+      <section>
+        <div class="page-header"><h3>A bit more about field mapping</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The field mapping section provides a connection between actual data and logical data
+            to cluster on. The different field mapping sources
+            (<code>_source.*</code>,
+             <code>highlight.*</code> and
+             <code>fields.*</code>) can be used to tune the amount of data returned in the request and
+            the amount of text passed to the clustering engine (and in result the required processing cost).</p>
+
+            <ul>
+              <li><p>The <code>_source.*</code> mapping takes data directly from the source document, if <code>_source</code>
+                is available as part of the search hit. The content pointed to by this mapping is not returned as
+                part of the request, it is only used internally for clustering.</p>
+
+                <p><span class="badge badge-warning">Warning!</span>
+                  The <code>_source</code> may not
+                  be published by ElasticSearch's internal search infrastructure, in particular, when only selected
+                  <code>fields</code> are filtered, the source will not be available. This issue should be addressed
+                  in the future (ES API constraint).</p>
+              </li>
+
+              <li><p>The <code>fields.*</code> mapping must be accompanied by appropriate
+                <a href="http://www.elasticsearch.org/guide/reference/api/search/fields/"><code>fields</code></a>
+                declaration in the search request. The content of those fields is returned back with the
+                request and thus can be used for display purposes (for example to show each document's title).</p></li>
+
+              <li><p>The <code>highlight.*</code> mapping also must be accompanied by appropriate
+                <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/"><code>highlight</code></a>
+                declaration in the search request. The highlighting request specification can be used to tune the
+                amount of content passed to the clustering engine (the number of fragments, their width, boundary, etc.). This
+                is of particular importance when the documents are long (full content is stored): it is typical that
+                clustering algorithms run perceptually &quot;better&quot; when focused on the context surrounding
+                the query, rather than when presented with full content of all documents.
+                Any highlighted content will also be returned as part of the request.</p></li>
+            </ul>
+
+            <p>Compare the output for the following requests and note the differences outlined above.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "fields": ["url", "title", "content"],
+    "query": {"match" : { "_all": "computer" }},
+    "size": 100
+  },
+
+  "query_hint": "computer",
+  "field_mapping": {
+    "url":     ["fields.url"],
+    "title":   ["fields.title"],
+    "content": ["fields.content"]
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#fields-request").text(JSON.stringify(response, false, "  "));
+});
+            </pre>
+          </div>
+
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "fields": ["url", "title"],
+    "query": {"match" : { "_all": "computer" }},
+    "size": 100,
+    "highlight" : {
+      "pre_tags" :  ["", ""],
+      "post_tags" : ["", ""],
+      "fields" : {
+        "content" : { "fragment_size" : 100, "number_of_fragments" : 2 }
+      }
+    },
+  },
+
+  "query_hint": "computer",
+  "field_mapping": {
+    "url":     ["fields.url"],
+    "title":   ["fields.title"],
+    "content": ["highlight.content"]
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#highlight-request").text(JSON.stringify(response, false, "  "));
+});
+            </pre>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="fields-request"></pre>
+          </div>
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="highlight-request"></pre>
+          </div>
+        </div>
       </section>
     </div>
 

@@ -147,6 +147,8 @@ public class TransportCarrot2ClusteringAction
         StringBuilder content = new StringBuilder();
         StringBuilder url = new StringBuilder();
         Joiner joiner = Joiner.on(" . ");
+        
+        boolean emptySourceWarningEmitted = false;
 
         for (SearchHit hit : hits) {
             // Prepare logical fields for each hit.
@@ -178,9 +180,18 @@ public class TransportCarrot2ClusteringAction
 
                     case SOURCE:
                         if (sourceAsMap == null) {
-                            sourceAsMap = hit.getSource();
+                            if (hit.isSourceEmpty()) {
+                                if (!emptySourceWarningEmitted) {
+                                    emptySourceWarningEmitted = true;
+                                    logger.warn("_source field mapping used but no source available for: {}, field {}", hit.getId(), spec.field);
+                                }
+                            } else {
+                                sourceAsMap = hit.getSource();
+                            }
                         }
-                        appendContent = sourceAsMap.get(spec.field);
+                        if (sourceAsMap != null) {
+                            appendContent = sourceAsMap.get(spec.field);
+                        }
                         break;
 
                     default:

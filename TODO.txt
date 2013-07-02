@@ -2,7 +2,6 @@
 DOCS
 ----
 
-- add highlighter field mapping example (and rationale)
 - add algorithm picking example
 - add runtime algorithm attributes example
 - add static configuration overview (files, locations)
@@ -10,6 +9,11 @@ DOCS
 
 BUGS/ TESTS
 -----------
+
+- _source may not be available as part of a SearchHit (when fields restriction is provided, for example);
+  this makes _source a bit nonsensical since you either have to request it explicitly or implicitly
+  not request anything. We could request it if needed but it'd complicate parsing/ decoration quite
+  a bit.
 
 FEATURES
 --------
