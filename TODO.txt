@@ -1,15 +1,4 @@
 
-VERSION 1.0.0
-=============
-
-PERFORMANCE/ ROBUSTNESS
------------------------
-
-- check for error resilience and propagation (invalid query request, for example).
-- add a test case with yaml body (or other xcontent)
-
-
-
 VERSION 1.1.0
 =============
 
@@ -33,6 +22,8 @@ FEATURES
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
+- check for error resilience and propagation (invalid query request, for example).
+- add a test case with yaml body (or other xcontent)
 - performance implications and performance testing (threading inside actions/ dispatched actions)? 
 
 
@@ -47,3 +38,22 @@ REFACTORINGS/ ITCHES
   uri parameters get injected as extraSource); in most cases the user will need all document references anyway to link
   them up from clusters. Leaving for now. The search query determines the number of documents (and the type of aggregation,
   etc.) to use.
+
+
+VERSION 1.2.0
+=============
+
+DOCS
+----
+
+BUGS/ TESTS
+-----------
+
+FEATURES
+--------
+
+PERFORMANCE/ ROBUSTNESS
+-----------------------
+
+REFACTORINGS/ ITCHES
+--------------------

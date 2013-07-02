@@ -44,4 +44,4 @@ License
 -------
 
 This software is licensed under the Apache 2 license. Full text
-of the license is in the repository (`elasticsearch-carrot2.LICENSE`).
+of the license is in the repository (`LICENSE.txt`).

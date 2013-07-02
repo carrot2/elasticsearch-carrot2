@@ -24,5 +24,13 @@
       <directory>${project.basedir}/src/main/_site</directory>
       <outputDirectory>_site</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <outputDirectory>_site</outputDirectory>
+      <includes>
+        <include>CHANGES.txt</include>
+        <include>LICENSE.txt</include>
+      </includes>
+    </fileSet>
   </fileSets>
 </assembly>
