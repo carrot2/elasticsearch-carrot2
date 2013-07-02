@@ -2,8 +2,8 @@
 DOCS
 ----
 
-- add algorithm picking example
 - add runtime algorithm attributes example
+
 - add static configuration overview (files, locations)
 - document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
 

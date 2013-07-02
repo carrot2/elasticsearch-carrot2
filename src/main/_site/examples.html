@@ -497,6 +497,81 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
           </div>
         </div>
       </section>
+
+
+      <section>
+        <div class="page-header"><h3>Selecting the algorithm</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The clustering plugin comes with several open-source algorithms from
+              the <a href="http://project.carrot2.org">Carrot<sup>2</sup></a> project and has a built-in support
+              for the commercial <a href="http://carrotsearch.com/lingo3g-overview">Lingo3G</a> clustering algorithm.</p>
+
+            <p>The question of which algorithm to choose depends on the traffic (Lingo is more expensive than STC,
+              Lingo3G is yet faster), expected result (Lingo3G provides hierarchical clusters, Lingo and STC
+              provide flat clusters), and the input data (each algorithm will cluster the input sligtly differently).
+              There is no one answer which algorithm is "the best".</p>
+
+            <p>Compare the clusters dumped for the following identical search request.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span6">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
+var request = {
+  "search_request": {
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title":   ["_source.title"],
+    "content": ["_source.content"]
+  },
+  "algorithm": "lingo"
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#request-algorithm1").text(dumpClusters([], response.clusters).join("\n"));
+});
+            </pre>
+          </div>
+
+          <div class="span6">
+            <pre class="executable example">
+var request = {
+  "search_request": {
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title":   ["_source.title"],
+    "content": ["_source.content"]
+  },
+  "algorithm": "stc"
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#request-algorithm2").text(dumpClusters([], response.clusters).join("\n"));
+});
+            </pre>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="request-algorithm1"></pre>
+          </div>
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="request-algorithm2"></pre>
+          </div>
+        </div>
+      </section>
     </div>
 
     <script src="assets/js/jquery-2.0.2.min.js"></script>
