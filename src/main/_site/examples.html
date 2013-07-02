@@ -71,7 +71,7 @@
         </div>
       </div>
 
-      <section>
+      <section id="preliminaries">
         <div class="page-header" id="prereq"><h3>Preliminary concepts</h3></div>
         <div class="row">
           <div class="span8">
@@ -98,7 +98,7 @@
           <div class="span12">
             <p>Documents indexed in ElasticSearch do not have to follow any predefined schema so actual fields
               of a JSON document need to be mapped to the logical layout required by the clustering plugin. An example
-              mapping can look as illustrated below.</p>
+              mapping can look as illustrated in the figure below:</p>
 
             <p class="text-center"><img src="assets/img/mapping.png" alt="Logical field mapping" width="500" /></p>
 
@@ -110,12 +110,12 @@
               <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/">highlighter</a> to
               the document's fields. This can be useful to decrease the amount of text passed to the clustering
               algorithm (improves performance) or to make the clustered content more query-specific (this typically
-              clusters better). REST examples below demonstrate the API for field mapping in details.</p>
+              clusters better). REST examples <a href="#post-request">below</a> demonstrate the API for field mapping in details.</p>
           </div>
         </div>
       </section>
 
-      <section>
+      <section id="java-api">
         <div class="page-header"><h3>Java API</h3></div>
         <div class="row">
           <div class="span12">
@@ -127,7 +127,7 @@
         </div>
       </section>
 
-      <section>
+      <section id="access-uris">
         <div class="page-header"><h3>REST access URIs</h3></div>
         <div class="row">
           <div class="span12">
@@ -145,7 +145,7 @@
         </div>
       </section>
 
-      <section>
+      <section id="post-request">
         <div class="page-header"><h3>POST request</h3></div>
         <div class="row">
           <div class="span12">
@@ -178,8 +178,7 @@
   "url":     [_source.urlSource],
   "title":   [fields.subject],
   "content": [_source.abstract, highlight.main]
-}
-                </pre>
+}</pre>
 
                 <p>Any of the following logical field names are valid:</p>
                 <dl class="dl-horizontal">
@@ -201,7 +200,7 @@
 
                   <dt><code>highlight.{fieldname}</code></dt>
                   <dd>Defines a search hit's highlighted field. The highlighter output must also be configured
-                    properly in the search request (see examples below).</dd>
+                    properly in the search request (see <a href="#field-mapping">field mapping example</a>).</dd>
 
                   <dt><code>_source.{fieldname}</code></dt>
                   <dd>Defines a source document's field (top-level property of the json document). This will
@@ -213,6 +212,13 @@
               <dd><p><span class="badge">optional</span>
                 Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
                 algorithms are logged at startup. If not present, the default algorithm is used.</p>
+              </dd>
+
+              <dt><code>attributes</code></dt>
+              <dd><p><span class="badge">optional</span>
+                A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
+                in Carrot<sup>2</sup> parlance). Typically the default settings are overridden using init-time XML configuration
+                files.</p>
               </dd>
             </dl>
 
@@ -227,7 +233,7 @@
         </div>
       </section>
 
-      <section>
+      <section id="post-response">
         <div class="page-header"><h3>POST response</h3></div>
         <div class="row">
           <div class="span12">
@@ -390,7 +396,7 @@ $.post("/test/test/_search_with_clusters",
       </section>
 
 
-      <section>
+      <section id="field-mapping">
         <div class="page-header"><h3>A bit more about field mapping</h3></div>
         <div class="row">
           <div class="span12">
@@ -499,7 +505,7 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
       </section>
 
 
-      <section>
+      <section id="algorithms">
         <div class="page-header"><h3>Selecting the algorithm</h3></div>
         <div class="row">
           <div class="span12">
@@ -572,6 +578,50 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
           </div>
         </div>
       </section>
+
+
+      <section id="runtime-attributes">
+        <div class="page-header"><h3>Overriding algorithm attributes at runtime</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>Every clustering algorithm comes with (tons) of attributes that modify its
+              behavior (the Carrot<sup>2</sup> Workbench can be used for tuning these).
+              If desired, certain attributes can be modified per-request, as the following
+              example shows by modifying the number of desired clusters randomly (execute
+              the example a few times to see the difference).</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span7">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
+var request = {
+  "search_request": {
+    "query": {"match" : { "_all": "data mining" }},
+    "size": 100
+  },
+
+  "query_hint": "data mining",
+  "field_mapping": {
+    "title":   ["_source.title"],
+    "content": ["_source.content"]
+  },
+  "algorithm": "lingo",
+  "attributes": {
+     "LingoClusteringAlgorithm.desiredClusterCountBase": Math.round(5 + Math.random() * 5)
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#request-attributes").text(dumpClusters([], response.clusters).join("\n"));
+});
+            </pre>
+          </div>
+          <div class="span5">
+            <pre class="result" id="request-attributes"></pre>
+          </div>
+        </div>
+      </section>
+
     </div>
 
     <script src="assets/js/jquery-2.0.2.min.js"></script>

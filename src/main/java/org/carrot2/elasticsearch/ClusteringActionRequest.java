@@ -4,6 +4,7 @@ import static org.elasticsearch.action.ValidateActions.addValidationError;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionRequest;
@@ -20,6 +21,7 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
     private String queryHint;
     private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
     private String algorithm;
+    private Map<String, Object> attributes;
 
     /**
      * Set the {@link SearchRequest} to use for fetching documents to be clustered.
@@ -49,8 +51,9 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
      *  <p>
      *  The hint may be an empty string but must not be <code>null</code>.
      */
-    public void setQueryHint(String queryHint) {
+    public ClusteringActionRequest setQueryHint(String queryHint) {
         this.queryHint = queryHint;
+        return this;
     }
     
     /**
@@ -64,8 +67,9 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
      * Sets the identifier of the clustering algorithm to use. If <code>null</code>, the default
      * algorithm will be used (depending on what's available).
      */
-    public void setAlgorithm(String algorithm) {
+    public ClusteringActionRequest setAlgorithm(String algorithm) {
         this.algorithm = algorithm;
+        return this;
     }
     
     /**
@@ -76,11 +80,27 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
     }
 
     /**
+     * Sets a map of runtime override attributes for clustering algorithms. 
+     */
+    public ClusteringActionRequest setAttributes(Map<String, Object> map) {
+        this.attributes = map;
+        return this;
+    }
+    
+    /**
+     * @see #setAttributes(Map)
+     */
+    public Map<String, Object> getAttributes() {
+        return attributes;
+    }
+
+    /**
      * Map a hit's field to a logical section of a document to be clustered (title, content or URL).
      * @see LogicalField
      */
-    public void addFieldMapping(String fieldName, LogicalField logicalField) {
+    public ClusteringActionRequest addFieldMapping(String fieldName, LogicalField logicalField) {
         fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.FIELD));
+        return this;
     }
 
     /**
@@ -88,8 +108,9 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
      * to a logical section of a document to be clustered (title, content or URL).
      * @see LogicalField
      */
-    public void addSourceFieldMapping(String sourceFieldName, LogicalField logicalField) {
+    public ClusteringActionRequest addSourceFieldMapping(String sourceFieldName, LogicalField logicalField) {
         fieldMapping.add(new FieldMappingSpec(sourceFieldName, logicalField, FieldSource.SOURCE));
+        return this;
     }
 
     /**
@@ -98,15 +119,16 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
      * passed to the clustering engine but also to "focus" the clustering engine on the context
      * of the query.
      */
-    public void addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
+    public ClusteringActionRequest addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
         fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.HIGHLIGHT));
+        return this;
     }
 
     /**
      * Add a (valid!) field mapping specification to a logical field.
      * @see FieldSource
      */
-    public void addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
+    public ClusteringActionRequest addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
         FieldSource.ParsedFieldSource pfs = FieldSource.parseSpec(fieldSpec);
         if (pfs.source != null) {
             switch (pfs.source) {
@@ -131,6 +153,8 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
             throw new ElasticSearchException("Field mapping specification must contain a " +
                     " valid source prefix for the field source: " + fieldSpec);
         }
+        
+        return this;
     }
 
     /** Access to prepared field mapping. */
@@ -163,31 +187,45 @@ public class ClusteringActionRequest extends ActionRequest<ClusteringActionReque
         
         return validationException;
     }
-    
+
+    @Override
+    public void writeTo(StreamOutput out) throws IOException {
+        assert searchRequest != null;
+        this.searchRequest.writeTo(out);
+        out.writeOptionalString(queryHint);
+        out.writeOptionalString(algorithm);
+
+        out.writeVInt(fieldMapping.size());
+        for (FieldMappingSpec spec : fieldMapping) {
+            spec.writeTo(out);
+        }
+        
+        boolean hasAttributes = (attributes != null);
+        out.writeBoolean(hasAttributes);
+        if (hasAttributes) {
+            out.writeMap(attributes);
+        }
+    }
+
     @Override
     public void readFrom(StreamInput in) throws IOException {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.readFrom(in);
+        
         this.searchRequest = searchRequest;
         this.queryHint = in.readOptionalString();
+        this.algorithm = in.readOptionalString();
+        
         int count = in.readVInt();
         while (count-- > 0) {
             FieldMappingSpec spec = new FieldMappingSpec();
             spec.readFrom(in);
             fieldMapping.add(spec);
         }
-    }
-
-    @Override
-    public void writeTo(StreamOutput out) throws IOException {
-        assert searchRequest != null;
-        this.searchRequest.writeTo(out);
         
-        out.writeOptionalString(queryHint);
-
-        out.writeVInt(fieldMapping.size());
-        for (FieldMappingSpec spec : fieldMapping) {
-            spec.writeTo(out);
+        boolean hasAttributes = in.readBoolean();
+        if (hasAttributes) {
+            attributes = in.readMap();
         }
     }
 }

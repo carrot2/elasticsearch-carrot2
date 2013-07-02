@@ -78,7 +78,12 @@ public class TransportCarrot2ClusteringAction
                  */
                 Controller controller = controllerSingleton.getController();
 
-                Map<String,Object> processingAttrs = Maps.newHashMap();
+                Map<String, Object> processingAttrs = Maps.newHashMap();
+                Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
+                if (requestAttrs != null) {
+                    processingAttrs.putAll(requestAttrs);
+                }
+
                 CommonAttributesDescriptor.attributeBuilder(processingAttrs)
                     .documents(prepareDocumentsForClustering(clusteringRequest, response))
                     .query(clusteringRequest.getQueryHint());

@@ -97,7 +97,11 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                             resourceLookup.getFirst(suiteResource), resourceLookup);
                     for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
                         failed.add(desc.getId());
-                        logger.debug("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                        if (isNoClassDefFound(desc.getInitializationFailure())) {
+                            logger.debug("Algorithm not available on classpath: {}", desc.getId());
+                        } else {
+                            logger.debug("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                        }
                     }
                     return suite;
                 }
@@ -134,6 +138,14 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
         if (algorithms == null || algorithms.isEmpty()) {
             throw new ElasticSearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
         }
+    }
+
+    /** */
+    protected boolean isNoClassDefFound(Throwable initializationFailure) {
+        if (initializationFailure != null) {
+            return initializationFailure.getCause() instanceof ClassNotFoundException;
+        }
+        return false;
     }
 
     public Controller getController() {

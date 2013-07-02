@@ -132,6 +132,9 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             if (asMap.containsKey("algorithm")) {
                 clusteringRequest.setAlgorithm((String) asMap.get("algorithm"));
             }
+            if (asMap.containsKey("attributes")) {
+                clusteringRequest.setAttributes((Map<String,Object>) asMap.get("attributes"));
+            }
         } catch (Exception e) {
             String sSource = "_na_";
             try {

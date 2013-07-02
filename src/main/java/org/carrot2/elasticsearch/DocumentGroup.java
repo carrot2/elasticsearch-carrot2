@@ -148,9 +148,7 @@ public class DocumentGroup implements ToXContent, Streamable {
     public String toString() {
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
-            builder.startObject();
             toXContent(builder, EMPTY_PARAMS);
-            builder.endObject();
             return builder.string();
         } catch (IOException e) {
             return "{ \"error\" : \"" + e.getMessage() + "\"}";

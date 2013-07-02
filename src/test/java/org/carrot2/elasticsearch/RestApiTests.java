@@ -31,7 +31,7 @@ public class RestApiTests extends AbstractApiTest {
                 {"post_with_source_fields.json"},
                 {"post_with_highlighted_fields.json"},
                 {"post_multiple_field_mapping.json"},
-                {"post_cluster_by_url.json"},
+                {"post_cluster_by_url.json"}
         };
     }
 
@@ -82,6 +82,27 @@ public class RestApiTests extends AbstractApiTest {
         }
     }
 
+    @Test
+    public void testRestApiRuntimeAttributes() throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            String requestJson = resourceToString("post_runtime_attributes.json");
+
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            HttpResponse response = httpClient.execute(post);
+            Map<?,?> map = checkHttpResponse(response);
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            Assertions.assertThat(clusterList)
+                .isNotNull();
+            Assertions.assertThat(clusterList.size())
+                .isEqualTo(/* max. cluster size cap */ 5 + /* other topics */ 1);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+    
     protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
         String responseString = new String(
                 ByteStreams.toByteArray(response.getEntity().getContent()), 

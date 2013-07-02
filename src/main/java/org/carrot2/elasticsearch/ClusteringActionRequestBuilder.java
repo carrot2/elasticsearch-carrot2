@@ -1,11 +1,16 @@
 package org.carrot2.elasticsearch;
 
+import java.util.Map;
+
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.internal.InternalClient;
+import org.elasticsearch.common.collect.ImmutableMap;
+
+import com.google.common.collect.Maps;
 
 /** */
 public class ClusteringActionRequestBuilder 
@@ -37,6 +42,23 @@ public class ClusteringActionRequestBuilder
 
     public ClusteringActionRequestBuilder setAlgorithm(String algorithm) {
         super.request.setAlgorithm(algorithm);
+        return this;
+    }
+
+    public ClusteringActionRequestBuilder addAttributes(Map<String,Object> attributes) {
+        if (super.request.getAttributes() == null) {
+            super.request.setAttributes(Maps.<String,Object> newHashMap());
+        }
+        super.request.getAttributes().putAll(attributes);
+        return this;
+    }
+
+    public ClusteringActionRequestBuilder addAttribute(String key, Object value) {
+        return addAttributes(ImmutableMap.of(key, value));
+    }
+
+    public ClusteringActionRequestBuilder setAttributes(Map<String,Object> attributes) {
+        super.request.setAttributes(attributes);
         return this;
     }
 
