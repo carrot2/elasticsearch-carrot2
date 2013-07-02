@@ -12,7 +12,7 @@ Installation
 
 In order to install the plugin, run ElasticSearch's `plugin` utility: 
 
-    bin\plugin --install org.carrot2/elasticsearch-carrot2/1.0.0
+    bin/plugin --install org.carrot2/elasticsearch-carrot2/1.0.0
 
 
 Usage guide
