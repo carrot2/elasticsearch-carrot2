@@ -20,6 +20,7 @@ import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
+import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
 import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.common.collect.Maps;
@@ -87,14 +88,20 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).
-            final String suiteResource = c2Settings.get(
+            final String suiteResourceName = c2Settings.get(
                     DEFAULT_SUITE_PROPERTY_NAME, 
                     DEFAULT_SUITE_RESOURCE);
+            final IResource suiteResource = resourceLookup.getFirst(suiteResourceName);
+            if (suiteResource == null) {
+                throw new ElasticSearchException(
+                        "Could not find algorithm suite: " + suiteResourceName);
+            }
+
             final List<String> failed = Lists.newArrayList();
             final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
                 public ProcessingComponentSuite call() throws Exception {
                     ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                            resourceLookup.getFirst(suiteResource), resourceLookup);
+                            suiteResource, resourceLookup);
                     for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
                         failed.add(desc.getId());
                         if (isNoClassDefFound(desc.getInitializationFailure())) {

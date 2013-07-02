@@ -7,6 +7,8 @@ import java.util.Collection;
 import org.elasticsearch.action.ActionModule;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
+import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.plugins.AbstractPlugin;
 import org.elasticsearch.rest.RestModule;
@@ -44,9 +46,11 @@ public class ClusteringPlugin extends AbstractPlugin {
     public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
 
     private final boolean pluginEnabled;
+    private final ESLogger logger;
 
     public ClusteringPlugin(Settings settings) {
         this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
+        this.logger = Loggers.getLogger("plugin.carrot2", settings);
     }
 
     @Override
@@ -90,6 +94,8 @@ public class ClusteringPlugin extends AbstractPlugin {
         Collection<Class<? extends LifecycleComponent>> services = newArrayList();
         if (pluginEnabled) {
             services.add(ControllerSingleton.class);
+        } else {
+            logger.info("Plugin disabled.", name());
         }
         return services;
     }

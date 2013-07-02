@@ -13,6 +13,7 @@ import org.elasticsearch.node.Node;
  */
 public class StartLocalNode {
     public static void main(String[] args) throws Exception {
+        System.setProperty("log4j.configuration", "log4j-verbose.properties");
         Node node = nodeBuilder().settings(settingsBuilder()
                 .put("path.data", "target/data")
                 .put("path.plugins", "src")

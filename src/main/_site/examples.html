@@ -622,6 +622,92 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
         </div>
       </section>
 
+
+
+      <section id="plugin-configuration">
+        <div class="page-header"><h3>Plugin configuration</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The plugin comes with sensible defaults out of the box and should
+            require no additional configuration. Customize only if really necessary.</p>
+
+            <p>The following configuration files and properties can be used
+            to modify plugin defaults.</p>
+
+            <dl>
+              <dt><code>{path.conf}/elasticsearch.yml</code>,<br/>
+                  <code>{path.conf}/elasticsearch.json</code>,<br/>
+                  <code>{path.conf}/elasticsearch.properties</code></dt>
+              <dd>
+                <p>Main ES configuration file with plugin-specific settings.</p>
+
+                <dl class="dl-horizontal">
+                  <dt><code>carrot2.enabled</code></dt>
+                  <dd>If set to <code>false</code> disables the plugin, even if it is installed.</dd>
+                </dl>
+              </dd>
+
+              <dt><code>{path.conf}/carrot2.yml</code>,<br/>
+                  <code>{path.conf}/carrot2.json</code>,<br/>
+                  <code>{path.conf}/carrot2.properties</code></dt>
+              <dd>
+                <p>An optional configuration file with plugin-specific settings.</p>
+
+                <dl class="dl-horizontal">
+                  <dt><code>suite</code></dt>
+                  <dd><p>Algorithm suite XML. The resource is looked up in <code>path.conf</code>
+                  and in classpath. The default suite resource name is <code>carrot2.suite.xml</code>,
+                  it contains the defaults for all open-source algorithms and attempts to load Lingo3G.</p></dd>
+
+                  <dt><code>resources</code></dt>
+                  <dd><p>Resource lookup path for loading
+                    <a href="http://download.carrot2.org/head/manual/index.html#chapter.lexical-resources">Carrot<sup>2</sup> lexical resources</a>,
+                    <a href="http://download.carrotsearch.com/lingo3g/manual/#chapter.lexical-resources">Lingo3G's lexical resources</a>
+                    and algorithm descriptor files (including any initialization-time attributes). Relative paths are resolved from
+                    ElasticSearch's <code>path.conf</code> variable (typically <code>config</code> folder). The value
+                    can be an absolute path.</p>
+
+                    <p>Any resources not present in this location will be loaded from classpath (defaults).</p>
+                  </dd>
+                </dl>
+              </dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="algorithm-configuration">
+        <div class="page-header"><h3>Algorithm configuration</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The default algorithm suite contains empty stubs for all initialization attributes of every
+              included algorithm. These files follow a naming convention of:
+            <code>{algorithm-name}-attributes.xml</code>
+            and are resolved relative to the current setting of the <code>resources</code> configuration
+            setting (see <a href="#plugin-configuration">plugin configuration</a>).</p>
+
+            <p>For example to override the default attributes
+            for all requests to the <code>lingo</code> algorithm, one would create a <code>{es.home}/config/lingo-attributes.xml</code>
+            and place any overridden attributes in there, as in:</p>
+
+            <pre class="linenums prettyprint">
+&lt;attribute-sets default="overridden-attributes"&gt;
+  &lt;attribute-set id="overridden-attributes"&gt;
+    &lt;value-set&gt;
+      &lt;label&gt;overridden-attributes&lt;/label&gt;
+
+      &lt;attribute key="LingoClusteringAlgorithm.desiredClusterCountBase"&gt;
+        &lt;value type="java.lang.Integer" value="5"/&gt;
+      &lt;/attribute&gt;
+    &lt;/value-set&gt;
+  &lt;/attribute-set&gt;
+&lt;/attribute-sets&gt;</pre>
+
+            <p>It is perhaps most convenient to export the configuration XMLs directly from the Carrot<sup>2</sup> Workbench.</p>
+          </div>
+        </div>
+      </section>
     </div>
 
     <script src="assets/js/jquery-2.0.2.min.js"></script>

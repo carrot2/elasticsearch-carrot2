@@ -2,12 +2,6 @@
 VERSION 1.0.0
 =============
 
-DOCS
-----
-
-- add static configuration overview (files, locations)
-- document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
-
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
