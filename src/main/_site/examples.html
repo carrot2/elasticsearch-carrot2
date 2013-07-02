@@ -22,7 +22,7 @@
 
       pre.example, pre.result {
         height: auto;
-        max-height: 300px;
+        max-height: 400px;
         overflow: auto;
       }
 
@@ -236,9 +236,9 @@
 
   /* Clustering response fields. */
   "clusters": [
-    /* cluster 1 */
+    /* Each cluster is defined by the following. */
     {
-      "id": /* cluster identifier */,
+      "id":    /* identifier */,
       "score": /* numeric score */,
       "label": /* primary cluster label */,
       "other_topics": /* if present, and true, this cluster groups
@@ -247,26 +247,44 @@
         /* cluster label array, will include primary. */
       ],
       "documents": [
-        /* document ID references */
+        /* This cluster's document ID references.
+           May be undefined if this cluster holds sub-clusters only. */
       ],
       "clusters": [
-        /* optional subclusters */
+        /* This cluster's subclusters (recursive objects of the same
+           structure). May be undefined if this cluster holds documents only. */
       ],
     },
     /* ...more clusters */
   ],
   "info": {
-    /* additional information about the clustering process */
+    /* Additional information about the clustering: execution times,
+       the algorithm used, etc. */
   }
 }
 </pre>
-            <p>We can dump all top-level cluster labels to the console with the following snippet of javascript:</p>
+            <p>Given the following function that recursively dumps clusters:</p>
+            <pre class="linenums prettyprint" id="defineDumpClusters">
+window.dumpClusters = function(arr, clusters, indent) {
+  indent = indent ? indent : "";
+  clusters.forEach(function(cluster) {
+    arr.push(
+        indent + cluster.label
+        + (cluster.documents ? " [" + cluster.documents.length + " documents]"   : "")
+        + (cluster.clusters  ? " [" + cluster.clusters.length  + " subclusters]" : ""));
+    if (cluster.clusters) {
+      dumpClusters(arr, cluster.clusters, indent + "  ");
+    }
+  });
+  return arr;
+}</pre>
+            <p>We can dump all cluster labels of a clustering request with the following snippet of javascript:</p>
           </div>
         </div>
 
         <div class="row">
           <div class="span6">
-            <pre class="executable example">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
     "query": {"match" : { "_all": "data mining" }},
@@ -280,16 +298,11 @@ var request = {
   }
 };
 
-$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
-  $("#cluster-list-result").text("");
-  response.clusters.forEach(function(cluster) {
-    $("#cluster-list-result").append(
-      cluster.id
-        + " => " + cluster.label
-        + " [" + cluster.documents.length
-        + " documents]"
-        + "\n");
-  });
+$.post("/test/test/_search_with_clusters",
+  JSON.stringify(request),
+  function(response) {
+    $("#cluster-list-result").text(
+      dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
           </div>
@@ -309,7 +322,7 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
           </div>
 
           <div class="span6">
-            <pre class="executable example">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
     "query": {"match" : { "_all": "data mining" }},
@@ -323,22 +336,10 @@ var request = {
   "algorithm": "byurl"
 };
 
-var dumpClusters = function(clusters, indent) {
-  clusters.forEach(function(cluster) {
-    $("#cluster-list-result2").append(
-        indent + cluster.label
-        + " [" + cluster.documents.length
-        + " documents]"
-        + "\n");
-    if (cluster.clusters) {
-      dumpClusters(cluster.clusters, indent + "  ");
-    }
-  });
-}
-
-$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
-  $("#cluster-list-result2").text("");
-  dumpClusters(response.clusters, "  ");
+$.post("/test/test/_search_with_clusters",
+  JSON.stringify(request), function(response) {
+    $("#cluster-list-result2").text(
+      dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
           </div>
@@ -371,8 +372,11 @@ var request = {
   }
 };
 
-$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
-  $("#simple-request-result").text(JSON.stringify(response, false, "  "));
+$.post("/test/test/_search_with_clusters",
+  JSON.stringify(request),
+  function(response) {
+    $("#simple-request-result").text(
+      JSON.stringify(response, false, "  "));
 });
             </pre>
           </div>
@@ -394,9 +398,20 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
           $("pre.executable").after(function() {
             var code = $(this).text();
 
+            // Collect hooks before they're pretty printed.
+            var runbefore = $(this).attr("data-runbefore");
+            var runafter  = $(this).attr("data-runafter");
+            if (runbefore) runbefore = $("#" + runbefore).text();
+            if (runafter)  runafter = $("#" + runafter).text();
+
             var $button = $('<button class="btn btn-mini btn-info runs-example" type="button">Execute</button>').on("click", function() {
               if ($button.hasClass("disabled")) return;
-              eval.call(null, code);
+              var self = {};
+              (function() {
+                runbefore && eval(runbefore);
+                eval(code);
+                runafter && eval(runafter);
+              }).call(self);
             });
 
             var $buttonline = $('<div class="executable-buttons"></div>').append($button);

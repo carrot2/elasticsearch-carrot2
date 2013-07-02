@@ -129,7 +129,9 @@ public class DocumentGroup implements ToXContent, Streamable {
             builder.field("other_topics", otherTopics);
         }
 
-        builder.array("documents", documentReferences);
+        if (documentReferences.length > 0) {
+            builder.array("documents", documentReferences);
+        }
 
         if (subgroups.length > 0) {
             builder.startArray("clusters");

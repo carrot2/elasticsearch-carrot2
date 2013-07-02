@@ -21,7 +21,7 @@ Usage guide
 -----------
 
 Once installed, restart ElasticSearch and point your browser to:
-<http://localhost:9200/_plugin/elasticsearch-carrot2/index.html>
+<http://localhost:9200/_plugin/elasticsearch-carrot2/>
 (or wherever your ES node is deployed). That file contains
 some sample data and query examples.
 
@@ -33,11 +33,11 @@ ES and query the clustering plugin.
 Versions and compatibility
 --------------------------
 
-    ----------------------------------------------
-    | Thrift Plugin | Elasticsearch    | Carrot2 |
-    ----------------------------------------------
-    | master        | 0.90   -> master | 3.7.1   |
-    ----------------------------------------------
+    --------------------------------------------------
+    | Clustering Plugin | Elasticsearch    | Carrot2 |
+    --------------------------------------------------
+    | master            | 0.90   -> master | 3.7.1   |
+    --------------------------------------------------
 
 
 License

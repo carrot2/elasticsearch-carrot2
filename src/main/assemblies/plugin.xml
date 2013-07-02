@@ -1,7 +1,6 @@
-<?xml version="1.0"?>
 <assembly>
   <id>plugin</id>
-  
+
   <formats>
     <format>zip</format>
   </formats>
@@ -22,7 +21,7 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/site</directory>
+      <directory>${project.basedir}/src/main/_site</directory>
       <outputDirectory>_site</outputDirectory>
     </fileSet>
   </fileSets>
