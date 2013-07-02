@@ -1,11 +1,26 @@
 
+VERSION 1.0.0
+=============
+
 DOCS
 ----
 
-- add runtime algorithm attributes example
-
 - add static configuration overview (files, locations)
 - document default settings (DEFAULT_CONFIG_FILE + ".yml|.properties|.json")
+
+PERFORMANCE/ ROBUSTNESS
+-----------------------
+
+- check for error resilience and propagation (invalid query request, for example).
+- add a test case with yaml body (or other xcontent)
+
+
+
+VERSION 1.1.0
+=============
+
+DOCS
+----
 
 BUGS/ TESTS
 -----------
@@ -18,16 +33,11 @@ BUGS/ TESTS
 FEATURES
 --------
 
-- runtime algorithm attribute overrides
 - add an action to return supported clustering algorithms.
 
 
 PERFORMANCE/ ROBUSTNESS
 -----------------------
-
-- check for error resilience and propagation (invalid query request, for example).
-
-- add a test case with yaml body (or other xcontent)
 
 - performance implications and performance testing (threading inside actions/ dispatched actions)? 
 
