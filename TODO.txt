@@ -18,6 +18,7 @@ FEATURES
 
 - add an action to return supported clustering algorithms.
 
+- add support for GET requests.
 
 PERFORMANCE/ ROBUSTNESS
 -----------------------
