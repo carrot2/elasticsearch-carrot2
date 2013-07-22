@@ -148,7 +148,8 @@
 
               "query_hint": query,
               "field_mapping": {
-                "title": ["fields.title", "fields.content"]
+                "title": ["fields.title"],
+                "content": ["fields.content"]
               }
             };
 
@@ -161,12 +162,38 @@
                   $progress.text("no results found");
                 }
 
-                // Convert the results to the format required by the visualization
+                // For hierarchical clustering calculate the number
+                // of unique documents contained in this and sub-clusters
+                function calculateUniqueDocumentsCount(cluster) {
+                  var uniqueIds = {};
+                  if (cluster.documents) {
+                    cluster.documents.forEach(function(id) {
+                      uniqueIds[id] = true;
+                    });
+                  }
+                  
+                  if (cluster.clusters) {
+                    cluster.clusters.forEach(function(subcluster) {
+                      for (var key in calculateUniqueDocumentsCount(subcluster)) {
+                        uniqueIds[key] = true;
+                      };
+                    });
+                  }
+                  cluster.uniqueDocumentsCount = Object.keys(uniqueIds).length;
+                  return uniqueIds;
+                }
+
+                result.clusters.forEach(function(cluster) {
+                  calculateUniqueDocumentsCount(cluster);
+                });
+
+                // Convert the results to the format required by the visualization:
+                // http://download.carrotsearch.com/circles/demo/api/#dataObject
                 var visualizationInput = {
                   groups: result.clusters.map(function mapper(cluster) {
                     return {
                       label: cluster.phrases[0],
-                      weight: cluster.documents.length,
+                      weight: cluster.uniqueDocumentsCount,
                       groups: (cluster.clusters || []).map(mapper)
                     }
                   })
