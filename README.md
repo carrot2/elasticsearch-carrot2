@@ -12,7 +12,7 @@ Installation
 
 In order to install the plugin, run ElasticSearch's `plugin` utility: 
 
-    bin/plugin --install org.carrot2/elasticsearch-carrot2/1.0.0
+    bin/plugin --install org.carrot2/elasticsearch-carrot2/1.0.1
 
 
 Usage guide
@@ -34,7 +34,8 @@ Versions and compatibility
     --------------------------------------------------
     | Clustering Plugin | Elasticsearch    | Carrot2 |
     --------------------------------------------------
-    | master            | 0.90   -> master | 3.7.1   |
+    | master            | 0.90.2 -> master | 3.7.1   |
+    | 1.0.1             | 0.90   -> master | 3.7.1   |
     | 1.0.0             | 0.90   -> master | 3.7.1   |
     --------------------------------------------------
 
