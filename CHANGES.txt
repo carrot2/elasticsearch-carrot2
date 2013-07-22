@@ -1,6 +1,12 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 1.0.1 ================
+
+Bug Fixes
+
+* GH-1: Front-page example visualizations fail with Lingo3G.
+
 ================ ElasticSearch-Carrot2 1.0.0 ================
 
 First open source release.
