@@ -10,9 +10,17 @@ Carrot Search can be used for actual clustering implementation.
 Installation
 ------------
 
-In order to install the plugin, run ElasticSearch's `plugin` utility: 
+In order to install a stable version of the plugin, 
+run ElasticSearch's `plugin` utility: 
 
     bin/plugin --install org.carrot2/elasticsearch-carrot2/1.0.1
+
+To install from sources (master branch), run:
+
+    mvn clean package
+    
+and unzip `target/releases/*.zip` into ES's plugins subfolder of
+your choice.
 
 
 Usage guide
@@ -31,13 +39,16 @@ ES and query the clustering plugin.
 Versions and compatibility
 --------------------------
 
-    --------------------------------------------------
-    | Clustering Plugin | Elasticsearch    | Carrot2 |
-    --------------------------------------------------
-    | master            | 0.90.2 -> master | 3.7.1   |
-    | 1.0.1             | 0.90   -> master | 3.7.1   |
-    | 1.0.0             | 0.90   -> master | 3.7.1   |
-    --------------------------------------------------
+Recommended compatiblity chart (matching versions of ES, C2, and optionally 
+L3G).
+
+    ------------------------------------------------------------
+    | Clustering Plugin | Elasticsearch    | Carrot2 | Lingo3G |
+    ------------------------------------------------------------
+    | master            | 0.90.2 -> master | 3.8.0   |  1.8.0  |
+    | 1.0.1             | 0.90   -> master | 3.7.1   |  1.7.1  |
+    | 1.0.0             | 0.90   -> master | 3.7.1   |  1.7.1  |
+    ------------------------------------------------------------
 
 
 License
