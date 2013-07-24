@@ -3,14 +3,16 @@ package org.carrot2.elasticsearch;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.carrot2.elasticsearch.RestCarrot2ClusteringAction;
+import org.carrot2.core.LanguageCode;
 import org.elasticsearch.common.base.Charsets;
+import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.fest.assertions.api.Assertions;
@@ -102,6 +104,38 @@ public class RestApiTests extends AbstractApiTest {
             httpClient.getConnectionManager().shutdown();
         }
     }
+
+    @Test
+    public void testLanguageField() throws IOException {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            String requestJson = resourceToString("post_language_field.json");
+
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            HttpResponse response = httpClient.execute(post);
+            Map<?,?> map = checkHttpResponse(response);
+
+            // Check top level clusters labels.
+            Set<String> allLanguages = Sets.newHashSet();
+            for (LanguageCode code : LanguageCode.values()) {
+                allLanguages.add(code.toString());
+            }
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            for (Object o : clusterList) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> cluster = (Map<String, Object>) o; 
+                allLanguages.remove(cluster.get("label"));
+            }
+            
+            Assertions.assertThat(allLanguages.size())
+                .describedAs("Expected a lot of languages to appear in top groups.")
+                .isLessThan(LanguageCode.values().length / 2);            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }    
     
     protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
         String responseString = new String(

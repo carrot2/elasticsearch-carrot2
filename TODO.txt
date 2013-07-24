@@ -5,6 +5,9 @@ VERSION 1.1.0
 DOCS
 ----
 
+- update field mapping docs (language)
+- add an example of using language field mapping to specify a document's language for clustering
+
 BUGS/ TESTS
 -----------
 
@@ -19,8 +22,6 @@ FEATURES
 - add an action to return supported clustering algorithms.
 
 - add support for GET requests.
-
-- add language mapping.
 
 PERFORMANCE/ ROBUSTNESS
 -----------------------

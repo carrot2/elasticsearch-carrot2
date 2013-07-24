@@ -8,6 +8,10 @@ New features
 * The size of the clustering controller's component pool is adjustable using
   the configuration file (controller.pool-size option).  
 
+* Added language field mapping descriptors. This helps with multi-lingual 
+  clustering -- hints about each document's language can be stored together
+  with the document in the index. See the documentation for examples.
+
 Bug Fixes
 
 * GH-1: Front-page example visualizations fail with Lingo3G.

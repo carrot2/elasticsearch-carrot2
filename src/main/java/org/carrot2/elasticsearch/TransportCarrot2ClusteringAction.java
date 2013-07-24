@@ -3,11 +3,13 @@ package org.carrot2.elasticsearch;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
+import org.carrot2.core.LanguageCode;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticSearchException;
@@ -19,6 +21,7 @@ import org.elasticsearch.common.base.Joiner;
 import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.common.collect.Maps;
+import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.search.SearchHit;
@@ -32,6 +35,7 @@ import org.elasticsearch.transport.TransportService;
 public class TransportCarrot2ClusteringAction  
     extends TransportAction<ClusteringActionRequest,
                             ClusteringActionResponse> {
+    private final Set<String> langCodeWarnings = Sets.newCopyOnWriteArraySet();
 
     private final TransportSearchAction searchAction;
     private final ControllerSingleton controllerSingleton;
@@ -150,6 +154,7 @@ public class TransportCarrot2ClusteringAction
         StringBuilder title = new StringBuilder();
         StringBuilder content = new StringBuilder();
         StringBuilder url = new StringBuilder();
+        StringBuilder language = new StringBuilder();
         Joiner joiner = Joiner.on(" . ");
         
         boolean emptySourceWarningEmitted = false;
@@ -159,6 +164,7 @@ public class TransportCarrot2ClusteringAction
             title.setLength(0);
             content.setLength(0);
             url.setLength(0);
+            language.setLength(0);
             
             Map<String, SearchHitField> fields = hit.getFields();
             Map<String, HighlightField> highlightFields = hit.getHighlightFields();
@@ -210,6 +216,10 @@ public class TransportCarrot2ClusteringAction
                             url.setLength(0); // Clear previous (single mapping allowed).
                             target = url;
                             break;
+                        case LANGUAGE:
+                            language.setLength(0); // Clear previous (single mapping allowed);
+                            target = language;
+                            break;
                         case TITLE:
                             target = title;
                             break;
@@ -229,12 +239,21 @@ public class TransportCarrot2ClusteringAction
                     }
                 }
             }
-            
+
+            LanguageCode langCode = null;
+            if (language.length() > 0) {
+                String langCodeString = language.toString();
+                langCode = LanguageCode.forISOCode(langCodeString);
+                if (langCode == null && langCodeWarnings.add(langCodeString)) {
+                    logger.warn("Language mapping not a supported ISO639-1 code: {}", langCodeString);
+                }
+            }
+
             Document doc = new Document(
                     title.toString(),
                     content.toString(),
                     url.toString(),
-                    null /* TODO: language; should be mappable/ configurable? */,
+                    langCode,
                     hit.id());
 
             documents.add(doc);

@@ -15,9 +15,10 @@ import org.elasticsearch.common.collect.Maps;
 public enum LogicalField {
     URL,
     TITLE,
-    CONTENT;
+    CONTENT,
+    LANGUAGE;
 
-    static LogicalField [] cachedByOrdinal = values();
+    final static LogicalField [] cachedByOrdinal = values();
     static LogicalField fromOrdinal(int ordinal) {
         return cachedByOrdinal[ordinal];
     }

@@ -7,10 +7,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Random;
 
-import org.carrot2.elasticsearch.ClusteringActionResponse;
-import org.carrot2.elasticsearch.DocumentGroup;
+import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringActionResponse.Fields;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -97,6 +98,10 @@ public class AbstractApiTest {
         }
 
         // Index some sample "documents".
+        Random rnd = new Random(0xdeadbeef);
+        LanguageCode [] languages = LanguageCode.values();
+        Collections.shuffle(Arrays.asList(languages), rnd);
+
         BulkRequestBuilder bulk = node.client().prepareBulk();
         for (String[] data : SampleDocumentData.SAMPLE_DATA) {
             bulk.add(new IndexRequestBuilder(node.client())
@@ -107,6 +112,8 @@ public class AbstractApiTest {
                             .field("url",     data[0])
                             .field("title",   data[1])
                             .field("content", data[2])
+                            .field("lang", LanguageCode.ENGLISH.getIsoCode())
+                            .field("rndlang", languages[rnd.nextInt(languages.length)].getIsoCode()) 
                         .endObject()));
         }
 
