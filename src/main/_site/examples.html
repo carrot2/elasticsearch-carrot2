@@ -669,6 +669,11 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
 
                     <p>Any resources not present in this location will be loaded from classpath (defaults).</p>
                   </dd>
+                  
+                  <dt><code>controller.pool-size</code></dt>
+                  <dd><p>Size of the internal pool of algorithm instances. This pool is sized automatically depending on
+                  the configuration of the search threadpool in ElasticSearch. If too many resources are consumed, the pool
+                  can be set to a fixed size using this option.</p></dd>                  
                 </dl>
               </dd>
             </dl>

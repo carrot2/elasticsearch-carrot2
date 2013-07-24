@@ -3,6 +3,11 @@ ElasticSearch-Carrot2 Change Log
 
 ================ ElasticSearch-Carrot2 1.1.0 [unreleased] ================
 
+New features
+
+* The size of the clustering controller's component pool is adjustable using
+  the configuration file (controller.pool-size option).  
+
 Bug Fixes
 
 * GH-1: Front-page example visualizations fail with Lingo3G.
@@ -10,8 +15,6 @@ Bug Fixes
 Other
 
 * Update base ES dependency to 0.90.2
-
-*  
 
 ================ ElasticSearch-Carrot2 1.0.1 ================
 

@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 /**
  * Java API tests.
  */
-public class StressRequestTest extends AbstractApiTest {
+public class StressTests extends AbstractApiTest {
     @DataProvider(name = "clients")
     public static Object[][] clientProvider() {
         return new Object[][] {

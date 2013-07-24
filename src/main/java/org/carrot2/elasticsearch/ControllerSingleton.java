@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
@@ -135,8 +136,13 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                 .resourceLookup(resourceLookup);
             c2SettingsAsMap.putAll(c2Settings.getAsMap());
 
-            // TODO: create a fixed or soft-referenced pool depending on settings.
-            controller = ControllerFactory.createPooling();
+            // Create component pool.
+            Integer poolSize = c2Settings.getAsInt(DEFAULT_COMPONENT_SIZE_PROPERTY_NAME, 0);
+            if (poolSize > 0) {
+                controller = ControllerFactory.createPooling(poolSize);
+            } else {
+                controller = ControllerFactory.createPooling();
+            }
             controller.init(c2SettingsAsMap, suite.getComponentConfigurations());
         } catch (Exception e) {
             throw new ElasticSearchException(

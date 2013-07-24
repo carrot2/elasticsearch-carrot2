@@ -45,6 +45,14 @@ public class ClusteringPlugin extends AbstractPlugin {
      */
     public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
 
+    /**
+     * A property key in {@link #PLUGIN_CONFIG_FILE_NAME} with the size
+     * of the clustering controller's algorithm pool. By default the size
+     * is zero, meaning the pool is sized dynamically. You can specify a fixed
+     * number of component instances to limit resource usage. 
+     */
+    public static final String DEFAULT_COMPONENT_SIZE_PROPERTY_NAME = "controller.pool-size";
+
     private final boolean pluginEnabled;
     private final ESLogger logger;
 

@@ -24,8 +24,6 @@ FEATURES
 
 - add language mapping.
 
-- create a fixed or soft-referenced pool depending on settings.
-
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
