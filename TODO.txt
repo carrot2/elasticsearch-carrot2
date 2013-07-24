@@ -5,6 +5,8 @@ VERSION 1.1.0
 DOCS
 ----
 
+- add information about threadpool use and potential tweaks to the default size (=> to the # of cores)
+
 BUGS/ TESTS
 -----------
 
@@ -20,12 +22,16 @@ FEATURES
 
 - add support for GET requests.
 
+- add language mapping.
+
+- create a fixed or soft-referenced pool depending on settings.
+
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
 - check for error resilience and propagation (invalid query request, for example).
 - add a test case with yaml body (or other xcontent)
-- performance implications and performance testing (threading inside actions/ dispatched actions)? 
+- performance implications and performance testing. 
 
 
 REFACTORINGS/ ITCHES

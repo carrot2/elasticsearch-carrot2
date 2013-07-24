@@ -16,6 +16,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.common.base.Joiner;
+import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.inject.Inject;
@@ -49,7 +50,6 @@ public class TransportCarrot2ClusteringAction
     @Override
     protected void doExecute(final ClusteringActionRequest clusteringRequest,
                              final ActionListener<ClusteringActionResponse> listener) {
-        final Map<String,String> info = Maps.newLinkedHashMap();
         final long tsSearchStart = System.nanoTime();
         searchAction.execute(clusteringRequest.getSearchRequest(), new ActionListener<SearchResponse>() {
             @Override
@@ -73,8 +73,9 @@ public class TransportCarrot2ClusteringAction
                 }
 
                 /*
-                 * This is where the main clustering "logic" takes place.
-                 * TODO: is this the right place (thread)?
+                 * We're not a threaded listener so we're running on the search thread. This
+                 * is good -- we don't want to serve more clustering requests than we can handle
+                 * anyway. 
                  */
                 Controller controller = controllerSingleton.getController();
 
@@ -93,13 +94,11 @@ public class TransportCarrot2ClusteringAction
                 final DocumentGroup[] groups = adapt(result.getClusters());
                 final long tsClusteringEnd = System.nanoTime();
 
-                info.put("algorithm", algorithmId);
-                info.put("search-millis", 
-                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)));
-                info.put("clustering-millis", 
-                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)));
-                info.put("total-millis", 
-                        Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
+                final Map<String,String> info = ImmutableMap.of(
+                    ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId,
+                    ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
+                    ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
+                    ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
 
                 listener.onResponse(new ClusteringActionResponse(response, groups, info));
             }
@@ -164,10 +163,10 @@ public class TransportCarrot2ClusteringAction
             Map<String, SearchHitField> fields = hit.getFields();
             Map<String, HighlightField> highlightFields = hit.getHighlightFields();
 
+            Map<String,Object> sourceAsMap = null;
             for (FieldMappingSpec spec : fieldMapping) {
                 // Determine the content source.
                 Object appendContent = null;
-                Map<String,Object> sourceAsMap = null;
                 switch (spec.source) {
                     case FIELD:
                         SearchHitField searchHitField = fields.get(spec.field);

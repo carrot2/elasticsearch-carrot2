@@ -148,8 +148,6 @@ public class AbstractApiTest {
             .isNotNull()
             .isNotEmpty();
 
-        // TODO: add info() checks.
-
         Map<String,SearchHit> idToHit = Maps.newHashMap();
         for (SearchHit hit : result.getSearchResponse().getHits()) {
             idToHit.put(hit.getId(), hit);
@@ -170,5 +168,11 @@ public class AbstractApiTest {
                 .as("docRefs")
                 .containsAll(Arrays.asList(documentReferences));
         }
+
+        Assertions.assertThat(result.getInfo())
+            .containsKey(ClusteringActionResponse.Fields.Info.ALGORITHM)
+            .containsKey(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS)
+            .containsKey(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS)
+            .containsKey(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS);
     }
 }

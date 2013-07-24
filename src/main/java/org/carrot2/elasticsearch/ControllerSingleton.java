@@ -135,6 +135,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                 .resourceLookup(resourceLookup);
             c2SettingsAsMap.putAll(c2Settings.getAsMap());
 
+            // TODO: create a fixed or soft-referenced pool depending on settings.
             controller = ControllerFactory.createPooling();
             controller.init(c2SettingsAsMap, suite.getComponentConfigurations());
         } catch (Exception e) {

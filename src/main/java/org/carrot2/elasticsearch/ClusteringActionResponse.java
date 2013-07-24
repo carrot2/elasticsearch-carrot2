@@ -1,6 +1,7 @@
 package org.carrot2.elasticsearch;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 import org.elasticsearch.action.ActionResponse;
@@ -24,6 +25,16 @@ public class ClusteringActionResponse extends ActionResponse implements ToXConte
         static final XContentBuilderString SEARCH_RESPONSE = new XContentBuilderString("search_response");
         static final XContentBuilderString CLUSTERS = new XContentBuilderString("clusters");
         static final XContentBuilderString INFO = new XContentBuilderString("info");
+        
+        /**
+         * {@link Fields#INFO} keys.
+         */
+        static final class Info {
+            public static final String ALGORITHM = "algorithm";
+            public static final String SEARCH_MILLIS = "search-millis";
+            public static final String CLUSTERING_MILLIS = "clustering-millis";
+            public static final String TOTAL_MILLIS = "total-millis";
+        }
     }
 
     private SearchResponse searchResponse;
@@ -39,7 +50,7 @@ public class ClusteringActionResponse extends ActionResponse implements ToXConte
             Map<String,String> info) {
         this.searchResponse = Preconditions.checkNotNull(searchResponse);
         this.topGroups = Preconditions.checkNotNull(topGroups);
-        this.info = Preconditions.checkNotNull(info);
+        this.info = Collections.unmodifiableMap(Preconditions.checkNotNull(info));
     }
 
     public SearchResponse getSearchResponse() {
@@ -48,6 +59,10 @@ public class ClusteringActionResponse extends ActionResponse implements ToXConte
 
     public DocumentGroup[] getDocumentGroups() {
         return topGroups;
+    }
+    
+    public Map<String, String> getInfo() {
+        return info;
     }
 
     @Override
