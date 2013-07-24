@@ -5,8 +5,6 @@ VERSION 1.1.0
 DOCS
 ----
 
-- add information about threadpool use and potential tweaks to the default size (=> to the # of cores)
-
 BUGS/ TESTS
 -----------
 

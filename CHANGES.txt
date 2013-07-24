@@ -19,6 +19,9 @@ Other
 * Verified threading (clustering runs on the search thread), added 
   simple stress testing.
 
+* Added information about search threadpool use and potential tweaks to 
+  its default size to examples.html
+
 ================ ElasticSearch-Carrot2 1.0.1 ================
 
 Bug Fixes
