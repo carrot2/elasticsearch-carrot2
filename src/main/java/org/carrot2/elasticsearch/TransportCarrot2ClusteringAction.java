@@ -71,7 +71,7 @@ public class TransportCarrot2ClusteringAction
                         return;
                     }
                 }
-
+                
                 /*
                  * We're not a threaded listener so we're running on the search thread. This
                  * is good -- we don't want to serve more clustering requests than we can handle

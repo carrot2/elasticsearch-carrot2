@@ -54,6 +54,12 @@ public class AbstractApiTest {
     @BeforeSuite
     public static void beforeClass() throws IOException {
         node = nodeBuilder().settings(settingsBuilder()
+                // Setup thread pool policy consistent across machines.
+                .put("threadpool.search.type", "fixed")
+                .put("threadpool.search.size", "4")
+                .put("threadpool.search.queue_size", "100")
+                .put("threadpool.search.reject_policy", "caller")
+
                 .put("path.data", "target/data")
                 .put("cluster.name", "test-cluster-" + NetworkUtils.getLocalAddress()))
                 .node();

@@ -9,7 +9,9 @@ Bug Fixes
 
 Other
 
-* Update base ES dependency to 0.90.2 
+* Update base ES dependency to 0.90.2
+
+*  
 
 ================ ElasticSearch-Carrot2 1.0.1 ================
 

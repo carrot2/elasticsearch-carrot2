@@ -31,8 +31,6 @@ PERFORMANCE/ ROBUSTNESS
 
 - check for error resilience and propagation (invalid query request, for example).
 - add a test case with yaml body (or other xcontent)
-- performance implications and performance testing. 
-
 
 REFACTORINGS/ ITCHES
 --------------------
