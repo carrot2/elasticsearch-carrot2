@@ -82,8 +82,9 @@
               demo page</a> to glimpse at how this can be used in practice.</p>
 
             <p>Each document passed for clustering is composed of several logical parts: the document's identifier,
-              its origin URL, title and the main content. Only the identifier field is mandatory, everything else is optional but
-              at least one of these fields will be required to make the clustering process reasonable.</p>
+              its origin URL, title, the main content and a language code. Only the identifier field is mandatory,
+              everything else is optional but at least one of these fields will be required to make the clustering
+              process reasonable.</p>
           </div>
           <div class="span4">
             <div class="alert alert-danger">
@@ -131,7 +132,7 @@
         <div class="page-header"><h3>REST access URIs</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The clustering plugin binds itself to the following URI schemes (<code>GET</code> or <code>POST</code>):</p>
+            <p>The clustering plugin binds itself to the following URI schemes (<code>POST</code>):</p>
             <ul>
               <li><code>/_search_with_clusters</code></li>
               <li><code>/{index}/_search_with_clusters</code></li>
@@ -175,12 +176,13 @@
                 defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
 
                 <pre class="linenums prettyprint">{
-  "url":     [_source.urlSource],
-  "title":   [fields.subject],
-  "content": [_source.abstract, highlight.main]
+  "url":      [_source.urlSource],
+  "title":    [fields.subject],
+  "content":  [_source.abstract, highlight.main],
+  "language": [fields.lang]
 }</pre>
 
-                <p>Any of the following logical field names are valid:</p>
+                <p>Any of the following logical document field names are valid:</p>
                 <dl class="dl-horizontal">
                   <dt><code>url</code></dt>
                   <dd><p>The URL of the document.</p></dd>
@@ -188,6 +190,14 @@
                   <dd><p>The title of the document.</p></dd>
                   <dt><code>content</code></dt>
                   <dd><p>The main body (content) of the document.</p></dd>
+                  <dt><code>language</code></dt>
+                  <dd><p>Optional language "tag" for the title and content of a document. The language tag is a two-letter
+                    <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1 code</a>, with the
+                    exception of Simplified Chinese (<code>zh_cn</code> code). Whether or not the language
+                    is supported by a clustering engine depends on the algorithm used. Carrot<sup>2</sup> algorithms
+                    support languages defined in the
+                    <a href="http://download.carrot2.org/stable/javadoc/org/carrot2/core/LanguageCode.html"><code>LanguageCode</code> class</a>.
+                  </p></dd>
                 </dl>
 
                 <p>A field source specification defines where the value is taken from: the search hit's fields, stored document's content,
@@ -623,6 +633,61 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
       </section>
 
 
+      <section id="language">
+        <div class="page-header"><h3>Multilingual clustering</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The field mapping specification can include a <code>language</code> element, which
+            defines the ISO code of the language in which the title and content of a document are
+            written. This information can be stored in the index based on apriori knowledge of
+            the documents' source or a language detection filter applied at indexing time.</p>
+
+            <p>The language hint makes it easier for clustering algorithms to separate documents
+            from different languages on input and to pick the right language resources for clustering.
+            If you do have multi-lingual query results (or query results in a language different
+            than English), it is strongly advised to map the <code>language</code> field appropriately.</p>
+
+            <p>The following example applies a clustering algorithm to all documents. Some
+            documents are in German (and have a <code>de</code> language code), some are in English
+            (and have an <code>en</code> language code). We additionally set the language aggregation
+            strategy to <code>FLATTEN_NONE</code> so that top-level groups indicate the language
+            of documents contained in sub-groups. Note the top-level group names in the output
+            from the code sample below.</p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="span7">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
+var request = {
+  "search_request": {
+    "query": {"match_all" : {}},
+    "size": 100
+  },
+
+  "query_hint": "bundestag",
+  "field_mapping": {
+    "title":    ["_source.title"],
+    "content":  ["_source.content"],
+    "language": ["_source.lang"]
+  },
+  "algorithm": "lingo",
+  "attributes": {
+    "MultilingualClustering.languageAggregationStrategy": "FLATTEN_NONE"
+  }
+};
+
+$.post("/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
+  $("#language-fieldmapping").text(dumpClusters([], response.clusters).join("\n"));
+});
+            </pre>
+          </div>
+          <div class="span5">
+            <pre class="result" id="language-fieldmapping"></pre>
+          </div>
+        </div>
+      </section>
+
+
 
       <section id="plugin-configuration">
         <div class="page-header"><h3>Plugin configuration</h3></div>
@@ -774,6 +839,20 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
             var indexReady = response &&
                              response.indices &&
                              response.indices.test;
+
+            // Reindex once per window session, even if the index seems to be ready.
+            if (indexReady) {
+              if (sessionStorage) {
+                var cookieName = "__documents_indexed";
+                if (!sessionStorage[cookieName]) {
+                  indexReady = false;
+                }
+                sessionStorage[cookieName] = true;
+              } else {
+                indexReady = false;
+              }
+            }
+
             if (!indexReady) {
               $("#sampleIndex").show();
               doIndex(function(current, total) {
