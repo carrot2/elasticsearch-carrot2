@@ -1,5 +1,34 @@
 
-VERSION 1.1.0
+VERSION 1.2.0
+=============
+
+DOCS
+----
+
+BUGS/ TESTS
+-----------
+
+FEATURES
+--------
+
+- add an action to return supported clustering algorithms.
+
+- add support for GET requests.
+
+PERFORMANCE/ ROBUSTNESS
+-----------------------
+
+- check for error resilience and propagation (invalid query request, for example).
+
+REFACTORINGS/ ITCHES
+--------------------
+
+- add/move source() parsing from REST to the request builder/object.
+
+
+
+
+VERSION 1.3.0
 =============
 
 DOCS
@@ -16,20 +45,13 @@ BUGS/ TESTS
 FEATURES
 --------
 
-- add an action to return supported clustering algorithms.
-
-- add support for GET requests.
-
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
-- check for error resilience and propagation (invalid query request, for example).
 - add a test case with yaml body (or other xcontent)
 
 REFACTORINGS/ ITCHES
 --------------------
-
-- add/move source() parsing from REST to the request builder/object.
 
 - Should we limit or augment the search window somehow (so that the clustering takes place on, say, 100 top results,
   but the returned list is only the top-k)? 
@@ -37,22 +59,3 @@ REFACTORINGS/ ITCHES
   uri parameters get injected as extraSource); in most cases the user will need all document references anyway to link
   them up from clusters. Leaving for now. The search query determines the number of documents (and the type of aggregation,
   etc.) to use.
-
-
-VERSION 1.2.0
-=============
-
-DOCS
-----
-
-BUGS/ TESTS
------------
-
-FEATURES
---------
-
-PERFORMANCE/ ROBUSTNESS
------------------------
-
-REFACTORINGS/ ITCHES
---------------------
