@@ -11,6 +11,12 @@ Other
 
 * Minor touches for incompatible ES API changes (removed methods in RestActions).
 
+================ ElasticSearch-Carrot2 1.1.1 ================
+
+Other
+
+* Minor touches for incompatible ES API changes (removed methods in RestActions).
+
 ================ ElasticSearch-Carrot2 1.1.0 ================
 
 New features
