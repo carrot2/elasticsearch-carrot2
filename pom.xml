@@ -21,7 +21,7 @@
     <description>Search results clustering plugin for ElasticSearch</description>
 
     <properties>
-        <elasticsearch.version>0.90.2</elasticsearch.version>
+        <elasticsearch.version>0.90.4</elasticsearch.version>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.6</maven.compiler.source>

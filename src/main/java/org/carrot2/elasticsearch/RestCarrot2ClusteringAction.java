@@ -11,6 +11,7 @@ import org.elasticsearch.ElasticSearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
@@ -25,7 +26,6 @@ import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.XContentRestResponse;
 import org.elasticsearch.rest.XContentThrowableRestResponse;
 import org.elasticsearch.rest.action.search.RestSearchAction;
-import org.elasticsearch.rest.action.support.RestActions;
 
 /**
  */
@@ -124,9 +124,9 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
             }
             if (asMap.containsKey("search_request")) {
                 SearchRequest searchRequest = new SearchRequest();
-                searchRequest.indices(RestActions.splitIndices(restRequest.param("index")));
+                searchRequest.indices(Strings.splitStringByCommaToArray(restRequest.param("index")));
                 searchRequest.source((Map<?,?>) asMap.get("search_request"));
-                searchRequest.types(RestActions.splitTypes(restRequest.param("type")));
+                searchRequest.types(Strings.splitStringByCommaToArray(restRequest.param("type")));
                 clusteringRequest.setSearchRequest(searchRequest);
             }
             if (asMap.containsKey("algorithm")) {
