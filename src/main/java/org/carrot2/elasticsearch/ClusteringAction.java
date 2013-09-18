@@ -7,8 +7,10 @@ public class ClusteringAction
     extends Action<ClusteringActionRequest, 
                    ClusteringActionResponse, 
                    ClusteringActionRequestBuilder> {
-
-    public static final String NAME = "clustering/carrot2";
+    /* Action name. */
+    public static final String NAME = "clustering/cluster";
+    
+    /* Reusable singleton. */
     public static final ClusteringAction INSTANCE = new ClusteringAction();
 
     private ClusteringAction() {
