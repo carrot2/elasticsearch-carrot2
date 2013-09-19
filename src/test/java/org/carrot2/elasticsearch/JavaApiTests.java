@@ -1,11 +1,14 @@
 package org.carrot2.elasticsearch;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
 import org.carrot2.core.LanguageCode;
+import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
+import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStrategy;
 import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
 import org.elasticsearch.client.Client;
@@ -101,7 +104,7 @@ public class JavaApiTests extends AbstractApiTest {
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
                     .addFields("title", "content", "rndlang"))
-            .execute().actionGet();
+            .get();
 
         checkValid(result);
         checkJsonSerialization(result);
@@ -122,7 +125,18 @@ public class JavaApiTests extends AbstractApiTest {
         Assertions.assertThat(allLanguages.size())
             .describedAs("Expected a lot of languages to appear in top groups.")
             .isLessThan(LanguageCode.values().length / 2);
-    }    
+    }
+    
+    @Test(dataProvider = "clients")
+    public void testListAlgorithms(Client client) throws IOException {
+        ListAlgorithmsActionResponse response = 
+                new ListAlgorithmsActionRequestBuilder(client).get();
+        
+        List<String> algorithms = response.getAlgorithms();
+        Assertions.assertThat(algorithms)
+            .isNotEmpty()
+            .contains("stc", "lingo", "kmeans");
+    }
 }
 
 

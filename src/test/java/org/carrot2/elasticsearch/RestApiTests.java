@@ -7,7 +7,9 @@ import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.carrot2.core.LanguageCode;
@@ -15,6 +17,7 @@ import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.rest.RestRequest.Method;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,17 +40,59 @@ public class RestApiTests extends AbstractApiTest {
         };
     }
 
+    @DataProvider(name = "postOrGet")
+    public static Object[][] postOrGet() {
+        return new Object[][] {{Method.POST}, {Method.GET}};
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(dataProvider = "postOrGet")
+    public void testListAlgorithms(Method method) throws IOException {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpRequestBase request;
+            String requestString = restBaseUrl + "/" 
+                    + ListAlgorithmsAction.RestListAlgorithmsAction.NAME + "?pretty=true";
+
+            switch (method) {
+                case POST:
+                    request = new HttpPost(requestString);
+                    break;
+
+                case GET:
+                    request = new HttpGet(requestString);
+                    break;
+
+                default: throw Preconditions.unreachable();
+            }
+            
+            HttpResponse response = httpClient.execute(request);
+            Map<?,?> map = checkHttpResponse(response);
+
+            // Check that we do have some algorithms.
+            Assertions.assertThat(map.get("algorithms"))
+                .describedAs("A list of algorithms")
+                .isInstanceOf(List.class);
+
+            Assertions.assertThat((List<String>) map.get("algorithms"))
+                .describedAs("A list of algorithms")
+                .contains("stc", "lingo", "kmeans");            
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }    
+
     @Test(dataProvider = "postJsonResources")
     public void testRestApiViaPostBody(String queryJsonResource) throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
             String requestJson = resourceToString(queryJsonResource);
 
-            HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
             HttpResponse response = httpClient.execute(post);
             
-            Map<?,?> map = checkHttpResponse(response);
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             List<?> clusterList = (List<?>) map.get("clusters");
             Assertions.assertThat(clusterList)
@@ -70,10 +115,10 @@ public class RestApiTests extends AbstractApiTest {
             HttpPost post = new HttpPost(restBaseUrl 
                     + "/" + INDEX_NAME 
                     + "/empty/" 
-                    + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+                    + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
             HttpResponse response = httpClient.execute(post);
-            Map<?,?> map = checkHttpResponse(response);
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             List<?> clusterList = (List<?>) map.get("clusters");
             Assertions.assertThat(clusterList)
@@ -90,16 +135,16 @@ public class RestApiTests extends AbstractApiTest {
         try {
             String requestJson = resourceToString("post_runtime_attributes.json");
 
-            HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
             HttpResponse response = httpClient.execute(post);
-            Map<?,?> map = checkHttpResponse(response);
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             List<?> clusterList = (List<?>) map.get("clusters");
             Assertions.assertThat(clusterList)
                 .isNotNull();
-            Assertions.assertThat(clusterList.size())
-                .isEqualTo(/* max. cluster size cap */ 5 + /* other topics */ 1);
+            Assertions.assertThat(clusterList)
+                .hasSize(/* max. cluster size cap */ 5 + /* other topics */ 1);
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
@@ -111,10 +156,10 @@ public class RestApiTests extends AbstractApiTest {
         try {
             String requestJson = resourceToString("post_language_field.json");
 
-            HttpPost post = new HttpPost(restBaseUrl + "/" + RestCarrot2ClusteringAction.NAME + "?pretty=true");
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
             HttpResponse response = httpClient.execute(post);
-            Map<?,?> map = checkHttpResponse(response);
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             // Check top level clusters labels.
             Set<String> allLanguages = Sets.newHashSet();
@@ -137,7 +182,16 @@ public class RestApiTests extends AbstractApiTest {
         }
     }    
     
-    protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
+    protected static Map<String, Object> checkHttpResponseContainsClusters(HttpResponse response) throws IOException {
+        Map<String, Object> map = checkHttpResponse(response);
+
+        // We should have some clusters.
+        Assertions.assertThat(map).containsKey("clusters");
+
+        return map;
+    }
+
+    private static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
         String responseString = new String(
                 ByteStreams.toByteArray(response.getEntity().getContent()), 
                 Charsets.UTF_8); 
@@ -155,13 +209,8 @@ public class RestApiTests extends AbstractApiTest {
         Assertions.assertThat(map)
             .describedAs(responseDescription)
             .doesNotContainKey("error");
-    
-        // We should have some clusters.
-        Assertions.assertThat(map)
-            .describedAs(responseDescription)
-            .containsKey("clusters");
-    
-        return map;
+
+        return map; 
     }
 
     protected String resourceToString(String resourceName) throws IOException {

@@ -31,6 +31,16 @@
         margin-bottom: 20px;
       }
 
+      section.api-method {
+      }
+
+      .api-method {
+        margin-top: 3em;
+      }
+
+      .api-method h5 {
+      }
+
       @media print {
         .executable-buttons {
           display: none;
@@ -45,17 +55,7 @@
         <div class="span12">
           <div class="alert alert-error">
             <i class="icon-exclamation-sign"></i> <strong>ElasticSearch instance cannot be reached.</strong>
-            This manual requires a running instance of ES to render outputs.
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="span12">
-          <div class="page-header">
-            <h1>elasticsearch-carrot2</h1>
-
-            <p>A longer description, API examples, etc.</p>
+            This manual requires a running instance of ES to render examples.
           </div>
         </div>
       </div>
@@ -68,6 +68,29 @@
               <div class="bar" style="width: 0%;"></div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="span12">
+          <div class="page-header">
+            <h1>elasticsearch-carrot2</h1>
+          </div>
+
+          <ul>
+            <li><a href="#preliminaries">Preliminaries</a></li>
+            <li><a href="#java-api">Java API</a></li>
+            <li><a href="#rest-api">HTTP REST API</a> <br/>
+              <small><code>[<a href="#list-algorithms">list</a>]</code></small>,
+              <small><code>[<a href="#search-and-cluster">cluster</a>]</code></small>
+            </li>
+            <li><a href="#field-mapping">Field mapping</a></li>
+            <li><a href="#algorithms">Selecting the algorithm</a></li>
+            <li><a href="#init-attributes">Overriding algorithm attributes</a></li>
+            <li><a href="#runtime-attributes">Overriding algorithm attributes at runtime</a></li>
+            <li><a href="#multilingual-clustering">Multilingual clustering</a></li>
+            <li><a href="#plugin-configuration">Plugin configuration</a></li>
+          </ul>
         </div>
       </div>
 
@@ -111,7 +134,8 @@
               <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/">highlighter</a> to
               the document's fields. This can be useful to decrease the amount of text passed to the clustering
               algorithm (improves performance) or to make the clustered content more query-specific (this typically
-              clusters better). REST examples <a href="#post-request">below</a> demonstrate the API for field mapping in details.</p>
+              clusters better). REST API examples <a href="#rest-api">below</a> demonstrate the API for field
+              mapping in details.</p>
           </div>
         </div>
       </section>
@@ -121,59 +145,117 @@
         <div class="row">
           <div class="span12">
             <p>The Java API for clustering search results is fully functional and works the magic behind
-            all REST requests described in the subsequent part of this document. For API examples, see
-            the source code of the plugin at <a href="https://github.com/carrot2/elasticsearch-carrot2">github</a>,
+            all REST requests described in the following part of this document. For concrete code utilizing
+            the API see the source code of the plugin at <a href="https://github.com/carrot2/elasticsearch-carrot2">github</a>,
             especially the unit and integration tests.</p>
           </div>
         </div>
       </section>
 
-      <section id="access-uris">
-        <div class="page-header"><h3>REST access URIs</h3></div>
+      <section id="rest-api">
+        <div class="page-header"><h3>HTTP (REST) API</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The clustering plugin binds itself to the following URI schemes (<code>POST</code>):</p>
-            <ul>
-              <li><code>/_search_with_clusters</code></li>
-              <li><code>/{index}/_search_with_clusters</code></li>
-              <li><code>/{index}/{type}/_search_with_clusters</code></li>
-            </ul>
-
-            <p>The <code>index</code> and <code>type</code> URI segments implicitly bind the search request part of the
-              message to a given index and document type, exactly as in the
-              <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
+            <p>The HTTP REST API of the plugin contains several methods reflecting Java API's functionality. Each of
+            these methods is described in detail below.</p>
           </div>
         </div>
-      </section>
 
-      <section id="post-request">
-        <div class="page-header"><h3>POST request</h3></div>
-        <div class="row">
-          <div class="span12">
-            <p>A clustering request is a JSON document composed of the following sections:</p>
-            <dl class="dl-horizontal">
-              <dt><code>search_request</code></dt>
-              <dd><p><span class="badge badge-info">required</span>
-                The search request to fetch documents to be clustered. This section follows <strong>exactly</strong>
-                what <a href="http://www.elasticsearch.org/guide/reference/api/search/">the search DSL</a> specifies,
-                including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.</p>
-              </dd>
+        <section id="list-algorithms" class="api-method" style="position: relative">
+          <div class="row">
+            <div class="span11">
+              <div class="well">
+                <h4>List available algorithms</h4>
+                <ul>
+                  <li><code>/_algorithms</code> (<code>GET</code> or <code>POST</code>)</li>
+                </ul>
+              </div>
 
-              <dt><code>query_hint</code></dt>
-              <dd><p><span class="badge badge-info">required</span>
-                This is a string attribute specifying query terms which were used to fetch the matching documents.
-                This hint helps the clustering algorithm to avoid trivial clusters around the query terms. Typically the query
-                terms hint will be identical to what the user typed in the search box. If possible, it should be pruned
-                from any boolean or search-engine specific operators which could affect the clustering process. The query
-                hint is obligatory but may be an empty string.</p>
-              </dd>
+              <p>This action lists all available clustering algorithms. The returned identifiers can be used
+                as a parameter to the <a href="#clustering-request">clustering</a> request.</p>
+            </div>
+          </div>
 
-              <dt><code>field_mapping</code></dt>
-              <dd><p><span class="badge badge-info">required</span>
-                Defines how to map actual fields of the documents matching the <code>search_request</code> to
-                logical fields of the documents to be clustered. The value should be a hash where keys indicate logical
-                document fields and values are arrays with field source specifications (content of fields
-                defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
+          <div class="row">
+            <div class="span12">
+              <h5>Request</h5>
+              <p>A request to list the available algorithms is a simple <code>GET</code> or <code>POST</code> request to
+                <code>/_algorithms</code> URL.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span12">
+              <h5>Response</h5>
+              <p>The response is a JSON object with an <code>algorithms</code> property which is a non-empty
+                array of algorithm identifiers. The following example shows the algorithms available
+                on this plugin instance. The default algorithm is the first one on the list.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span6">
+            <pre class="executable example">
+$.get("/_algorithms", function(response) {
+    $("#list-of-algorithms").text(
+      response.algorithms.join("\n"));
+});
+            </pre>
+            </div>
+            <div class="span6">
+              <pre class="result" id="list-of-algorithms"></pre>
+            </div>
+          </div>
+        </section>
+
+        <section id="search-and-cluster" class="api-method">
+          <div class="row">
+            <div class="span12">
+              <div class="well">
+                <h4>Search and cluster results</h4>
+                <ul>
+                  <li><code>/_search_with_clusters</code> (<code>POST</code>)</li>
+                  <li><code>/{index}/_search_with_clusters</code> (<code>POST</code>)</li>
+                  <li><code>/{index}/{type}/_search_with_clusters</code> (<code>POST</code>)</li>
+                </ul>
+              </div>
+
+              <p>This action performs a search query, fetches matching hits and clusters them on-the-fly.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span12">
+              <h5>Request</h5>
+
+              <p>The <code>index</code> and <code>type</code> URI segments implicitly bind the search request part of the
+                message to a given index and document type, exactly as in the
+                <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
+
+              <p>A clustering request is a HTTP POST request with a JSON body and the following elements:</p>
+              <dl class="dl-horizontal">
+                <dt><code>search_request</code></dt>
+                <dd><p><span class="badge badge-info">required</span>
+                  The search request to fetch documents to be clustered. This section follows <strong>exactly</strong>
+                  what <a href="http://www.elasticsearch.org/guide/reference/api/search/">the search DSL</a> specifies,
+                  including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.</p>
+                </dd>
+
+                <dt><code>query_hint</code></dt>
+                <dd><p><span class="badge badge-info">required</span>
+                  This is a string attribute specifying query terms which were used to fetch the matching documents.
+                  This hint helps the clustering algorithm to avoid trivial clusters around the query terms. Typically the query
+                  terms hint will be identical to what the user typed in the search box. If possible, it should be pruned
+                  from any boolean or search-engine specific operators which could affect the clustering process. The query
+                  hint is obligatory but may be an empty string.</p>
+                </dd>
+
+                <dt><code>field_mapping</code></dt>
+                <dd><p><span class="badge badge-info">required</span>
+                  Defines how to map actual fields of the documents matching the <code>search_request</code> to
+                  logical fields of the documents to be clustered. The value should be a hash where keys indicate logical
+                  document fields and values are arrays with field source specifications (content of fields
+                  defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
 
                 <pre class="linenums prettyprint">{
   "url":      [_source.urlSource],
@@ -182,75 +264,76 @@
   "language": [fields.lang]
 }</pre>
 
-                <p>Any of the following logical document field names are valid:</p>
-                <dl class="dl-horizontal">
-                  <dt><code>url</code></dt>
-                  <dd><p>The URL of the document.</p></dd>
-                  <dt><code>title</code></dt>
-                  <dd><p>The title of the document.</p></dd>
-                  <dt><code>content</code></dt>
-                  <dd><p>The main body (content) of the document.</p></dd>
-                  <dt><code>language</code></dt>
-                  <dd><p>Optional language "tag" for the title and content of a document. The language tag is a two-letter
-                    <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1 code</a>, with the
-                    exception of Simplified Chinese (<code>zh_cn</code> code). Whether or not the language
-                    is supported by a clustering engine depends on the algorithm used. Carrot<sup>2</sup> algorithms
-                    support languages defined in the
-                    <a href="http://download.carrot2.org/stable/javadoc/org/carrot2/core/LanguageCode.html"><code>LanguageCode</code> class</a>.
-                  </p></dd>
-                </dl>
+                  <p>Any of the following logical document field names are valid:</p>
+                  <dl class="dl-horizontal">
+                    <dt><code>url</code></dt>
+                    <dd><p>The URL of the document.</p></dd>
+                    <dt><code>title</code></dt>
+                    <dd><p>The title of the document.</p></dd>
+                    <dt><code>content</code></dt>
+                    <dd><p>The main body (content) of the document.</p></dd>
+                    <dt><code>language</code></dt>
+                    <dd><p>Optional language "tag" for the title and content of a document. The language tag is a two-letter
+                      <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1 code</a>, with the
+                      exception of Simplified Chinese (<code>zh_cn</code> code). Whether or not the language
+                      is supported by a clustering engine depends on the algorithm used. Carrot<sup>2</sup> algorithms
+                      support languages defined in the
+                      <a href="http://download.carrot2.org/stable/javadoc/org/carrot2/core/LanguageCode.html"><code>LanguageCode</code> class</a>.
+                    </p></dd>
+                  </dl>
 
-                <p>A field source specification defines where the value is taken from: the search hit's fields, stored document's content,
-                  or from the highlighter's output. The syntax of field source specification is as follows:</p>
+                  <p>A field source specification defines where the value is taken from: the search hit's fields, stored document's content,
+                    or from the highlighter's output. The syntax of field source specification is as follows:</p>
 
-                <dl class="dl-horizontal">
-                  <dt><code>fields.{fieldname}</code></dt>
-                  <dd>Defines a search hit's field (stored field or field reparsed from source document but requested and
-                    returned in the search request).</dd>
+                  <dl class="dl-horizontal">
+                    <dt><code>fields.{fieldname}</code></dt>
+                    <dd>Defines a search hit's field (stored field or field reparsed from source document but requested and
+                      returned in the search request).</dd>
 
-                  <dt><code>highlight.{fieldname}</code></dt>
-                  <dd>Defines a search hit's highlighted field. The highlighter output must also be configured
-                    properly in the search request (see <a href="#field-mapping">field mapping example</a>).</dd>
+                    <dt><code>highlight.{fieldname}</code></dt>
+                    <dd>Defines a search hit's highlighted field. The highlighter output must also be configured
+                      properly in the search request (see <a href="#field-mapping">field mapping example</a>).</dd>
 
-                  <dt><code>_source.{fieldname}</code></dt>
-                  <dd>Defines a source document's field (top-level property of the json document). This will
-                    reparse the source document and fetch the appropriate value from there.</dd>
-                </dl>
-              </dd>
+                    <dt><code>_source.{fieldname}</code></dt>
+                    <dd>Defines a source document's field (top-level property of the json document). This will
+                      reparse the source document and fetch the appropriate value from there.</dd>
+                  </dl>
+                </dd>
 
-              <dt><code>algorithm</code></dt>
-              <dd><p><span class="badge">optional</span>
-                Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
-                algorithms are logged at startup. If not present, the default algorithm is used.</p>
-              </dd>
+                <dt><code>algorithm</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
+                  algorithms are logged at startup and are also returned
+                  from the <a href="#list-algorithms">list algorithms</a> request. If not present, the default algorithm is used.</p>
+                </dd>
 
-              <dt><code>attributes</code></dt>
-              <dd><p><span class="badge">optional</span>
-                A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
-                in Carrot<sup>2</sup> parlance). Typically the default settings are overridden using init-time XML configuration
-                files.</p>
-              </dd>
-            </dl>
+                <dt><code>attributes</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
+                  in Carrot<sup>2</sup> parlance). Typically the default settings are overridden using init-time XML configuration
+                  files.</p>
+                </dd>
+              </dl>
 
-            <div class="alert alert-danger">
-              <p><strong>Very important</strong></p>
-              <p>Clustering requires at least a few dozen documents (hits) in order to make
-                sense. The clustering plugin clusters search results <strong>only</strong> (it does not look in the index, it does not
-                fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
-                fetch window to be at least 100 documents.
+              <div class="alert alert-danger">
+                <p><strong>Very important</strong></p>
+                <p>Clustering requires at least a few dozen documents (hits) in order to make
+                  sense. The clustering plugin clusters search results <strong>only</strong> (it does not look in the index, it does not
+                  fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
+                  fetch window to be at least 100 documents.
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section id="post-response">
-        <div class="page-header"><h3>POST response</h3></div>
-        <div class="row">
-          <div class="span12">
-            <p>The response format is identical to a
-              <a href="http://www.elasticsearch.org/guide/reference/api/search/request-body/">plain search request response</a>, with extra properties
-              presented in the schematic output below.</p>
-            <pre class="linenums prettyprint">{
+          <div class="row">
+            <div class="span12">
+              <h5>Response</h5>
+
+              <p>The response format is identical to a
+                <a href="http://www.elasticsearch.org/guide/reference/api/search/request-body/">plain search request response</a>,
+                with extra properties presented in the schematic output below.</p>
+
+              <pre class="linenums prettyprint">{
   /* Typical search response fields. */
   "hits": { /* ... */ },
 
@@ -282,8 +365,8 @@
        the algorithm used, etc. */
   }
 }</pre>
-            <p>Given the following function that recursively dumps clusters:</p>
-            <pre class="linenums prettyprint" id="defineDumpClusters">
+              <p>Given the following function that recursively dumps clusters:</p>
+              <pre class="linenums prettyprint" id="defineDumpClusters">
 window.dumpClusters = function(arr, clusters, indent) {
   indent = indent ? indent : "";
   clusters.forEach(function(cluster) {
@@ -297,12 +380,12 @@ window.dumpClusters = function(arr, clusters, indent) {
   });
   return arr;
 }</pre>
-            <p>We can dump all cluster labels of a clustering request with the following snippet of javascript:</p>
+              <p>We can dump all cluster labels of a clustering request with the following snippet of javascript:</p>
+            </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="span6">
+          <div class="row">
+            <div class="span6">
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
@@ -324,23 +407,23 @@ $.post("/test/test/_search_with_clusters",
       dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
-          </div>
-          <div class="span6">
-            <pre class="result" id="cluster-list-result"></pre>
-          </div>
-        </div>
-
-
-        <div class="row">
-          <div class="span12">
-            <p>The output will vary depending on the choice of clustering algorithm
-            (and particular documents that made it to the hit list if search is not
-            deterministic). The following example shows a pseudo-clustering algorithm
-            that uses the logical <code>url</code> field to produce clusters based on the
-            components of each document's domain.</p>
+            </div>
+            <div class="span6">
+              <pre class="result" id="cluster-list-result"></pre>
+            </div>
           </div>
 
-          <div class="span6">
+
+          <div class="row">
+            <div class="span12">
+              <p>The output will vary depending on the choice of clustering algorithm
+                (and particular documents that made it to the hit list if search is not
+                deterministic). The following example shows a pseudo-clustering algorithm
+                that uses the logical <code>url</code> field to produce clusters based on the
+                components of each document's domain.</p>
+            </div>
+
+            <div class="span6">
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
@@ -361,21 +444,21 @@ $.post("/test/test/_search_with_clusters",
       dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
+            </div>
+            <div class="span6">
+              <pre class="result" id="cluster-list-result2"></pre>
+            </div>
           </div>
-          <div class="span6">
-            <pre class="result" id="cluster-list-result2"></pre>
-          </div>
-        </div>
 
-        <div class="row">
-          <div class="span12">
-            <p>A full response for a clustering request can look as shown below (note the difference in
-              field mapping in this example).</p>
+          <div class="row">
+            <div class="span12">
+              <p>A full response for a clustering request can look as shown below (note the difference in
+                field mapping in this example).</p>
+            </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="span6">
+          <div class="row">
+            <div class="span6">
             <pre class="executable example">
 var request = {
   "search_request": {
@@ -398,11 +481,12 @@ $.post("/test/test/_search_with_clusters",
       JSON.stringify(response, false, "  "));
 });
             </pre>
+            </div>
+            <div class="span6">
+              <pre class="result" id="simple-request-result"></pre>
+            </div>
           </div>
-          <div class="span6">
-            <pre class="result" id="simple-request-result"></pre>
-          </div>
-        </div>
+        </section>
       </section>
 
 
@@ -590,6 +674,39 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
       </section>
 
 
+      <section id="init-attributes">
+        <div class="page-header"><h3>Overriding algorithm attributes</h3></div>
+        <div class="row">
+          <div class="span12">
+            <p>The default algorithm suite contains empty stubs for all initialization attributes of every
+              included algorithm. These files follow a naming convention of:
+              <code>{algorithm-name}-attributes.xml</code>
+              and are resolved relative to the current setting of the <code>resources</code> configuration
+              setting (see <a href="#plugin-configuration">plugin configuration</a>).</p>
+
+            <p>For example to override the default attributes
+              for all requests to the <code>lingo</code> algorithm, one would create a <code>{es.home}/config/lingo-attributes.xml</code>
+              and place any overridden attributes in there, as in:</p>
+
+            <pre class="linenums prettyprint">
+&lt;attribute-sets default="overridden-attributes"&gt;
+  &lt;attribute-set id="overridden-attributes"&gt;
+    &lt;value-set&gt;
+      &lt;label&gt;overridden-attributes&lt;/label&gt;
+
+      &lt;attribute key="LingoClusteringAlgorithm.desiredClusterCountBase"&gt;
+        &lt;value type="java.lang.Integer" value="5"/&gt;
+      &lt;/attribute&gt;
+    &lt;/value-set&gt;
+  &lt;/attribute-set&gt;
+&lt;/attribute-sets&gt;</pre>
+
+            <p>It is perhaps most convenient to export the configuration XMLs directly from the Carrot<sup>2</sup> Workbench.</p>
+          </div>
+        </div>
+      </section>
+
+
       <section id="runtime-attributes">
         <div class="page-header"><h3>Overriding algorithm attributes at runtime</h3></div>
         <div class="row">
@@ -633,7 +750,7 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
       </section>
 
 
-      <section id="language">
+      <section id="multilingual-clustering">
         <div class="page-header"><h3>Multilingual clustering</h3></div>
         <div class="row">
           <div class="span12">
@@ -751,39 +868,6 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
                 </dl>
               </dd>
             </dl>
-          </div>
-        </div>
-      </section>
-
-
-      <section id="algorithm-configuration">
-        <div class="page-header"><h3>Algorithm configuration</h3></div>
-        <div class="row">
-          <div class="span12">
-            <p>The default algorithm suite contains empty stubs for all initialization attributes of every
-              included algorithm. These files follow a naming convention of:
-            <code>{algorithm-name}-attributes.xml</code>
-            and are resolved relative to the current setting of the <code>resources</code> configuration
-            setting (see <a href="#plugin-configuration">plugin configuration</a>).</p>
-
-            <p>For example to override the default attributes
-            for all requests to the <code>lingo</code> algorithm, one would create a <code>{es.home}/config/lingo-attributes.xml</code>
-            and place any overridden attributes in there, as in:</p>
-
-            <pre class="linenums prettyprint">
-&lt;attribute-sets default="overridden-attributes"&gt;
-  &lt;attribute-set id="overridden-attributes"&gt;
-    &lt;value-set&gt;
-      &lt;label&gt;overridden-attributes&lt;/label&gt;
-
-      &lt;attribute key="LingoClusteringAlgorithm.desiredClusterCountBase"&gt;
-        &lt;value type="java.lang.Integer" value="5"/&gt;
-      &lt;/attribute&gt;
-    &lt;/value-set&gt;
-  &lt;/attribute-set&gt;
-&lt;/attribute-sets&gt;</pre>
-
-            <p>It is perhaps most convenient to export the configuration XMLs directly from the Carrot<sup>2</sup> Workbench.</p>
           </div>
         </div>
       </section>

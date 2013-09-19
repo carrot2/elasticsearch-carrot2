@@ -76,14 +76,18 @@ public class ClusteringPlugin extends AbstractPlugin {
         if (pluginEnabled) {
             actionModule.registerAction(
                     ClusteringAction.INSTANCE, 
-                    TransportCarrot2ClusteringAction.class);
+                    TransportClusteringAction.class);
+            actionModule.registerAction(
+                    ListAlgorithmsAction.INSTANCE, 
+                    ListAlgorithmsAction.TransportListAlgorithmsAction.class);
         }
-    } 
+    }
 
     /* Invoked on component assembly. */
     public void onModule(RestModule restModule) {
         if (pluginEnabled) {
-            restModule.addRestAction(RestCarrot2ClusteringAction.class);
+            restModule.addRestAction(RestClusteringAction.class);
+            restModule.addRestAction(ListAlgorithmsAction.RestListAlgorithmsAction.class);
         }
     }
 

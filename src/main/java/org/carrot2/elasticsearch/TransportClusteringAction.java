@@ -32,7 +32,7 @@ import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
 
-public class TransportCarrot2ClusteringAction  
+public class TransportClusteringAction  
     extends TransportAction<ClusteringActionRequest,
                             ClusteringActionResponse> {
     private final Set<String> langCodeWarnings = Sets.newCopyOnWriteArraySet();
@@ -41,7 +41,7 @@ public class TransportCarrot2ClusteringAction
     private final ControllerSingleton controllerSingleton;
 
     @Inject
-    protected TransportCarrot2ClusteringAction(Settings settings, ThreadPool threadPool,
+    protected TransportClusteringAction(Settings settings, ThreadPool threadPool,
             TransportService transportService,
             TransportSearchAction searchAction,
             ControllerSingleton controllerSingleton) {

@@ -1,9 +1,9 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,43 +24,38 @@ import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.XContentRestResponse;
-import org.elasticsearch.rest.XContentThrowableRestResponse;
-import org.elasticsearch.rest.action.search.RestSearchAction;
 
 /**
  */
-public class RestCarrot2ClusteringAction extends BaseRestHandler {
+public class RestClusteringAction extends BaseRestHandler {
     /**
      * Action name suffix.
      */
     public static String NAME = "_search_with_clusters";
 
     @Inject
-    public RestCarrot2ClusteringAction(
+    public RestClusteringAction(
             Settings settings, 
             Client client, 
-            RestController controller,
-            final RestSearchAction restSearchAction) {
+            RestController controller) {
         super(settings, client);
 
-        controller.registerHandler(POST, "/_search_with_clusters",                this);
-        controller.registerHandler(POST, "/{index}/_search_with_clusters",        this);
-        controller.registerHandler(POST, "/{index}/{type}/_search_with_clusters", this);
+        controller.registerHandler(POST, "/" + NAME,                this);
+        controller.registerHandler(POST, "/{index}/" + NAME,        this);
+        controller.registerHandler(POST, "/{index}/{type}/" + NAME, this);
     }
 
     @Override
     public void handleRequest(final RestRequest request, final RestChannel channel) {
+        if (!request.hasContent()) {
+            emitErrorResponse(channel, request, logger, new RuntimeException("Request body was expected."));
+            return;
+        }
+
+        // Fill action request with data from REST request.
         // TODO: delegate json parsing to Carrot2ClusteringAction.
         ClusteringActionRequest actionRequest = new ClusteringActionRequest();
-        if (request.hasContent()) {
-            fillFromSource(request, actionRequest, request.content());
-        } else {
-            try {
-                channel.sendResponse(new XContentThrowableRestResponse(request, new RuntimeException("Request body was expected.")));
-            } catch (IOException e) {
-                logger.error("Failed to send failure response", e);
-            }
-        }
+        fillFromSource(request, actionRequest, request.content());
 
         // Build a clustering request and dispatch.
         client.execute(ClusteringAction.INSTANCE, actionRequest, 
@@ -78,20 +73,14 @@ public class RestCarrot2ClusteringAction extends BaseRestHandler {
                                     response.getSearchResponse().status(), 
                                     builder));
                 } catch (Exception e) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("failed to execute search (building response)", e);
-                    }
+                    logger.debug("Failed to emit response.", e);
                     onFailure(e);
                 }
             }
 
             @Override
             public void onFailure(Throwable e) {
-                try {
-                    channel.sendResponse(new XContentThrowableRestResponse(request, e));
-                } catch (IOException e1) {
-                    logger.error("Failed to send failure response", e1);
-                }
+                emitErrorResponse(channel, request, logger, e);
             }
         });
     }

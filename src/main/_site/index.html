@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Carrot² search results clustering plugin for ElasticSearch</title>
+    <title>CarrotÂ² search results clustering plugin for ElasticSearch</title>
 
     <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
     <link href="assets/css/prettify.css" rel="stylesheet" />
@@ -74,9 +74,12 @@
         <div class="span11 dropped">
           Then, type in a query like:
           <form class="form-inline" id="searchform">
-            <input id="query" type="text" style="width: 30em" value="data mining" />
+            <input id="query" type="text" style="width: 17em" value="data mining" />
             and
             <button class="btn btn-primary" id="search">Search, cluster &amp; visualize</button>
+            with
+            <select class="selectpicker" style="width: 8em" id="algorithm"></select>
+            algorithm.
             <span id="progress"></span>
           </form>
         </div>
@@ -130,12 +133,13 @@
             });
           });
 
-            // Initiate search when form is submitted
+          // Initiate search when form is submitted
           $("#searchform").submit(function (e) {
             e.preventDefault();
 
             var $progress = $("#progress");
             var query = $("#query").val();
+            var algorithm = $("#algorithm option:selected").val();
 
             // ES search request data
             var request = {
@@ -148,9 +152,11 @@
               },
 
               "query_hint": query,
+              "algorithm": algorithm,
               "field_mapping": {
                 "title": ["fields.title"],
-                "content": ["fields.content"]
+                "content": ["fields.content"],
+                "url": ["fields.url"]
               }
             };
 
@@ -209,6 +215,14 @@
             url: "/_stats?pretty=true",
             error: function() {
               $("#noes").slideDown(1000);
+            },
+            success: function() {
+              // Update algorithms list.
+              $.get("/_algorithms", function(data) {
+                data.algorithms.forEach(function(algorithm) {
+                  $("#algorithm").append("<option>" + algorithm + "</option>");
+                });
+              });
             }
           });
         });

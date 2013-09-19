@@ -5,9 +5,14 @@ ElasticSearch-Carrot2 Change Log
 
 New features
 
+* Added an action to return all available clustering algorithms.
+
 Bug Fixes
 
 Other
+
+* Restructured the plugin documentation, added table of contents and 
+  sections for each REST API method.
 
 * Minor touches for incompatible ES API changes (removed methods in RestActions).
 
