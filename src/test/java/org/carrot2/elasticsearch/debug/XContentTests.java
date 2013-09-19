@@ -1,10 +1,12 @@
-package org.carrot2.elasticsearch;
+package org.carrot2.elasticsearch.debug;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Map;
 
+import org.elasticsearch.common.xcontent.XContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import com.google.common.io.Resources;
 
@@ -13,12 +15,14 @@ public class XContentTests {
         byte[] jsonResource = Resources.toByteArray(
                 Resources.getResource(XContentTests.class, "post_cluster_by_url.json"));
 
-        XContentParser parser = XContentFactory.xContent(jsonResource).createParser(jsonResource);
-        Map<String, Object> mapOrderedAndClose = parser.mapOrderedAndClose();
+        XContent xcontent = XContentFactory.xContent(jsonResource);
+        XContentType type = XContentType.YAML; // xcontent.type();
+        XContentParser parser = xcontent.createParser(jsonResource);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        XContentFactory.smileBuilder(baos).map(mapOrderedAndClose).close();
-        
+        XContentBuilder builder = XContentFactory.contentBuilder(type, baos).copyCurrentStructure(parser);
+        builder.close();
+
         System.out.println("Out:");
         System.out.println(new String(baos.toByteArray()));
     }

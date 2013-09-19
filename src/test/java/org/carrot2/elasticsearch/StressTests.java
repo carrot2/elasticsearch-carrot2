@@ -33,7 +33,7 @@ public class StressTests extends AbstractApiTest {
         final int requests = 100;
         final int threads = 10;
 
-        System.out.println("Stress testing: ");
+        System.out.println("Stress testing: " + client.getClass().getSimpleName() + "| ");
         for (int i = 0; i < requests; i++) {
             tasks.add(new Callable<ClusteringActionResponse>() {
                 public ClusteringActionResponse call() throws Exception {

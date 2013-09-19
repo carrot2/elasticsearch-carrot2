@@ -46,8 +46,6 @@ FEATURES
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
-- add a test case with yaml body (or other xcontent)
-
 REFACTORINGS/ ITCHES
 --------------------
 

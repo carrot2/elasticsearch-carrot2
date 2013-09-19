@@ -1,4 +1,4 @@
-package org.carrot2.elasticsearch;
+package org.carrot2.elasticsearch.debug;
 
 import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;

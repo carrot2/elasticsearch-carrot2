@@ -11,6 +11,8 @@ Bug Fixes
 
 Other
 
+* Improved tests (test requests are converted to all XContentTypes).
+
 * Restructured the plugin documentation, added table of contents and 
   sections for each REST API method.
 

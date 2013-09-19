@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -10,18 +11,23 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.carrot2.core.LanguageCode;
 import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.collect.Sets;
+import org.elasticsearch.common.xcontent.XContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 
@@ -31,18 +37,33 @@ import com.google.common.io.Resources;
 public class RestApiTests extends AbstractApiTest {
     @DataProvider(name = "postJsonResources")
     public static Object[][] postJsonResources() {
-        return new Object[][] {
-                {"post_with_fields.json"},
-                {"post_with_source_fields.json"},
-                {"post_with_highlighted_fields.json"},
-                {"post_multiple_field_mapping.json"},
-                {"post_cluster_by_url.json"}
-        };
+        List<Object[]> parameters = Lists.newArrayList();
+        for (String resourceName : new String [] {
+                "post_with_fields.json",
+                "post_with_source_fields.json",
+                "post_with_highlighted_fields.json",
+                "post_multiple_field_mapping.json",
+                "post_cluster_by_url.json"
+        }) {
+            for (XContentType type : XContentType.values()) {
+                parameters.add(new Object [] {resourceName, type});
+            }
+        }
+
+        return parameters.toArray(new Object[parameters.size()][]);
     }
 
     @DataProvider(name = "postOrGet")
     public static Object[][] postOrGet() {
         return new Object[][] {{Method.POST}, {Method.GET}};
+    }
+    
+    @DataProvider(name = "xcontentTypes")
+    public static Object[][] xcontentTypes() {
+        return new Object[][] {
+                {XContentType.JSON}, 
+                {XContentType.SMILE}, 
+                {XContentType.YAML}};
     }
 
     @SuppressWarnings("unchecked")
@@ -83,13 +104,11 @@ public class RestApiTests extends AbstractApiTest {
     }    
 
     @Test(dataProvider = "postJsonResources")
-    public void testRestApiViaPostBody(String queryJsonResource) throws Exception {
+    public void testRestApiViaPostBody(String queryJsonResource, XContentType type) throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
-            String requestJson = resourceToString(queryJsonResource);
-
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            post.setEntity(new ByteArrayEntity(resourceAs(queryJsonResource, type)));
             HttpResponse response = httpClient.execute(post);
             
             Map<?,?> map = checkHttpResponseContainsClusters(response);
@@ -106,17 +125,15 @@ public class RestApiTests extends AbstractApiTest {
         }
     }
 
-    @Test
-    public void testRestApiPathParams() throws Exception {
+    @Test(dataProvider = "xcontentTypes")
+    public void testRestApiPathParams(XContentType type) throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
-            String requestJson = resourceToString("post_with_fields.json");
-
             HttpPost post = new HttpPost(restBaseUrl 
                     + "/" + INDEX_NAME 
                     + "/empty/" 
                     + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            post.setEntity(new ByteArrayEntity(resourceAs("post_with_fields.json", type)));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -129,14 +146,12 @@ public class RestApiTests extends AbstractApiTest {
         }
     }
 
-    @Test
-    public void testRestApiRuntimeAttributes() throws Exception {
+    @Test(dataProvider = "xcontentTypes")
+    public void testRestApiRuntimeAttributes(XContentType type) throws Exception {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
-            String requestJson = resourceToString("post_runtime_attributes.json");
-
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            post.setEntity(new ByteArrayEntity(resourceAs("post_runtime_attributes.json", type)));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -150,14 +165,12 @@ public class RestApiTests extends AbstractApiTest {
         }
     }
 
-    @Test
-    public void testLanguageField() throws IOException {
+    @Test(dataProvider = "xcontentTypes")
+    public void testLanguageField(XContentType type) throws IOException {
         final DefaultHttpClient httpClient = new DefaultHttpClient();
         try {
-            String requestJson = resourceToString("post_language_field.json");
-
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new StringEntity(requestJson, Charsets.UTF_8));
+            post.setEntity(new ByteArrayEntity(resourceAs("post_language_field.json", type)));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -181,13 +194,12 @@ public class RestApiTests extends AbstractApiTest {
             httpClient.getConnectionManager().shutdown();
         }
     }    
-    
+
     protected static Map<String, Object> checkHttpResponseContainsClusters(HttpResponse response) throws IOException {
         Map<String, Object> map = checkHttpResponse(response);
 
         // We should have some clusters.
         Assertions.assertThat(map).containsKey("clusters");
-
         return map;
     }
 
@@ -213,9 +225,20 @@ public class RestApiTests extends AbstractApiTest {
         return map; 
     }
 
-    protected String resourceToString(String resourceName) throws IOException {
-        return Resources.toString(
-                Resources.getResource(this.getClass(), resourceName),
-                Charsets.UTF_8);
+    private static byte[] resourceAs(String resourceName, XContentType type) throws IOException {
+        byte [] bytes = resource(resourceName);
+
+        XContent xcontent = XContentFactory.xContent(bytes);
+        XContentParser parser = xcontent.createParser(bytes);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        XContentBuilder builder = XContentFactory.contentBuilder(type, baos).copyCurrentStructure(parser);
+        builder.close();
+
+        return bytes;
+    }
+
+    private static byte[] resource(String resourceName) throws IOException {
+        return Resources.toByteArray(Resources.getResource(RestApiTests.class, resourceName));
     }    
 }
