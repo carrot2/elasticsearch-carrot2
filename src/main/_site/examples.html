@@ -755,9 +755,14 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
         <div class="row">
           <div class="span12">
             <p>The field mapping specification can include a <code>language</code> element, which
-            defines the ISO code of the language in which the title and content of a document are
+            defines the <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1</a> 
+            code of the language in which the title and content of a document are
             written. This information can be stored in the index based on apriori knowledge of
             the documents' source or a language detection filter applied at indexing time.</p>
+            
+            <p>The algorithms inside Carrot<sup>2</sup> framework will accept ISO codes
+            of languages defined in 
+            <a href="https://github.com/carrot2/carrot2/blob/master/core/carrot2-core/src/org/carrot2/core/LanguageCode.java"><code>LanguageCode</code></a> enum.</p>
 
             <p>The language hint makes it easier for clustering algorithms to separate documents
             from different languages on input and to pick the right language resources for clustering.
