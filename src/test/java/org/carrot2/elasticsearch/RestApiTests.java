@@ -194,7 +194,95 @@ public class RestApiTests extends AbstractApiTest {
         } finally {
             httpClient.getConnectionManager().shutdown();
         }
+    }
+    
+    @Test(dataProvider = "xcontentTypes")
+    public void testNonexistentFields(XContentType type) throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_fields.json", type)));
+            HttpResponse response = httpClient.execute(post);
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            Assertions.assertThat(clusterList).isNotNull();
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    @Test(dataProvider = "xcontentTypes")
+    public void testNonexistentAlgorithmId(XContentType type) throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_algorithmId.json", type)));
+            HttpResponse response = httpClient.execute(post);
+            expectErrorResponseWithMessage(
+                    response,
+                    HttpStatus.SC_BAD_REQUEST,
+                    "ElasticSearchIllegalArgumentException[No such algorithm: _nonexistent_]");
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
     }    
+
+    @Test(dataProvider = "xcontentTypes")
+    public void testInvalidSearchQuery(XContentType type) throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_query.json", type)));
+            HttpResponse response = httpClient.execute(post);
+            expectErrorResponseWithMessage(
+                    response, 
+                    HttpStatus.SC_BAD_REQUEST, 
+                    "QueryParsingException");
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }    
+
+    @Test(dataProvider = "xcontentTypes")
+    public void testPropagatingAlgorithmException(XContentType type) throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
+            post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_attribute_value.json", type)));
+            HttpResponse response = httpClient.execute(post);
+            expectErrorResponseWithMessage(
+                    response, 
+                    HttpStatus.SC_INTERNAL_SERVER_ERROR, 
+                    "Search results clustering error:");
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    protected void expectErrorResponseWithMessage(HttpResponse response, int expectedStatus, String messageSubstring) throws IOException {
+        byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
+        String responseString = new String(responseBytes, Charsets.UTF_8); 
+            String responseDescription = 
+                "HTTP response status: " + response.getStatusLine().toString() + ", " + 
+                "HTTP body: " + responseString;
+
+        Assertions.assertThat(response.getStatusLine().getStatusCode())
+            .describedAs(responseDescription)
+            .isEqualTo(expectedStatus);
+
+        XContent xcontent = XContentFactory.xContent(responseBytes);
+        XContentParser parser = xcontent.createParser(responseBytes);
+        Map<String, Object> responseJson = parser.mapOrderedAndClose();
+        
+        Assertions.assertThat(responseJson)
+            .describedAs(responseString)
+            .containsKey("error");
+
+        Assertions.assertThat((String) responseJson.get("error"))
+            .describedAs(responseString)
+            .contains(messageSubstring);
+    }
 
     protected static Map<String, Object> checkHttpResponseContainsClusters(HttpResponse response) throws IOException {
         Map<String, Object> map = checkHttpResponse(response);

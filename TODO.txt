@@ -16,8 +16,6 @@ FEATURES
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
-- check for error resilience and propagation (invalid query request, for example).
-
 REFACTORINGS/ ITCHES
 --------------------
 

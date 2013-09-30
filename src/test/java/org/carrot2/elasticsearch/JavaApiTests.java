@@ -20,10 +20,7 @@ import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchParseElement;
-import org.elasticsearch.search.SearchParseException;
 import org.fest.assertions.api.Assertions;
-import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -223,7 +220,7 @@ public class JavaApiTests extends AbstractApiTest {
                 .contains("Parse Failure");
         }
     }
-    
+
     @Test(dataProvider = "clients")
     public void testPropagatingAlgorithmException(Client client) throws IOException {
         // The query should result in an error.

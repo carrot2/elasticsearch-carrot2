@@ -20,6 +20,7 @@ import org.carrot2.core.ProcessingException;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.ElasticSearchIllegalArgumentException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
@@ -558,11 +559,12 @@ public class ClusteringAction
                         algorithmId = algorithmComponentIds.get(0);                    
                     } else {
                         if (!algorithmComponentIds.contains(algorithmId)) {
-                            listener.onFailure(new ElasticSearchException("No such algorithm: " + algorithmId));
+                            listener.onFailure(
+                                    new ElasticSearchIllegalArgumentException("No such algorithm: " + algorithmId));
                             return;
                         }
                     }
-                    
+
                     /*
                      * We're not a threaded listener so we're running on the search thread. This
                      * is good -- we don't want to serve more clustering requests than we can handle
@@ -821,12 +823,13 @@ public class ClusteringAction
         @Override
         public void handleRequest(final RestRequest request, final RestChannel channel) {
             if (!request.hasContent()) {
-                emitErrorResponse(channel, request, logger, new RuntimeException("Request body was expected."));
+                emitErrorResponse(channel, request, logger, 
+                        new IllegalArgumentException("Request body was expected."));
                 return;
             }
 
             // Fill action request with data from REST request.
-            // TODO: delegate json parsing to Carrot2ClusteringAction.
+            // TODO: delegate json parsing to ClusteringAction.
             ClusteringActionRequest actionRequest = new ClusteringActionRequest();
             fillFromSource(request, actionRequest, request.content());
 

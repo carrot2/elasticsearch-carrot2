@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
@@ -34,8 +35,6 @@ import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
-
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 
 /**
  * List all available clustering algorithms.
@@ -232,7 +231,8 @@ public class ListAlgorithmsAction
         @Override
         public void handleRequest(final RestRequest request, final RestChannel channel) {
             if (request.hasContent()) {
-                emitErrorResponse(channel, request, logger, new RuntimeException("Request body was unexpected."));
+                emitErrorResponse(channel, request, logger, 
+                        new IllegalArgumentException("Request body was expected."));
                 return;
             }
 

@@ -52,9 +52,9 @@ final class LoggerUtils {
     }
 
     static void emitErrorResponse(RestChannel channel, 
-                                          RestRequest request, 
-                                          ESLogger logger, 
-                                          Throwable t) {
+                                  RestRequest request, 
+                                  ESLogger logger,
+                                  Throwable t) {
         try {
             channel.sendResponse(new XContentThrowableRestResponse(request, t));
         } catch (IOException e) {
