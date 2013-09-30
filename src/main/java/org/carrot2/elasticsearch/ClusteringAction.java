@@ -16,6 +16,7 @@ import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
 import org.carrot2.core.LanguageCode;
+import org.carrot2.core.ProcessingException;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticSearchException;
@@ -574,23 +575,33 @@ public class ClusteringAction
                     if (requestAttrs != null) {
                         processingAttrs.putAll(requestAttrs);
                     }
-    
-                    CommonAttributesDescriptor.attributeBuilder(processingAttrs)
-                        .documents(prepareDocumentsForClustering(clusteringRequest, response))
-                        .query(clusteringRequest.getQueryHint());
-    
-                    final long tsClusteringStart = System.nanoTime();
-                    final ProcessingResult result = controller.process(processingAttrs, algorithmId);
-                    final DocumentGroup[] groups = adapt(result.getClusters());
-                    final long tsClusteringEnd = System.nanoTime();
-    
-                    final Map<String,String> info = ImmutableMap.of(
-                        ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId,
-                        ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
-                        ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
-                        ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
-    
-                    listener.onResponse(new ClusteringActionResponse(response, groups, info));
+
+                    try {
+                        CommonAttributesDescriptor.attributeBuilder(processingAttrs)
+                            .documents(prepareDocumentsForClustering(clusteringRequest, response))
+                            .query(clusteringRequest.getQueryHint());
+        
+                        final long tsClusteringStart = System.nanoTime();
+                        final ProcessingResult result = controller.process(processingAttrs, algorithmId);
+                        final DocumentGroup[] groups = adapt(result.getClusters());
+                        final long tsClusteringEnd = System.nanoTime();
+        
+                        final Map<String,String> info = ImmutableMap.of(
+                            ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId,
+                            ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
+                            ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
+                            ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
+        
+                        listener.onResponse(new ClusteringActionResponse(response, groups, info));
+                    } catch (ProcessingException e) {
+                        // Log a full stack trace with all nested exceptions but only return 
+                        // ElasticSearchException exception with a simple String (otherwise 
+                        // clients cannot deserialize exception classes).
+                        String message = "Search results clustering error: " + e.getMessage();
+                        logger.warn(message, e);
+                        listener.onFailure(new ElasticSearchException(message));
+                        return;
+                    }
                 }
             });
         }

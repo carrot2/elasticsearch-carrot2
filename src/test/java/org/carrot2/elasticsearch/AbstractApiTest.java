@@ -155,6 +155,13 @@ public class AbstractApiTest {
     }
 
     /**
+     * Expect error response.
+     */
+    protected static void checkResponseContainsError(String messageSubstring) {
+
+    }
+    
+    /**
      * Check valid response?
      */
     protected static void checkValid(ClusteringActionResponse result) {

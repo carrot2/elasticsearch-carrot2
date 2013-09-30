@@ -9,7 +9,13 @@ New features
 
 Bug Fixes
 
+* Proper propagation of ProcessingExceptions from Carrot2 framework (in case
+  they happen due to, for example, invalid attribute values).
+
 Other
+
+* Added tests for invalid attribute values and proper responses in such
+  case (API, REST).
 
 * Refactoring of API classes (nesting classes under ClusteringAction, similar pattern
   will follow for all future *Action implementations).
