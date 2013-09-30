@@ -4,6 +4,8 @@ import static org.elasticsearch.common.collect.Lists.newArrayList;
 
 import java.util.Collection;
 
+import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
+import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.elasticsearch.action.ActionModule;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;

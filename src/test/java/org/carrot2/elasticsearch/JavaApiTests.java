@@ -7,8 +7,10 @@ import java.util.Set;
 
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
 import org.carrot2.core.LanguageCode;
-import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
+import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStrategy;
 import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
 import org.elasticsearch.client.Client;

@@ -2,6 +2,7 @@ package org.carrot2.elasticsearch;
 
 import java.util.HashMap;
 
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequest;
 import org.elasticsearch.common.collect.Maps;
 
 /**

@@ -11,6 +11,9 @@ Bug Fixes
 
 Other
 
+* Refactoring of API classes (nesting classes under ClusteringAction, similar pattern
+  will follow for all future *Action implementations).
+
 * Improved tests (test requests are converted to all XContentTypes).
 
 * Restructured the plugin documentation, added table of contents and 

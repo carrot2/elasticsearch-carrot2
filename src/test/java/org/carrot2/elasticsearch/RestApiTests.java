@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.carrot2.core.LanguageCode;
+import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.XContent;

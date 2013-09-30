@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Random;
 
 import org.carrot2.core.LanguageCode;
-import org.carrot2.elasticsearch.ClusteringActionResponse.Fields;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;

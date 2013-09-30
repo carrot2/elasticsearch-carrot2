@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.fest.assertions.api.Assertions;
