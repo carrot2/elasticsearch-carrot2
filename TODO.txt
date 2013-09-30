@@ -12,15 +12,14 @@ FEATURES
 --------
 
 - add support for GET requests.
+  - http://www.elasticsearch.org/guide/reference/api/search/uri-request/
+  - support for GET with bodies (?)
 
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
 REFACTORINGS/ ITCHES
 --------------------
-
-- add/move source() parsing from REST to the request builder/object.
-
 
 
 
