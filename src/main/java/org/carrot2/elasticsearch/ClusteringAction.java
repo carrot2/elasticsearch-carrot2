@@ -46,6 +46,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -173,6 +174,75 @@ public class ClusteringAction
         public Map<String, Object> getAttributes() {
             return attributes;
         }
+
+        /**
+         * Parses some {@link XContent} and fills in the request. 
+         */
+        @SuppressWarnings("unchecked")
+        public void source(BytesReference source) {
+            if (source == null || source.length() == 0) {
+                return;
+            }
+
+            XContentParser parser = null;
+            try {
+                // TODO: we should avoid reparsing search_request here 
+                // but it's terribly difficult to slice the underlying byte 
+                // buffer to get just the search request.
+                parser = XContentFactory.xContent(source).createParser(source);
+                Map<String, Object> asMap = parser.mapOrderedAndClose();
+
+                String queryHint = (String) asMap.get("query_hint"); 
+                if (queryHint != null) {
+                    setQueryHint(queryHint);
+                }
+
+                Map<String,List<String>> fieldMapping = (Map<String,List<String>>) asMap.get("field_mapping");
+                if (fieldMapping != null) {
+                    parseFieldSpecs(fieldMapping);
+                }
+
+                String algorithm = (String) asMap.get("algorithm");
+                if (algorithm != null) {
+                    setAlgorithm(algorithm);
+                }
+                
+                Map<String,Object> attributes = (Map<String,Object>) asMap.get("attributes"); 
+                if (attributes != null) {
+                    setAttributes(attributes);
+                }
+
+                if (asMap.containsKey("search_request")) {
+                    if (this.searchRequest == null) {
+                        searchRequest = new SearchRequest();
+                    }
+                    searchRequest.source((Map<?,?>) asMap.get("search_request"));
+                }
+            } catch (Exception e) {
+                String sSource = "_na_";
+                try {
+                    sSource = XContentHelper.convertToJson(source, false);
+                } catch (Throwable e1) {
+                    // ignore
+                }
+                throw new ElasticSearchException("Failed to parse source [" + sSource + "]", e);
+            } finally {
+                if (parser != null) {
+                    parser.close();
+                }
+            }            
+        }
+
+        private void parseFieldSpecs(Map<String, List<String>> fieldSpecs) {
+            for (Map.Entry<String,List<String>> e : fieldSpecs.entrySet()) {
+                LogicalField logicalField = LogicalField.valueOfCaseInsensitive(e.getKey());
+                if (logicalField != null) {
+                    for (String fieldSpec : e.getValue()) {
+                        addFieldMappingSpec(fieldSpec, logicalField);
+                    }
+                }
+            }
+        }        
 
         /**
          * Map a hit's field to a logical section of a document to be clustered (title, content or URL).
@@ -346,6 +416,11 @@ public class ClusteringAction
             return this;
         }
     
+        public ClusteringActionRequestBuilder setSource(BytesReference content) {
+            super.request.source(content);
+            return this;
+        }
+
         public ClusteringActionRequestBuilder addAttributes(Map<String,Object> attributes) {
             if (super.request.getAttributes() == null) {
                 super.request.setAttributes(Maps.<String,Object> newHashMap());
@@ -830,8 +905,14 @@ public class ClusteringAction
 
             // Fill action request with data from REST request.
             // TODO: delegate json parsing to ClusteringAction.
-            ClusteringActionRequest actionRequest = new ClusteringActionRequest();
-            fillFromSource(request, actionRequest, request.content());
+            SearchRequest searchRequest = new SearchRequest();
+            searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
+            searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
+
+            ClusteringActionRequest actionRequest = new ClusteringActionRequestBuilder(client)
+                .setSearchRequest(searchRequest)
+                .setSource(request.content())
+                .request();
 
             // Build a clustering request and dispatch.
             client.execute(ClusteringAction.INSTANCE, actionRequest, 
@@ -859,72 +940,6 @@ public class ClusteringAction
                     emitErrorResponse(channel, request, logger, e);
                 }
             });
-        }
-
-        /**
-         * Parse the clustering/ search request JSON.
-         */
-        @SuppressWarnings("unchecked")
-        private void fillFromSource(
-                RestRequest restRequest, 
-                ClusteringActionRequest clusteringRequest,
-                BytesReference source) {
-            if (source == null || source.length() == 0) {
-                return;
-            }
-
-            XContentParser parser = null;
-            try {
-                // TODO: we should avoid reparsing here but it's terribly difficult to slice
-                // the underlying byte buffer to get just the search request.
-
-                parser = XContentFactory.xContent(source).createParser(source);
-                Map<String, Object> asMap = parser.mapOrderedAndClose();
-
-                if (asMap.get("query_hint") != null) {
-                    clusteringRequest.setQueryHint((String) asMap.get("query_hint"));
-                }
-                if (asMap.containsKey("field_mapping")) {
-                    parseFieldSpecs(clusteringRequest, (Map<String,List<String>>) asMap.get("field_mapping"));
-                }
-                if (asMap.containsKey("search_request")) {
-                    SearchRequest searchRequest = new SearchRequest();
-                    searchRequest.indices(Strings.splitStringByCommaToArray(restRequest.param("index")));
-                    searchRequest.source((Map<?,?>) asMap.get("search_request"));
-                    searchRequest.types(Strings.splitStringByCommaToArray(restRequest.param("type")));
-                    clusteringRequest.setSearchRequest(searchRequest);
-                }
-                if (asMap.containsKey("algorithm")) {
-                    clusteringRequest.setAlgorithm((String) asMap.get("algorithm"));
-                }
-                if (asMap.containsKey("attributes")) {
-                    clusteringRequest.setAttributes((Map<String,Object>) asMap.get("attributes"));
-                }
-            } catch (Exception e) {
-                String sSource = "_na_";
-                try {
-                    sSource = XContentHelper.convertToJson(source, false);
-                } catch (Throwable e1) {
-                    // ignore
-                }
-                throw new ElasticSearchException("Failed to parse source [" + sSource + "]", e);
-            } finally {
-                if (parser != null) {
-                    parser.close();
-                }
-            }        
-        }
-
-        private void parseFieldSpecs(ClusteringActionRequest actionRequest,
-                Map<String, List<String>> fieldSpecs) {
-            for (Map.Entry<String,List<String>> e : fieldSpecs.entrySet()) {
-                LogicalField logicalField = LogicalField.valueOfCaseInsensitive(e.getKey());
-                if (logicalField != null) {
-                    for (String fieldSpec : e.getValue()) {
-                        actionRequest.addFieldMappingSpec(fieldSpec, logicalField);
-                    }
-                }
-            }
         }
     }    
 }
