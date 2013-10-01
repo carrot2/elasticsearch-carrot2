@@ -1,7 +1,7 @@
 
 ElasticSearch-Carrot2 Change Log
 
-================ ElasticSearch-Carrot2 1.2.0 [not released] ================
+================ ElasticSearch-Carrot2 1.2.0 ================
 
 New features
 
