@@ -16,6 +16,8 @@ BUGS/ TESTS
 FEATURES
 --------
 
+- Add support for clustering GET-with-post (after some discussion with Simon W.).
+
 PERFORMANCE/ ROBUSTNESS
 -----------------------
 
