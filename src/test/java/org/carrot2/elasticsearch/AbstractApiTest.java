@@ -3,6 +3,7 @@ package org.carrot2.elasticsearch;
 import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
@@ -11,6 +12,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
@@ -21,24 +24,33 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Priority;
+import org.elasticsearch.common.base.Charsets;
 import org.elasticsearch.common.network.NetworkUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.http.HttpServerTransport;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.node.internal.InternalNode;
+import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.transport.TransportService;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.DataProvider;
 import org.testng.collections.Maps;
+
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Resources;
 
 public class AbstractApiTest {
     protected static Node node;
@@ -52,6 +64,27 @@ public class AbstractApiTest {
     protected static String restBaseUrl; 
 
     protected final static String INDEX_NAME = "test";
+
+    @DataProvider(name = "clients")
+    public static Object[][] clientProvider() {
+        return new Object[][] {
+                {localClient},
+                {transportClient},
+        };
+    }
+
+    @DataProvider(name = "postOrGet")
+    public static Object[][] postOrGet() {
+        return new Object[][] {{Method.POST}, {Method.GET}};
+    }
+    
+    @DataProvider(name = "xcontentTypes")
+    public static Object[][] xcontentTypes() {
+        return new Object[][] {
+                {XContentType.JSON}, 
+                {XContentType.SMILE}, 
+                {XContentType.YAML}};
+    }
 
     @BeforeSuite
     public static void beforeClass() throws IOException {
@@ -136,7 +169,6 @@ public class AbstractApiTest {
         transportClient.close();
         node.close();
     }
-    
 
     /**
      * Roundtrip to/from JSON.
@@ -155,14 +187,7 @@ public class AbstractApiTest {
     }
 
     /**
-     * Expect error response.
-     */
-    protected static void checkResponseContainsError(String messageSubstring) {
-
-    }
-    
-    /**
-     * Check valid response?
+     * Check for valid {@link ClusteringActionResponse}.
      */
     protected static void checkValid(ClusteringActionResponse result) {
         Assertions.assertThat(result.getDocumentGroups())
@@ -196,4 +221,76 @@ public class AbstractApiTest {
             .containsKey(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS)
             .containsKey(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS);
     }
+    
+
+    protected static Map<String, Object> checkHttpResponseContainsClusters(HttpResponse response) throws IOException {
+        Map<String, Object> map = checkHttpResponse(response);
+
+        // We should have some clusters.
+        Assertions.assertThat(map).containsKey("clusters");
+        return map;
+    }
+
+    protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
+        String responseString = new String(
+                ByteStreams.toByteArray(response.getEntity().getContent()), 
+                Charsets.UTF_8); 
+    
+        String responseDescription = 
+                "HTTP response status: " + response.getStatusLine().toString() + ", " + 
+                "HTTP body: " + responseString;
+    
+        Assertions.assertThat(response.getStatusLine().getStatusCode())
+            .describedAs(responseDescription)
+            .isEqualTo(HttpStatus.SC_OK);
+    
+        XContentParser parser = JsonXContent.jsonXContent.createParser(responseString);
+        Map<String, Object> map = parser.mapAndClose();
+        Assertions.assertThat(map)
+            .describedAs(responseDescription)
+            .doesNotContainKey("error");
+
+        return map; 
+    }
+
+    protected static void expectErrorResponseWithMessage(HttpResponse response, int expectedStatus, String messageSubstring) throws IOException {
+        byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
+        String responseString = new String(responseBytes, Charsets.UTF_8); 
+            String responseDescription = 
+                "HTTP response status: " + response.getStatusLine().toString() + ", " + 
+                "HTTP body: " + responseString;
+
+        Assertions.assertThat(response.getStatusLine().getStatusCode())
+            .describedAs(responseDescription)
+            .isEqualTo(expectedStatus);
+
+        XContent xcontent = XContentFactory.xContent(responseBytes);
+        XContentParser parser = xcontent.createParser(responseBytes);
+        Map<String, Object> responseJson = parser.mapOrderedAndClose();
+        
+        Assertions.assertThat(responseJson)
+            .describedAs(responseString)
+            .containsKey("error");
+
+        Assertions.assertThat((String) responseJson.get("error"))
+            .describedAs(responseString)
+            .contains(messageSubstring);
+    }
+
+    protected static byte[] resourceAs(String resourceName, XContentType type) throws IOException {
+        byte [] bytes = resource(resourceName);
+
+        XContent xcontent = XContentFactory.xContent(bytes);
+        XContentParser parser = xcontent.createParser(bytes);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        XContentBuilder builder = XContentFactory.contentBuilder(type, baos).copyCurrentStructure(parser);
+        builder.close();
+
+        return bytes;
+    }
+
+    protected static byte[] resource(String resourceName) throws IOException {
+        return Resources.toByteArray(Resources.getResource(ClusteringActionRestTests.class, resourceName));
+    }    
 }

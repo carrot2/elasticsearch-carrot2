@@ -21,23 +21,14 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.fest.assertions.api.Assertions;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Maps;
 
 /**
- * Java API tests.
+ * Java API tests for {@link ClusteringAction}.
  */
-public class JavaApiTests extends AbstractApiTest {
-    @DataProvider(name = "clients")
-    public static Object[][] clientProvider() {
-        return new Object[][] {
-                {localClient},
-                {transportClient},
-        };
-    }
-
+public class ClusteringActionTests extends AbstractApiTest {
     @Test(dataProvider = "clients")
     public void testComplexQuery(Client client) throws IOException {
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
