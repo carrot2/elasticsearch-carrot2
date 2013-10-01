@@ -7,6 +7,9 @@ New features
 
 * Added an action to return all available clustering algorithms.
 
+* Added support for search-and-cluster requests using HTTP GET (with a subset
+  of all the functionality but still useful).
+
 Bug Fixes
 
 * Proper propagation of ProcessingExceptions from Carrot2 framework (in case

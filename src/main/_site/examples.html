@@ -214,25 +214,30 @@ $.get("/_algorithms", function(response) {
               <div class="well">
                 <h4>Search and cluster results</h4>
                 <ul>
-                  <li><code>/_search_with_clusters</code> (<code>POST</code>)</li>
-                  <li><code>/{index}/_search_with_clusters</code> (<code>POST</code>)</li>
-                  <li><code>/{index}/{type}/_search_with_clusters</code> (<code>POST</code>)</li>
+                  <li><code>/_search_with_clusters</code> (<code>POST</code>, <code>GET</code>)</li>
+                  <li><code>/{index}/_search_with_clusters</code> (<code>POST</code>, <code>GET</code>)</li>
+                  <li><code>/{index}/{type}/_search_with_clusters</code> (<code>POST</code>, <code>GET</code>)</li>
                 </ul>
               </div>
 
               <p>This action performs a search query, fetches matching hits and clusters them on-the-fly.</p>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="span12">
-              <h5>Request</h5>
 
               <p>The <code>index</code> and <code>type</code> URI segments implicitly bind the search request part of the
                 message to a given index and document type, exactly as in the
                 <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
 
-              <p>A clustering request is a HTTP POST request with a JSON body and the following elements:</p>
+              <p>A clustering request is a HTTP REST request, where the full set of parameters is supported via
+                HTTP POST request with a JSON body. A limited subset of clustering functionality is also exposed
+                via the HTTP GET method.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span12">
+              <h5>Request (HTTP POST)</h5>
+
+              <p>A HTTP POST request should contain a JSON object with the following properties.</p>
+
               <dl class="dl-horizontal">
                 <dt><code>search_request</code></dt>
                 <dd><p><span class="badge badge-info">required</span>
@@ -322,6 +327,74 @@ $.get("/_algorithms", function(response) {
                   fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
                   fetch window to be at least 100 documents.
               </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span12">
+              <h5>Request (HTTP GET)</h5>
+
+              <p>A HTTP GET clustering request supports a superset of HTTP URI parameters defined by ElasticSearch's
+                <a href="http://www.elasticsearch.org/guide/reference/api/search/uri-request/">URI search request</a>.
+                All additional parameters correspond to those typically defined in the body of a clustering
+                request sent via HTTP POST. Namely, the following parameters are supported by HTTP GET:</p>
+
+              <dl class="dl-horizontal">
+                <dt><code>field_mapping_*</code></dt>
+                <dd><p><span class="badge badge-info">required</span>
+                  This is a wildcard (a family) of parameters, each of which defines a logical field mapping, similar
+                  to <code>field_mapping</code> map described in the HTTP POST request. A <code>field_mapping_title</code>
+                  will specify the logical title's mapping, wheareas <code>field_mapping_url</code> will specify
+                  the logical URL's mapping and so on.</p>
+
+                  <p>The value of the mapping parameter is a comma-separated list of mapping specifications, as described
+                  in the description of the POST request.</p>
+                </dd>
+
+                <dt><code>algorithm</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  Identical semantics to <code>algorithm</code> attribute described in HTTP POST request.</p>
+                </dd>
+
+                <dt><code>query_hint</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  Identical semantics to <code>query_hint</code> attribute described in HTTP POST request.
+                  For GET requests the query hint is optional; if not present, the <code>q</code> attribute is used
+                  as the default.</p>
+                </dd>
+              </dl>
+
+              <div class="alert alert-info">
+                <p><strong>Important</strong></p>
+                <p>A HTTP GET request offers a subset of the functionality of a full HTTP POST JSON syntax. For example,
+                it is not possible to specify a field mapping to highlighted field values, define custom algorithm
+                  attributes, etc. HTTP POST is recommended for production.</p>
+              </div>
+
+              <p>An example HTTP GET clustering request is shown below, with the resulting clusters shown
+                on the right-hand side panel.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="span6">
+            <pre class="executable example" data-runbefore="defineDumpClusters">
+var getUrl = "/test/test/_search_with_clusters?"
+  + "q=data+mining&"
+  + "size=100&"
+  + "field_mapping_title=_source.title&"
+  + "field_mapping_content=_source.content";
+
+// Run HTTP GET via jquery and render cluster labels.
+$.get(getUrl,
+  function(response) {
+    $("#cluster-httpget-result").text(
+      dumpClusters([], response.clusters).join("\n"));
+});
+            </pre>
+            </div>
+            <div class="span6">
+              <pre class="result" id="cluster-httpget-result"></pre>
             </div>
           </div>
 

@@ -1,28 +1,4 @@
 
-VERSION 1.2.0
-=============
-
-DOCS
-----
-
-BUGS/ TESTS
------------
-
-FEATURES
---------
-
-- add support for GET requests.
-  - http://www.elasticsearch.org/guide/reference/api/search/uri-request/
-  - support for GET with bodies (?)
-
-PERFORMANCE/ ROBUSTNESS
------------------------
-
-REFACTORINGS/ ITCHES
---------------------
-
-
-
 VERSION 1.3.0
 =============
 
@@ -52,3 +28,23 @@ REFACTORINGS/ ITCHES
   uri parameters get injected as extraSource); in most cases the user will need all document references anyway to link
   them up from clusters. Leaving for now. The search query determines the number of documents (and the type of aggregation,
   etc.) to use.
+
+
+VERSION 1.4.0
+=============
+
+DOCS
+----
+
+BUGS/ TESTS
+-----------
+
+FEATURES
+--------
+
+PERFORMANCE/ ROBUSTNESS
+-----------------------
+
+REFACTORINGS/ ITCHES
+--------------------
+  
