@@ -2,11 +2,12 @@ package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.POST;
+import static org.elasticsearch.rest.RestRequest.Method.*;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +58,7 @@ import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.XContentRestResponse;
+import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.highlight.HighlightField;
@@ -893,29 +895,55 @@ public class ClusteringAction
             controller.registerHandler(POST, "/" + NAME,                this);
             controller.registerHandler(POST, "/{index}/" + NAME,        this);
             controller.registerHandler(POST, "/{index}/{type}/" + NAME, this);
+
+            controller.registerHandler(GET, "/" + NAME,                 this);
+            controller.registerHandler(GET, "/{index}/" + NAME,         this);
+            controller.registerHandler(GET, "/{index}/{type}/" + NAME,  this);            
         }
 
         @Override
         public void handleRequest(final RestRequest request, final RestChannel channel) {
-            if (!request.hasContent()) {
+            // A POST request must have a body.
+            if (request.method() == POST && !request.hasContent()) {
                 emitErrorResponse(channel, request, logger, 
-                        new IllegalArgumentException("Request body was expected."));
+                        new IllegalArgumentException("Request body was expected for a POST request."));
+                return;
+            }
+            
+            // Contrary to ES's default search handler we will not support
+            // GET requests with a body (this is against HTTP spec guidance 
+            // in my opinion -- GET requests should be URL-based). 
+            if (request.method() == GET && request.hasContent()) {
+                emitErrorResponse(channel, request, logger, 
+                        new IllegalArgumentException("Request body was unexpected for a GET request."));
                 return;
             }
 
-            // Fill action request with data from REST request.
-            // TODO: delegate json parsing to ClusteringAction.
-            SearchRequest searchRequest = new SearchRequest();
-            searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
-            searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
+            // Build an action request with data from the request.
 
-            ClusteringActionRequest actionRequest = new ClusteringActionRequestBuilder(client)
-                .setSearchRequest(searchRequest)
-                .setSource(request.content())
-                .request();
+            // Parse incoming arguments depending on the HTTP method used to make
+            // the request.
+            final ClusteringActionRequestBuilder actionBuilder = new ClusteringActionRequestBuilder(client);
+            switch (request.method()) {
+                case POST:
+                    SearchRequest searchRequest = new SearchRequest();
+                    searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
+                    searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
+                    actionBuilder.setSearchRequest(searchRequest);
+                    actionBuilder.setSource(request.content());
+                    break;
 
-            // Build a clustering request and dispatch.
-            client.execute(ClusteringAction.INSTANCE, actionRequest, 
+                case GET:
+                    actionBuilder.setSearchRequest(RestSearchAction.parseSearchRequest(request));
+                    fillFromGetRequest(actionBuilder, request);
+                    break;
+
+                default:
+                    throw org.carrot2.elasticsearch.Preconditions.unreachable();
+            }
+
+            // Dispatch clustering request.
+            client.execute(ClusteringAction.INSTANCE, actionBuilder.request(), 
                 new ActionListener<ClusteringActionResponse>() {
                 @Override
                 public void onResponse(ClusteringActionResponse response) {
@@ -941,5 +969,42 @@ public class ClusteringAction
                 }
             });
         }
-    }    
+
+        private final static EnumMap<LogicalField, String> GET_REQUEST_FIELDMAPPERS;
+        static {
+            GET_REQUEST_FIELDMAPPERS = Maps.newEnumMap(LogicalField.class);
+            for (LogicalField lf : LogicalField.values()) {
+                GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase());
+            }
+        }
+        
+        /**
+         * Extract and parse HTTP GET parameters for the clustering request. 
+         */
+        private void fillFromGetRequest(
+                ClusteringActionRequestBuilder actionBuilder,
+                RestRequest request) {
+            // Use the search query as the query hint, if explicit query hint
+            // is not available. 
+            if (request.hasParam("query_hint")) {
+                actionBuilder.setQueryHint(request.param("query_hint"));
+            } else {
+                actionBuilder.setQueryHint(request.param("q"));
+            }
+            
+            // Algorithm.
+            if (request.hasParam("algorithm")) {
+                actionBuilder.setAlgorithm(request.param("algorithm"));
+            }
+
+            // Field mappers.
+            for (Map.Entry<LogicalField,String> e : GET_REQUEST_FIELDMAPPERS.entrySet()) {
+                if (request.hasParam(e.getValue())) {
+                    for (String spec : Strings.splitStringByCommaToArray(request.param(e.getValue()))) { 
+                        actionBuilder.addFieldMappingSpec(spec, e.getKey());                    
+                    }
+                }
+            }
+        }
+    }
 }

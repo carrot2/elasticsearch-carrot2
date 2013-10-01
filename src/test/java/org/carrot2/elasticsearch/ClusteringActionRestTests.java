@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -40,6 +41,37 @@ public class ClusteringActionRestTests extends AbstractApiTest {
         }
 
         return parameters.toArray(new Object[parameters.size()][]);
+    }
+
+    @Test(dataProvider = "xcontentTypes")
+    public void testGetClusteringRequest(XContentType type) throws Exception {
+        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        try {
+            HttpGet request = new HttpGet(restBaseUrl + "/" + RestClusteringAction.NAME 
+                    + "?pretty=true" 
+                    // search-specific attrs
+                    + "&q=data+mining"
+                    + "&fields=url,title,content"
+                    + "&size=100"
+                    // clustering-specific attrs
+                    + "&query_hint=data+mining"
+                    + "&field_mapping_url=fields.url"
+                    + "&field_mapping_content=fields.title,fields.content"
+                    + "&algorithm=stc");
+            HttpResponse response = httpClient.execute(request);
+
+            Map<?,?> map = checkHttpResponseContainsClusters(response);
+
+            List<?> clusterList = (List<?>) map.get("clusters");
+            Assertions.assertThat(clusterList)
+                .isNotNull()
+                .isNotEmpty();
+
+            Assertions.assertThat(clusterList.size())
+                .isGreaterThan(5);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
     }
 
     @Test(dataProvider = "postJsonResources")
