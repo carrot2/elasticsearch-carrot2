@@ -680,9 +680,10 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
               the <a href="http://project.carrot2.org">Carrot<sup>2</sup></a> project and has a built-in support
               for the commercial <a href="http://carrotsearch.com/lingo3g-overview">Lingo3G</a> clustering algorithm.</p>
 
-            <p>The question of which algorithm to choose depends on the traffic (Lingo is more expensive than STC,
-              Lingo3G is yet faster), expected result (Lingo3G provides hierarchical clusters, Lingo and STC
-              provide flat clusters), and the input data (each algorithm will cluster the input sligtly differently).
+            <p>The question of which algorithm to choose depends on the amount of traffic (STC is faster than Lingo, 
+              but arguably produces less intuitive clusters, Lingo3G is the fastest algorithm but is not free or 
+              open source), expected result (Lingo3G provides hierarchical clusters, Lingo and STC provide flat 
+              clusters), and the input data (each algorithm will cluster the input slightly differently). 
               There is no one answer which algorithm is "the best".</p>
 
             <p>Compare the clusters dumped for the following identical search request.</p>
