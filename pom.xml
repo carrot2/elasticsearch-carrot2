@@ -21,7 +21,7 @@
     <description>Search results clustering plugin for ElasticSearch</description>
 
     <properties>
-        <elasticsearch.version>0.90.4</elasticsearch.version>
+        <elasticsearch.version>0.90.5</elasticsearch.version>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.6</maven.compiler.source>
@@ -62,7 +62,7 @@
         <dependency>
           <groupId>org.carrot2</groupId>
           <artifactId>carrot2-mini</artifactId>
-          <version>3.8.0</version>
+          <version>3.8.1</version>
           <scope>compile</scope>
         </dependency>
 
