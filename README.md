@@ -41,18 +41,20 @@ Versions and compatibility
 --------------------------
 
 Recommended compatiblity chart (matching versions of ES, Carrot2, 
-and optionally Lingo3G).
+and optionally Lingo3G). (+) means it'll probably work with newer
+releases (we test against latest version from that branch). master?
+means it should (but may not) work against head-of-development too.
 
-    -------------------------------------------------------------
-    | Clustering Plugin | Elasticsearch     | Carrot2 | Lingo3G |
-    -------------------------------------------------------------
-    | master            | 0.90.5 -> master? | 3.8.1   |  1.8.1  |
-    | 1.2.0             | 0.90.4 -> master? | 3.8.0   |  1.8.0  |
-    | 1.1.1             | 0.90.4 -> master? | 3.8.0   |  1.8.0  |
-    | 1.1.0             | 0.90.2 -> 0.90.3  | 3.8.0   |  1.8.0  |
-    | 1.0.1             | 0.90   -> 0.90.3  | 3.7.1   |  1.7.1  |
-    | 1.0.0             | 0.90   -> 0.90.3  | 3.7.1   |  1.7.1  |
-    -------------------------------------------------------------
+    ------------------------------------------------------------------
+    | Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
+    ------------------------------------------------------------------
+    | master            | 1.0.0.Beta2 -> master? | 3.8.1   |  1.8.1  |
+    | 1.2.0             | 0.90.4 -> 0.90.8 (+)   | 3.8.0   |  1.8.0  |
+    | 1.1.1             | 0.90.4 -> 0.90.8 (+)   | 3.8.0   |  1.8.0  |
+    | 1.1.0             | 0.90.2 -> 0.90.3       | 3.8.0   |  1.8.0  |
+    | 1.0.1             | 0.90   -> 0.90.3       | 3.7.1   |  1.7.1  |
+    | 1.0.0             | 0.90   -> 0.90.3       | 3.7.1   |  1.7.1  |
+    ------------------------------------------------------------------
 
 
 License
