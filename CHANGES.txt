@@ -1,6 +1,17 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 1.2.1 ================
+
+Changes in Backwards Compatibility
+
+* GH-4: Compatibility issue with elasticsearch-0.90.10 (this
+  release will not work for ES < 0.90.10).
+
+Bug Fixes
+
+* GH-4: Compatibility issue with elasticsearch-0.90.10
+
 ================ ElasticSearch-Carrot2 1.2.0 ================
 
 New features
