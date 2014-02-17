@@ -1,17 +1,18 @@
 package org.carrot2.elasticsearch;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * REST API tests for {@link ListAlgorithmsAction}.
@@ -20,7 +21,7 @@ public class ListAlgorithmsActionRestTests extends AbstractApiTest {
     @SuppressWarnings("unchecked")
     @Test(dataProvider = "postOrGet")
     public void testListAlgorithms(Method method) throws IOException {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpRequestBase request;
             String requestString = restBaseUrl + "/" 
@@ -50,7 +51,7 @@ public class ListAlgorithmsActionRestTests extends AbstractApiTest {
                 .describedAs("A list of algorithms")
                 .contains("stc", "lingo", "kmeans");            
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 }

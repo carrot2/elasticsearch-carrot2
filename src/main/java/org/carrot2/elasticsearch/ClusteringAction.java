@@ -20,8 +20,8 @@ import org.carrot2.core.LanguageCode;
 import org.carrot2.core.ProcessingException;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
-import org.elasticsearch.ElasticSearchException;
-import org.elasticsearch.ElasticSearchIllegalArgumentException;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ElasticsearchIllegalArgumentException;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
@@ -227,7 +227,7 @@ public class ClusteringAction
                 } catch (Throwable e1) {
                     // ignore
                 }
-                throw new ElasticSearchException("Failed to parse source [" + sSource + "]", e);
+                throw new ElasticsearchException("Failed to parse source [" + sSource + "]", e);
             } finally {
                 if (parser != null) {
                     parser.close();
@@ -302,7 +302,7 @@ public class ClusteringAction
             }
 
             if (pfs.source == null) {
-                throw new ElasticSearchException("Field mapping specification must contain a " +
+                throw new ElasticsearchException("Field mapping specification must contain a " +
                         " valid source prefix for the field source: " + fieldSpec);
             }
             
@@ -637,7 +637,7 @@ public class ClusteringAction
                     } else {
                         if (!algorithmComponentIds.contains(algorithmId)) {
                             listener.onFailure(
-                                    new ElasticSearchIllegalArgumentException("No such algorithm: " + algorithmId));
+                                    new ElasticsearchIllegalArgumentException("No such algorithm: " + algorithmId));
                             return;
                         }
                     }
@@ -678,7 +678,7 @@ public class ClusteringAction
                         // clients cannot deserialize exception classes).
                         String message = "Search results clustering error: " + e.getMessage();
                         logger.warn(message, e);
-                        listener.onFailure(new ElasticSearchException(message));
+                        listener.onFailure(new ElasticsearchException(message));
                         return;
                     }
                 }

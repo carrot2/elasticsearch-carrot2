@@ -1,5 +1,9 @@
 package org.carrot2.elasticsearch;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+
+import org.apache.http.impl.client.HttpClientBuilder;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +14,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.collect.Sets;
@@ -18,7 +21,6 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 import com.google.common.collect.Lists;
 
 /**
@@ -45,7 +47,7 @@ public class ClusteringActionRestTests extends AbstractApiTest {
 
     @Test(dataProvider = "xcontentTypes")
     public void testGetClusteringRequest(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpGet request = new HttpGet(restBaseUrl + "/" + RestClusteringAction.NAME 
                     + "?pretty=true" 
@@ -70,13 +72,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             Assertions.assertThat(clusterList.size())
                 .isGreaterThan(5);
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 
     @Test(dataProvider = "postJsonResources")
     public void testRestApiViaPostBody(String queryJsonResource, XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs(queryJsonResource, type)));
@@ -92,13 +94,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             Assertions.assertThat(clusterList.size())
                 .isGreaterThan(5);
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 
     @Test(dataProvider = "xcontentTypes")
     public void testRestApiPathParams(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl 
                     + "/" + INDEX_NAME 
@@ -113,13 +115,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
                 .isNotNull()
                 .isEmpty();
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 
     @Test(dataProvider = "xcontentTypes")
     public void testRestApiRuntimeAttributes(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_runtime_attributes.json", type)));
@@ -132,13 +134,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             Assertions.assertThat(clusterList)
                 .hasSize(/* max. cluster size cap */ 5 + /* other topics */ 1);
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 
     @Test(dataProvider = "xcontentTypes")
     public void testLanguageField(XContentType type) throws IOException {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_language_field.json", type)));
@@ -162,13 +164,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
                 .describedAs("Expected a lot of languages to appear in top groups.")
                 .isLessThan(LanguageCode.values().length / 2);            
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
     
     @Test(dataProvider = "xcontentTypes")
     public void testNonexistentFields(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_fields.json", type)));
@@ -178,13 +180,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             List<?> clusterList = (List<?>) map.get("clusters");
             Assertions.assertThat(clusterList).isNotNull();
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 
     @Test(dataProvider = "xcontentTypes")
     public void testNonexistentAlgorithmId(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_algorithmId.json", type)));
@@ -192,15 +194,15 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             expectErrorResponseWithMessage(
                     response,
                     HttpStatus.SC_BAD_REQUEST,
-                    "ElasticSearchIllegalArgumentException[No such algorithm: _nonexistent_]");
+                    "ElasticsearchIllegalArgumentException[No such algorithm: _nonexistent_]");
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }    
 
     @Test(dataProvider = "xcontentTypes")
     public void testInvalidSearchQuery(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_query.json", type)));
@@ -210,13 +212,13 @@ public class ClusteringActionRestTests extends AbstractApiTest {
                     HttpStatus.SC_BAD_REQUEST, 
                     "QueryParsingException");
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }    
 
     @Test(dataProvider = "xcontentTypes")
     public void testPropagatingAlgorithmException(XContentType type) throws Exception {
-        final DefaultHttpClient httpClient = new DefaultHttpClient();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().build();
         try {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_attribute_value.json", type)));
@@ -226,7 +228,7 @@ public class ClusteringActionRestTests extends AbstractApiTest {
                     HttpStatus.SC_INTERNAL_SERVER_ERROR, 
                     "Search results clustering error:");
         } finally {
-            httpClient.getConnectionManager().shutdown();
+            httpClient.close();
         }
     }
 }

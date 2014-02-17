@@ -1,13 +1,11 @@
 
 ElasticSearch-Carrot2 Change Log
 
-================ ElasticSearch-Carrot2 1.3.0 [not released] ================
+================ ElasticSearch-Carrot2 1.3.0 ================
 
-New features
+Changes in Backwards Compatibility
 
-Bug Fixes
-
-Other
+* GH-6: Fixes compatibility issues to work with elasticsearch-1.0.0.
 
 ================ ElasticSearch-Carrot2 1.2.1 ================
 

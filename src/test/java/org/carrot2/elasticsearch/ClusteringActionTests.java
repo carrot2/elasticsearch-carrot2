@@ -14,7 +14,7 @@ import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionReques
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStrategy;
 import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
-import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.Client;
@@ -180,7 +180,7 @@ public class ClusteringActionTests extends AbstractApiTest {
                         .addFields("title", "content"))
                 .execute().actionGet();
             throw Preconditions.unreachable();
-        } catch (ElasticSearchException e) {
+        } catch (ElasticsearchException e) {
             Assertions.assertThat(e)
                 .hasMessageContaining("No such algorithm:");
         }
@@ -236,7 +236,7 @@ public class ClusteringActionTests extends AbstractApiTest {
                         .addFields("title", "content"))
                 .execute().actionGet();
             throw Preconditions.unreachable();
-        } catch (ElasticSearchException e) {
+        } catch (ElasticsearchException e) {
             Assertions.assertThat(e)
                 .hasMessageContaining("Search results clustering error:")
                 .hasMessageContaining(STCClusteringAlgorithmDescriptor.Keys.IGNORE_WORD_IF_IN_HIGHER_DOCS_PERCENT);

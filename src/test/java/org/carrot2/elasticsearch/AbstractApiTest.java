@@ -1,17 +1,7 @@
 package org.carrot2.elasticsearch;
 
-import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Random;
-
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Resources;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.carrot2.core.LanguageCode;
@@ -20,6 +10,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Field
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.transport.TransportClient;
@@ -29,12 +20,7 @@ import org.elasticsearch.common.network.NetworkUtils;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.*;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.http.HttpServerTransport;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -49,8 +35,13 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.collections.Maps;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.*;
+
+import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
+import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 
 public class AbstractApiTest {
     protected static Node node;
@@ -126,9 +117,10 @@ public class AbstractApiTest {
 
         // Delete any previous documents.
         if (new IndicesExistsRequestBuilder(node.client().admin().indices(), INDEX_NAME).execute().actionGet().isExists()) {
+            QuerySourceBuilder querySourceBuilder = new QuerySourceBuilder();
+            querySourceBuilder.setQuery(QueryBuilders.matchAllQuery());
             node.client().deleteByQuery(
-                    Requests.deleteByQueryRequest(INDEX_NAME).query(
-                            QueryBuilders.matchAllQuery())).actionGet();
+                    Requests.deleteByQueryRequest(INDEX_NAME).source(querySourceBuilder)).actionGet();
         }
 
         // Index some sample "documents".

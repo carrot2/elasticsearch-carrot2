@@ -23,7 +23,7 @@ import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
-import org.elasticsearch.ElasticSearchException;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
@@ -57,7 +57,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     }
 
     @Override
-    protected void doStart() throws ElasticSearchException {
+    protected void doStart() throws ElasticsearchException {
         try {
             Builder builder = ImmutableSettings.builder();
             for (String configName : new String [] {
@@ -94,7 +94,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     DEFAULT_SUITE_RESOURCE);
             final IResource suiteResource = resourceLookup.getFirst(suiteResourceName);
             if (suiteResource == null) {
-                throw new ElasticSearchException(
+                throw new ElasticsearchException(
                         "Could not find algorithm suite: " + suiteResourceName);
             }
 
@@ -145,12 +145,12 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             controller.init(c2SettingsAsMap, suite.getComponentConfigurations());
         } catch (Exception e) {
-            throw new ElasticSearchException(
+            throw new ElasticsearchException(
                     "Could not start Carrot2 controller.", e);
         }
 
         if (algorithms == null || algorithms.isEmpty()) {
-            throw new ElasticSearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
+            throw new ElasticsearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
         }
     }
 
@@ -174,7 +174,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     }
 
     @Override
-    protected void doStop() throws ElasticSearchException {
+    protected void doStop() throws ElasticsearchException {
         Controller c = controller;
         controller = null;
 
@@ -184,7 +184,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     }
 
     @Override
-    protected void doClose() throws ElasticSearchException {
+    protected void doClose() throws ElasticsearchException {
         // Noop.
     }
 }
