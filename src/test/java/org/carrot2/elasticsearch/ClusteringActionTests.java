@@ -16,11 +16,16 @@ import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStr
 import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchPhaseExecutionException;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.collect.Sets;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.fest.assertions.api.Assertions;
+import org.json.JSONObject;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Maps;
@@ -242,6 +247,64 @@ public class ClusteringActionTests extends AbstractApiTest {
                 .hasMessageContaining(STCClusteringAlgorithmDescriptor.Keys.IGNORE_WORD_IF_IN_HIGHER_DOCS_PERCENT);
         }
     }    
+
+    @Test(dataProvider = "clients")
+    public void testIncludeHits(Client client) throws IOException {
+        // same search with and without hits
+        SearchRequestBuilder req = client.prepareSearch()
+                .setIndices(INDEX_NAME)
+                .setTypes("test")
+                .setSize(2)
+                .setQuery(QueryBuilders.termQuery("_all", "data"))
+                .addField("content");
+
+        // with hits (default)
+        ClusteringActionResponse resultWithHits = new ClusteringActionRequestBuilder(client)
+            .setQueryHint("data mining")
+            .setAlgorithm("stc")
+            .addFieldMapping("title", LogicalField.TITLE)
+            .setSearchRequest(req)
+            .execute().actionGet();
+        checkValid(resultWithHits);
+        checkJsonSerialization(resultWithHits);
+        // get JSON output
+        XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
+        builder.startObject();
+        resultWithHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        builder.endObject();
+        JSONObject jsonWithHits = new JSONObject(builder.string());
+        Assertions.assertThat(jsonWithHits.has("hits")).isTrue();
+
+        // without hits
+        ClusteringActionResponse resultWithoutHits = new ClusteringActionRequestBuilder(client)
+            .setQueryHint("data mining")
+            .setIncludeHits("false")
+            .setAlgorithm("stc")
+            .addFieldMapping("title", LogicalField.TITLE)
+            .setSearchRequest(req)
+            .execute().actionGet();
+        checkValid(resultWithoutHits);
+        checkJsonSerialization(resultWithoutHits);
+        // get JSON output
+        builder = XContentFactory.jsonBuilder().prettyPrint();
+        builder.startObject();
+        resultWithoutHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        builder.endObject();
+        JSONObject jsonWithoutHits = new JSONObject(builder.string());
+        Assertions.assertThat(jsonWithoutHits.has("hits")).isFalse();
+
+        // insert hits into jsonWithoutHits
+        JSONObject jsonHits = (JSONObject)jsonWithHits.get("hits");
+        jsonWithoutHits.put("hits", jsonHits);
+        // took can vary, so ignore it
+        jsonWithoutHits.remove("took");
+        jsonWithHits.remove("took");
+        // info can vary (clustering-millis, output_hits), so ignore it
+        jsonWithoutHits.remove("info");
+        jsonWithHits.remove("info");
+        // now they should match
+        Assertions.assertThat(jsonWithHits.toString()).isEqualTo(jsonWithoutHits.toString());
+    }
 }
 
 
