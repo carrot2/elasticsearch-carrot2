@@ -105,7 +105,7 @@ public class ClusteringAction
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
         private String algorithm;
-        private boolean outputHits;
+        private boolean includeHits;
         private Map<String, Object> attributes;
 
         /**
@@ -165,17 +165,17 @@ public class ClusteringAction
         }
 
         /**
-         * @see #getOutputHits
+         * @see #getIncludeHits
          */
-        public boolean getOutputHits() {
-            return outputHits;
+        public boolean getIncludeHits() {
+            return includeHits;
         }
 
         /**
-         * Sets whether to output hits with clustering results
+         * Sets whether to include hits with clustering results
          */
-        public ClusteringActionRequest setOutputHits(boolean outputHits) {
-            this.outputHits = outputHits;
+        public ClusteringActionRequest setIncludeHits(boolean includeHits) {
+            this.includeHits = includeHits;
             return this;
         }
         
@@ -238,11 +238,11 @@ public class ClusteringAction
                     searchRequest.source((Map<?,?>) asMap.get("search_request"));
                 }
 
-                String outputHits = (String) asMap.get("output_hits"); 
-                if (outputHits != null) {
-                    setOutputHits(Boolean.parseBoolean(outputHits));
+                String includeHits = (String) asMap.get("include_hits"); 
+                if (includeHits != null) {
+                    setIncludeHits(Boolean.parseBoolean(includeHits));
                 } else {  // default to true
-                    setOutputHits(true);
+                    setIncludeHits(true);
                 }
 
             } catch (Exception e) {
@@ -447,11 +447,11 @@ public class ClusteringAction
             return this;
         }
 
-        public ClusteringActionRequestBuilder setOutputHits(String outputHits) {
-            if (outputHits != null)
-            	super.request.setOutputHits(Boolean.parseBoolean(outputHits));
+        public ClusteringActionRequestBuilder setIncludeHits(String includeHits) {
+            if (includeHits != null)
+                super.request.setIncludeHits(Boolean.parseBoolean(includeHits));
             else
-            	super.request.setOutputHits(true);
+                super.request.setIncludeHits(true);
             return this;
         }
 
@@ -569,9 +569,9 @@ public class ClusteringAction
         public XContentBuilder toXContent(XContentBuilder builder, Params params)
                 throws IOException {
             if (searchResponse != null) {
-            	if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.OUTPUT_HITS))) {
-            		searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
-            	} else {  // return the header as usual, but not the search results
+                if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.OUTPUT_HITS))) {
+                    searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
+                } else {  // return the header as usual, but not the search results
                     if (searchResponse.getScrollId() != null) {
                         builder.field(Fields._SCROLL_ID, searchResponse.getScrollId());
                     }
@@ -598,7 +598,7 @@ public class ClusteringAction
                     }
                     builder.endObject();
                     // don't write InternalSearchResponse (hits)
-            	}
+                }
             }
 
             builder.startArray(Fields.CLUSTERS);
@@ -746,7 +746,7 @@ public class ClusteringAction
                             ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
                             ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
                             ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)),
-                            ClusteringActionResponse.Fields.Info.OUTPUT_HITS, Boolean.toString(clusteringRequest.getOutputHits()));
+                            ClusteringActionResponse.Fields.Info.OUTPUT_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
         
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
                     } catch (ProcessingException e) {
