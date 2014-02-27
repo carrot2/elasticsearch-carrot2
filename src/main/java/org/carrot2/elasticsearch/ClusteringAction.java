@@ -31,6 +31,7 @@ import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
@@ -104,6 +105,7 @@ public class ClusteringAction
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
         private String algorithm;
+        private boolean includeHits = true;
         private Map<String, Object> attributes;
 
         /**
@@ -163,6 +165,21 @@ public class ClusteringAction
         }
 
         /**
+         * @see #getIncludeHits
+         */
+        public boolean getIncludeHits() {
+            return includeHits;
+        }
+
+        /**
+         * Sets whether to include hits with clustering results
+         */
+        public ClusteringActionRequest setIncludeHits(boolean includeHits) {
+            this.includeHits = includeHits;
+            return this;
+        }
+        
+        /**
          * Sets a map of runtime override attributes for clustering algorithms. 
          */
         public ClusteringActionRequest setAttributes(Map<String, Object> map) {
@@ -220,6 +237,14 @@ public class ClusteringAction
                     }
                     searchRequest.source((Map<?,?>) asMap.get("search_request"));
                 }
+
+                String includeHits = (String) asMap.get("include_hits"); 
+                if (includeHits != null) {
+                    setIncludeHits(Boolean.parseBoolean(includeHits));
+                } else {  // default to true
+                    setIncludeHits(true);
+                }
+
             } catch (Exception e) {
                 String sSource = "_na_";
                 try {
@@ -346,6 +371,7 @@ public class ClusteringAction
             this.searchRequest.writeTo(out);
             out.writeOptionalString(queryHint);
             out.writeOptionalString(algorithm);
+            out.writeBoolean(includeHits);
 
             out.writeVInt(fieldMapping.size());
             for (FieldMappingSpec spec : fieldMapping) {
@@ -367,6 +393,7 @@ public class ClusteringAction
             this.searchRequest = searchRequest;
             this.queryHint = in.readOptionalString();
             this.algorithm = in.readOptionalString();
+            this.includeHits = in.readBoolean();
             
             int count = in.readVInt();
             while (count-- > 0) {
@@ -390,7 +417,6 @@ public class ClusteringAction
                                      ClusteringActionResponse, 
                                      ClusteringActionRequestBuilder>
     {
-
         public ClusteringActionRequestBuilder(Client client) {
             super((InternalClient) client, new ClusteringActionRequest());
         }
@@ -420,6 +446,14 @@ public class ClusteringAction
     
         public ClusteringActionRequestBuilder setSource(BytesReference content) {
             super.request.source(content);
+            return this;
+        }
+
+        public ClusteringActionRequestBuilder setIncludeHits(String includeHits) {
+            if (includeHits != null)
+                super.request.setIncludeHits(Boolean.parseBoolean(includeHits));
+            else
+                super.request.setIncludeHits(true);
             return this;
         }
 
@@ -478,6 +512,20 @@ public class ClusteringAction
             static final XContentBuilderString SEARCH_RESPONSE = new XContentBuilderString("search_response");
             static final XContentBuilderString CLUSTERS = new XContentBuilderString("clusters");
             static final XContentBuilderString INFO = new XContentBuilderString("info");
+
+            // from SearchResponse
+            static final XContentBuilderString _SCROLL_ID = new XContentBuilderString("_scroll_id");
+            static final XContentBuilderString _SHARDS = new XContentBuilderString("_shards");
+            static final XContentBuilderString TOTAL = new XContentBuilderString("total");
+            static final XContentBuilderString SUCCESSFUL = new XContentBuilderString("successful");
+            static final XContentBuilderString FAILED = new XContentBuilderString("failed");
+            static final XContentBuilderString FAILURES = new XContentBuilderString("failures");
+            static final XContentBuilderString STATUS = new XContentBuilderString("status");
+            static final XContentBuilderString INDEX = new XContentBuilderString("index");
+            static final XContentBuilderString SHARD = new XContentBuilderString("shard");
+            static final XContentBuilderString REASON = new XContentBuilderString("reason");
+            static final XContentBuilderString TOOK = new XContentBuilderString("took");
+            static final XContentBuilderString TIMED_OUT = new XContentBuilderString("timed_out");
             
             /**
              * {@link Fields#INFO} keys.
@@ -487,6 +535,7 @@ public class ClusteringAction
                 public static final String SEARCH_MILLIS = "search-millis";
                 public static final String CLUSTERING_MILLIS = "clustering-millis";
                 public static final String TOTAL_MILLIS = "total-millis";
+                public static final String INCLUDE_HITS = "include-hits";
             }
         }
 
@@ -522,7 +571,36 @@ public class ClusteringAction
         public XContentBuilder toXContent(XContentBuilder builder, Params params)
                 throws IOException {
             if (searchResponse != null) {
-                searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
+                if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.INCLUDE_HITS))) {
+                    searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
+                } else {  // return the header as usual, but not the search results
+                    if (searchResponse.getScrollId() != null) {
+                        builder.field(Fields._SCROLL_ID, searchResponse.getScrollId());
+                    }
+                    builder.field(Fields.TOOK, searchResponse.getTookInMillis());
+                    builder.field(Fields.TIMED_OUT, searchResponse.isTimedOut());
+                    builder.startObject(Fields._SHARDS);
+                    builder.field(Fields.TOTAL, searchResponse.getTotalShards());
+                    builder.field(Fields.SUCCESSFUL, searchResponse.getSuccessfulShards());
+                    builder.field(Fields.FAILED, searchResponse.getFailedShards());
+
+                    if (searchResponse.getShardFailures().length > 0) {
+                        builder.startArray(Fields.FAILURES);
+                        for (ShardSearchFailure shardFailure : searchResponse.getShardFailures()) {
+                            builder.startObject();
+                            if (shardFailure.shard() != null) {
+                                builder.field(Fields.INDEX, shardFailure.shard().index());
+                                builder.field(Fields.SHARD, shardFailure.shard().shardId());
+                            }
+                            builder.field(Fields.STATUS, shardFailure.status().getStatus());
+                            builder.field(Fields.REASON, shardFailure.reason());
+                            builder.endObject();
+                        }
+                        builder.endArray();
+                    }
+                    builder.endObject();
+                    // don't write InternalSearchResponse (hits)
+                }
             }
 
             builder.startArray(Fields.CLUSTERS);
@@ -669,7 +747,8 @@ public class ClusteringAction
                             ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId,
                             ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
                             ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
-                            ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
+                            ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)),
+                            ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
         
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
                     } catch (ProcessingException e) {
@@ -995,6 +1074,11 @@ public class ClusteringAction
             // Algorithm.
             if (request.hasParam("algorithm")) {
                 actionBuilder.setAlgorithm(request.param("algorithm"));
+            }
+
+            // include_hits
+            if (request.hasParam("include_hits")) {
+                actionBuilder.setIncludeHits(request.param("include_hits"));
             }
 
             // Field mappers.
