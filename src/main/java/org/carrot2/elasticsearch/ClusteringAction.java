@@ -105,7 +105,7 @@ public class ClusteringAction
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
         private String algorithm;
-        private boolean includeHits;
+        private boolean includeHits = true;
         private Map<String, Object> attributes;
 
         /**
@@ -371,6 +371,7 @@ public class ClusteringAction
             this.searchRequest.writeTo(out);
             out.writeOptionalString(queryHint);
             out.writeOptionalString(algorithm);
+            out.writeBoolean(includeHits);
 
             out.writeVInt(fieldMapping.size());
             for (FieldMappingSpec spec : fieldMapping) {
@@ -392,6 +393,7 @@ public class ClusteringAction
             this.searchRequest = searchRequest;
             this.queryHint = in.readOptionalString();
             this.algorithm = in.readOptionalString();
+            this.includeHits = in.readBoolean();
             
             int count = in.readVInt();
             while (count-- > 0) {
@@ -533,7 +535,7 @@ public class ClusteringAction
                 public static final String SEARCH_MILLIS = "search-millis";
                 public static final String CLUSTERING_MILLIS = "clustering-millis";
                 public static final String TOTAL_MILLIS = "total-millis";
-                public static final String OUTPUT_HITS = "output-hits";
+                public static final String INCLUDE_HITS = "include-hits";
             }
         }
 
@@ -569,7 +571,7 @@ public class ClusteringAction
         public XContentBuilder toXContent(XContentBuilder builder, Params params)
                 throws IOException {
             if (searchResponse != null) {
-                if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.OUTPUT_HITS))) {
+                if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.INCLUDE_HITS))) {
                     searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
                 } else {  // return the header as usual, but not the search results
                     if (searchResponse.getScrollId() != null) {
@@ -746,7 +748,7 @@ public class ClusteringAction
                             ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
                             ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
                             ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)),
-                            ClusteringActionResponse.Fields.Info.OUTPUT_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
+                            ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
         
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
                     } catch (ProcessingException e) {
@@ -1072,6 +1074,11 @@ public class ClusteringAction
             // Algorithm.
             if (request.hasParam("algorithm")) {
                 actionBuilder.setAlgorithm(request.param("algorithm"));
+            }
+
+            // include_hits
+            if (request.hasParam("include_hits")) {
+                actionBuilder.setIncludeHits(request.param("include_hits"));
             }
 
             // Field mappers.
