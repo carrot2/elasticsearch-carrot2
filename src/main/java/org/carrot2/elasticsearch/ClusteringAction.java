@@ -239,10 +239,10 @@ public class ClusteringAction
                     searchRequest.source((Map<?,?>) asMap.get("search_request"));
                 }
 
-                String includeHits = (String) asMap.get("include_hits"); 
+                Object includeHits = asMap.get("include_hits"); 
                 if (includeHits != null) {
-                    setIncludeHits(Boolean.parseBoolean(includeHits));
-                } else {  // default to true
+                    setIncludeHits(Boolean.parseBoolean(includeHits.toString()));
+                } else {
                     setIncludeHits(true);
                 }
             } catch (Exception e) {

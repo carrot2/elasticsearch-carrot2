@@ -1,6 +1,13 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 1.2.2 ================
+
+New features
+
+* Added an option to return only cluster labels (omit search hits
+  in the response). [thanks @kielni]
+
 ================ ElasticSearch-Carrot2 1.2.1 ================
 
 Changes in Backwards Compatibility
