@@ -1,6 +1,16 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 1.2.3-SNAPSHOT ================
+
+Changes in Backwards Compatibility
+
+New Features
+
+Bug Fixes
+
+Other
+
 ================ ElasticSearch-Carrot2 1.2.2 ================
 
 New features
