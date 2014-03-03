@@ -14,7 +14,7 @@
 
     <groupId>org.carrot2</groupId>
     <artifactId>elasticsearch-carrot2</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>1.2.2</version>
     <packaging>jar</packaging>
 
     <name>elasticsearch-carrot2</name>
