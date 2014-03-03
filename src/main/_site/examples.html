@@ -312,6 +312,13 @@ $.get("/_algorithms", function(response) {
                   from the <a href="#list-algorithms">list algorithms</a> request. If not present, the default algorithm is used.</p>
                 </dd>
 
+                <dt><code>include_hits</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  If set to <code>true</code>, the clustering response will not contain search hits, only cluster labels
+                  and document references. This option may be useful to decrease the size of clustering response in case
+                  only cluster labels are needed.</p>
+                </dd>
+
                 <dt><code>attributes</code></dt>
                 <dd><p><span class="badge">optional</span>
                   A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
@@ -466,6 +473,7 @@ var request = {
     "size": 100
   },
 
+  "include_hits": false,
   "query_hint": "data mining",
   "field_mapping": {
     "title": ["_source.title"],
@@ -493,7 +501,8 @@ $.post("/test/test/_search_with_clusters",
                 (and particular documents that made it to the hit list if search is not
                 deterministic). The following example shows a pseudo-clustering algorithm
                 that uses the logical <code>url</code> field to produce clusters based on the
-                components of each document's domain.</p>
+                components of each document's domain. We don't need every search hit here
+                so we will omit them in the response.</p>
             </div>
 
             <div class="span6">
@@ -504,6 +513,7 @@ var request = {
     "size": 100
   },
 
+  "include_hits": false,
   "query_hint": "data mining",
   "field_mapping": {
     "url": ["_source.url"]

@@ -10,6 +10,7 @@ import org.elasticsearch.node.Node;
 
 /**
  * Starts a node locally and serves _site data (Eclipse, for debugging).
+ * http://localhost:8983/_plugin/main
  */
 public class StartLocalNode {
     public static void main(String[] args) throws Exception {

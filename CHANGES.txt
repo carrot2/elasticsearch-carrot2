@@ -11,11 +11,25 @@ Bug Fixes
 
 Other
 
+================ ElasticSearch-Carrot2 1.3.1 ================
+
+New features
+
+* Added an option to return only cluster labels (omit search hits
+  in the response). [thanks @kielni]
+
 ================ ElasticSearch-Carrot2 1.3.0 ================
 
 Changes in Backwards Compatibility
 
 * GH-6: Fixes compatibility issues to work with elasticsearch-1.0.0.
+
+================ ElasticSearch-Carrot2 1.2.2 ================
+
+New features
+
+* Added an option to return only cluster labels (omit search hits
+  in the response). [thanks @kielni]
 
 ================ ElasticSearch-Carrot2 1.2.1 ================
 
