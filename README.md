@@ -48,7 +48,7 @@ means it should (but may not) work against head-of-development too.
     ------------------------------------------------------------------
     | Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
-    | master            | 1.0.0  -> master?      | 3.8.1   |  1.8.1  |
+    | master            | 1.0.0  -> master?      | 3.9.0   |  1.9.0  |
     | 1.3.1             | 1.0.0  -> master?      | 3.8.1   |  1.8.1  |
     | 1.3.0             | 1.0.0  -> master?      | 3.8.1   |  1.8.1  |
     | 1.2.2             | 0.90.10-> 0.90.11      | 3.8.0   |  1.8.0  |
