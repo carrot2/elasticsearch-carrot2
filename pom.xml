@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
-        <version>7</version>
+        <version>9</version>
     </parent>
 
     <groupId>org.carrot2</groupId>
@@ -21,7 +21,8 @@
     <description>Search results clustering plugin for ElasticSearch</description>
 
     <properties>
-        <elasticsearch.version>1.0.0</elasticsearch.version>
+        <elasticsearch.version>1.1.0</elasticsearch.version>
+        <carrot2.version>3.9.0</carrot2.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.6</maven.compiler.source>
@@ -62,7 +63,7 @@
         <dependency>
           <groupId>org.carrot2</groupId>
           <artifactId>carrot2-mini</artifactId>
-          <version>3.9.0</version>
+          <version>${carrot2.version}</version>
           <scope>compile</scope>
         </dependency>
 
