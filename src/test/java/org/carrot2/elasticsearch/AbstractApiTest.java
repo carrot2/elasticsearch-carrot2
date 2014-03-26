@@ -28,6 +28,7 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.internal.InternalNode;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.TransportService;
 import org.fest.assertions.api.Assertions;
 import org.testng.annotations.AfterSuite;
@@ -187,10 +188,17 @@ public class AbstractApiTest {
             .isNotEmpty();
 
         Map<String,SearchHit> idToHit = Maps.newHashMap();
-        for (SearchHit hit : result.getSearchResponse().getHits()) {
-            idToHit.put(hit.getId(), hit);
+        SearchHits hits = result.getSearchResponse().getHits();
+        if (hits != null) {
+            for (SearchHit hit : hits) {
+                idToHit.put(hit.getId(), hit);
+            }
         }
     
+        String maxHits = result.getInfo().get(ClusteringActionResponse.Fields.Info.MAX_HITS);
+        final boolean containsAllHits = 
+                (maxHits == null || maxHits.isEmpty() || Integer.parseInt(maxHits) == Integer.MAX_VALUE);
+
         ArrayDeque<DocumentGroup> queue = new ArrayDeque<DocumentGroup>();
         queue.addAll(Arrays.asList(result.getDocumentGroups()));
         while (!queue.isEmpty()) {
@@ -201,17 +209,20 @@ public class AbstractApiTest {
                 .isNotNull()
                 .isNotEmpty();
     
-            String[] documentReferences = g.getDocumentReferences();
-            Assertions.assertThat(idToHit.keySet())
-                .as("docRefs")
-                .containsAll(Arrays.asList(documentReferences));
+            if (containsAllHits) {
+                String[] documentReferences = g.getDocumentReferences();
+                Assertions.assertThat(idToHit.keySet())
+                    .as("docRefs")
+                    .containsAll(Arrays.asList(documentReferences));
+            }
         }
 
         Assertions.assertThat(result.getInfo())
             .containsKey(ClusteringActionResponse.Fields.Info.ALGORITHM)
             .containsKey(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS)
             .containsKey(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS)
-            .containsKey(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS);
+            .containsKey(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS)
+            .containsKey(ClusteringActionResponse.Fields.Info.MAX_HITS);
     }
     
 

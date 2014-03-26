@@ -2,7 +2,8 @@ package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.*;
+import static org.elasticsearch.rest.RestRequest.Method.GET;
+import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
@@ -31,21 +32,23 @@ import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.internal.InternalClient;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.base.Function;
 import org.elasticsearch.common.base.Joiner;
 import org.elasticsearch.common.base.Preconditions;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.ImmutableMap;
 import org.elasticsearch.common.collect.Lists;
+import org.elasticsearch.common.collect.Maps;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContent;
@@ -62,13 +65,19 @@ import org.elasticsearch.rest.XContentRestResponse;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.InternalAggregation;
+import org.elasticsearch.search.aggregations.InternalAggregations;
+import org.elasticsearch.search.facet.InternalFacets;
 import org.elasticsearch.search.highlight.HighlightField;
+import org.elasticsearch.search.internal.InternalSearchHit;
+import org.elasticsearch.search.internal.InternalSearchHits;
+import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportService;
-
-import com.google.common.collect.Maps;
 
 /**
  * Perform clustering of search results.
@@ -105,7 +114,7 @@ public class ClusteringAction
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
         private String algorithm;
-        private boolean includeHits = true;
+        private int maxHits = Integer.MAX_VALUE;
         private Map<String, Object> attributes;
 
         /**
@@ -166,18 +175,59 @@ public class ClusteringAction
 
         /**
          * @see #getIncludeHits
+         * @deprecated Use {@link #setMaxHits} and set it to zero instead.
          */
+        @Deprecated()
         public boolean getIncludeHits() {
-            return includeHits;
+            return maxHits > 0;
         }
 
         /**
          * Sets whether to include hits with clustering results. If only cluster labels
          * are needed the hits may be omitted to save bandwidth.
+         * 
+         * @deprecated Use {@link #setMaxHits} instead.
          */
+        @Deprecated()
         public ClusteringActionRequest setIncludeHits(boolean includeHits) {
-            this.includeHits = includeHits;
+            if (includeHits) {
+                setMaxHits(Integer.MAX_VALUE);
+            } else {
+                setMaxHits(0);
+            }
             return this;
+        }
+
+        /**
+         * Sets the maximum number of hits to return with the response. Setting this
+         * value to zero will only return clusters, without any hits (can be used
+         * to save bandwidth if only cluster labels are needed).
+         * 
+         * Set to {@link Integer#MAX_VALUE} to include all the hits.
+         */
+        public void setMaxHits(int maxHits) {
+            assert maxHits >= 0;
+            this.maxHits = maxHits;
+        }
+        
+        /**
+         * Sets {@link #setMaxHits(int)} from a string. An empty string or null means
+         * all hits should be included.
+         */
+        public void setMaxHits(String value) {
+            if (value == null || value.trim().isEmpty()) {
+                setMaxHits(Integer.MAX_VALUE);
+            } else {
+                setMaxHits(Integer.parseInt(value));
+            }            
+        }
+
+        /**
+         * Returns the maximum number of hits to be returned as part of the response.
+         * If equal to {@link Integer#MAX_VALUE}, then all hits will be returned. 
+         */
+        public int getMaxHits() {
+            return maxHits;
         }
 
         /**
@@ -241,9 +291,13 @@ public class ClusteringAction
 
                 Object includeHits = asMap.get("include_hits"); 
                 if (includeHits != null) {
+                    Loggers.getLogger(getClass()).warn("Request used deprecated 'include_hits' parameter.");
                     setIncludeHits(Boolean.parseBoolean(includeHits.toString()));
-                } else {
-                    setIncludeHits(true);
+                }
+
+                Object maxHits = asMap.get("max_hits"); 
+                if (maxHits != null) {
+                    setMaxHits(maxHits.toString());
                 }
             } catch (Exception e) {
                 String sSource = "_na_";
@@ -371,7 +425,7 @@ public class ClusteringAction
             this.searchRequest.writeTo(out);
             out.writeOptionalString(queryHint);
             out.writeOptionalString(algorithm);
-            out.writeBoolean(includeHits);
+            out.writeInt(maxHits);
 
             out.writeVInt(fieldMapping.size());
             for (FieldMappingSpec spec : fieldMapping) {
@@ -393,7 +447,7 @@ public class ClusteringAction
             this.searchRequest = searchRequest;
             this.queryHint = in.readOptionalString();
             this.algorithm = in.readOptionalString();
-            this.includeHits = in.readBoolean();
+            this.maxHits = in.readInt();
             
             int count = in.readVInt();
             while (count-- > 0) {
@@ -449,11 +503,25 @@ public class ClusteringAction
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #setMaxHits} instead.
+         */
+        @Deprecated()
         public ClusteringActionRequestBuilder setIncludeHits(String includeHits) {
             if (includeHits != null)
                 super.request.setIncludeHits(Boolean.parseBoolean(includeHits));
             else
                 super.request.setIncludeHits(true);
+            return this;
+        }
+
+        public ClusteringActionRequestBuilder setMaxHits(int maxHits) {
+            super.request.setMaxHits(maxHits);
+            return this;
+        }
+
+        public ClusteringActionRequestBuilder setMaxHits(String maxHits) {
+            super.request.setMaxHits(maxHits);
             return this;
         }
 
@@ -536,6 +604,7 @@ public class ClusteringAction
                 public static final String CLUSTERING_MILLIS = "clustering-millis";
                 public static final String TOTAL_MILLIS = "total-millis";
                 public static final String INCLUDE_HITS = "include-hits";
+                public static final String MAX_HITS = "max-hits";
             }
         }
 
@@ -571,36 +640,7 @@ public class ClusteringAction
         public XContentBuilder toXContent(XContentBuilder builder, Params params)
                 throws IOException {
             if (searchResponse != null) {
-                if (Boolean.parseBoolean(info.get(ClusteringActionResponse.Fields.Info.INCLUDE_HITS))) {
-                    searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
-                } else {
-                    // return the header as usual, but omit search results.
-                    if (searchResponse.getScrollId() != null) {
-                        builder.field(Fields._SCROLL_ID, searchResponse.getScrollId());
-                    }
-                    builder.field(Fields.TOOK, searchResponse.getTookInMillis());
-                    builder.field(Fields.TIMED_OUT, searchResponse.isTimedOut());
-                    
-                    builder.startObject(Fields._SHARDS);
-                    builder.field(Fields.TOTAL, searchResponse.getTotalShards());
-                    builder.field(Fields.SUCCESSFUL, searchResponse.getSuccessfulShards());
-                    builder.field(Fields.FAILED, searchResponse.getFailedShards());
-                    if (searchResponse.getShardFailures().length > 0) {
-                        builder.startArray(Fields.FAILURES);
-                        for (ShardSearchFailure shardFailure : searchResponse.getShardFailures()) {
-                            builder.startObject();
-                            if (shardFailure.shard() != null) {
-                                builder.field(Fields.INDEX, shardFailure.shard().index());
-                                builder.field(Fields.SHARD, shardFailure.shard().shardId());
-                            }
-                            builder.field(Fields.STATUS, shardFailure.status().getStatus());
-                            builder.field(Fields.REASON, shardFailure.reason());
-                            builder.endObject();
-                        }
-                        builder.endArray();
-                    }
-                    builder.endObject();
-                }
+                searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
             }
 
             builder.startArray(Fields.CLUSTERS);
@@ -742,21 +782,27 @@ public class ClusteringAction
                         final ProcessingResult result = controller.process(processingAttrs, algorithmId);
                         final DocumentGroup[] groups = adapt(result.getClusters());
                         final long tsClusteringEnd = System.nanoTime();
-        
-                        final Map<String,String> info = ImmutableMap.of(
-                            ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId,
-                            ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)),
-                            ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)),
-                            ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)),
-                            ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
-        
+
+                        final Map<String,String> info = ImmutableMap.<String,String> builder()
+                                .put(ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId)
+                                .put(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)))
+                                .put(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)))
+                                .put(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)))
+                                .put(ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()))
+                                .put(ClusteringActionResponse.Fields.Info.MAX_HITS, clusteringRequest.getMaxHits() == Integer.MAX_VALUE ? "" : Integer.toString(clusteringRequest.getMaxHits()))                                
+                                .build();
+
+                        // Trim search response's hits if we need to.
+                        if (clusteringRequest.getMaxHits() != Integer.MAX_VALUE) {
+                            response = filterMaxHits(response, clusteringRequest.getMaxHits());
+                        }
+
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
                     } catch (ProcessingException e) {
                         // Log a full stack trace with all nested exceptions but only return 
                         // ElasticSearchException exception with a simple String (otherwise 
                         // clients cannot deserialize exception classes).
                         String message = "Search results clustering error: " + e.getMessage();
-                        logger.warn(message, e);
                         listener.onFailure(new ElasticsearchException(message));
                         return;
                     }
@@ -764,6 +810,45 @@ public class ClusteringAction
             });
         }
     
+        protected SearchResponse filterMaxHits(SearchResponse response, int maxHits) {
+            // We will use internal APIs here for efficiency. The plugin has restricted explicit ES compatibility
+            // anyway. Alternatively, we could serialize/ filter/ deserialize JSON, but this seems simpler.
+            SearchHits allHits  = response.getHits();
+            InternalSearchHit [] trimmedHits = new InternalSearchHit[Math.min(maxHits, allHits.hits().length)];
+            System.arraycopy(allHits.hits(), 0, trimmedHits, 0, trimmedHits.length);
+
+            InternalFacets facets = null;
+            if (response.getFacets() != null) {
+                facets = new InternalFacets(response.getFacets().facets());
+            }
+
+            InternalAggregations aggregations = null;
+            if (response.getAggregations() != null) {
+                aggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
+            }
+
+            return new SearchResponse(
+                    new InternalSearchResponse(
+                            new InternalSearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore()),
+                            facets,
+                            aggregations,
+                            response.getSuggest(), 
+                            response.isTimedOut()),
+                    response.getScrollId(),
+                    response.getTotalShards(),
+                    response.getSuccessfulShards(),
+                    response.getTookInMillis(),
+                    response.getShardFailures());
+        }
+
+        private List<InternalAggregation> toInternal(List<Aggregation> list) {
+            return Lists.transform(list, new Function<Aggregation,InternalAggregation>() {
+                public InternalAggregation apply(Aggregation a) {
+                    return (InternalAggregation) a;
+                }
+            });
+        }
+
         /* */
         protected DocumentGroup[] adapt(List<Cluster> clusters) {
             DocumentGroup [] groups = new DocumentGroup [clusters.size()];
@@ -1079,6 +1164,11 @@ public class ClusteringAction
             // include_hits
             if (request.hasParam("include_hits")) {
                 actionBuilder.setIncludeHits(request.param("include_hits"));
+            }
+
+            // max_hits
+            if (request.hasParam("max_hits")) {
+                actionBuilder.setMaxHits(request.param("max_hits"));
             }
 
             // Field mappers.

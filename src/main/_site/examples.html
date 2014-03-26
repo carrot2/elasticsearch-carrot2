@@ -319,6 +319,19 @@ $.get("/_algorithms", function(response) {
                   only cluster labels are needed.</p>
                 </dd>
 
+                <dt><code>max_hits</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  If set to a non-negative number, the clustering response will be limited to
+                  contain only a maximum of the given search hits. The clustering will still run
+                  on a full window of results returned by the original search request. This option 
+                  may be useful to decrease the size of clustering response in case
+                  cluster labels are used as facets (for refining the query, but without the immediate
+                  link to the search hits).</p>
+                  
+                  <p>Note that clusters may still reference documents not present in the returned (trimmed) 
+                  hits window.</p>
+                </dd>
+
                 <dt><code>attributes</code></dt>
                 <dd><p><span class="badge">optional</span>
                   A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
@@ -332,7 +345,9 @@ $.get("/_algorithms", function(response) {
                 <p>Clustering requires at least a few dozen documents (hits) in order to make
                   sense. The clustering plugin clusters search results <strong>only</strong> (it does not look in the index, it does not
                   fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
-                  fetch window to be at least 100 documents.
+                  fetch window to be at least 100 documents. If the response does not need so many hits 
+                  (document references), the hits can be trimmed by using <code>max_hits</code> parameter on
+                  the clustering request.  
               </div>
             </div>
           </div>
@@ -473,7 +488,7 @@ var request = {
     "size": 100
   },
 
-  "include_hits": false,
+  "max_hits": 0,
   "query_hint": "data mining",
   "field_mapping": {
     "title": ["_source.title"],
@@ -513,7 +528,7 @@ var request = {
     "size": 100
   },
 
-  "include_hits": false,
+  "max_hits": 0,
   "query_hint": "data mining",
   "field_mapping": {
     "url": ["_source.url"]

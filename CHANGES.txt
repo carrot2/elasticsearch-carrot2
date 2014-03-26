@@ -1,15 +1,15 @@
 
 ElasticSearch-Carrot2 Change Log
 
-================ ElasticSearch-Carrot2 1.4.0 [not released] ================
+================ ElasticSearch-Carrot2 1.4.0 ================
 
 Changes in Backwards Compatibility
 
+* Compatibility upgrade to Carrot2 3.9.0 and Lingo3G 1.9.0.
+
 New Features
 
-Bug Fixes
-
-Other
+* GH-9: Add a more flexible limit of the set of returned search results.
 
 ================ ElasticSearch-Carrot2 1.3.1 ================
 

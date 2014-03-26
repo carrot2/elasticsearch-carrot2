@@ -285,26 +285,68 @@ public class ClusteringActionTests extends AbstractApiTest {
             .execute().actionGet();
         checkValid(resultWithoutHits);
         checkJsonSerialization(resultWithoutHits);
+
         // get JSON output
         builder = XContentFactory.jsonBuilder().prettyPrint();
         builder.startObject();
         resultWithoutHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
         JSONObject jsonWithoutHits = new JSONObject(builder.string());
-        Assertions.assertThat(jsonWithoutHits.has("hits")).isFalse();
+        Assertions.assertThat(
+                jsonWithoutHits
+                    .getJSONObject("hits")
+                    .getJSONArray("hits").length()).isEqualTo(0);
 
         // insert hits into jsonWithoutHits
         JSONObject jsonHits = (JSONObject)jsonWithHits.get("hits");
         jsonWithoutHits.put("hits", jsonHits);
+
         // took can vary, so ignore it
         jsonWithoutHits.remove("took");
         jsonWithHits.remove("took");
+
         // info can vary (clustering-millis, output_hits), so ignore it
         jsonWithoutHits.remove("info");
         jsonWithHits.remove("info");
+
         // now they should match
         Assertions.assertThat(jsonWithHits.toString()).isEqualTo(jsonWithoutHits.toString());
     }
+    
+    @Test(dataProvider = "clients")
+    public void testMaxHits(Client client) throws IOException {
+        // same search with and without hits
+        SearchRequestBuilder req = client.prepareSearch()
+                .setIndices(INDEX_NAME)
+                .setTypes("test")
+                .setSize(2)
+                .setQuery(QueryBuilders.termQuery("_all", "data"))
+                .addField("content");
+
+        // Limit the set of hits to just top 2.
+        ClusteringActionResponse limitedHits = new ClusteringActionRequestBuilder(client)
+            .setQueryHint("data mining")
+            .setMaxHits(2)
+            .setAlgorithm("stc")
+            .addFieldMapping("title", LogicalField.TITLE)
+            .setSearchRequest(req)
+            .execute().actionGet();
+        checkValid(limitedHits);
+        checkJsonSerialization(limitedHits);
+
+        Assertions.assertThat(limitedHits.getSearchResponse().getHits().hits())
+            .hasSize(2);
+
+        // get JSON output
+        XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
+        builder.startObject();
+        limitedHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        builder.endObject();
+        JSONObject json = new JSONObject(builder.string());
+        Assertions.assertThat(json
+                    .getJSONObject("hits")
+                    .getJSONArray("hits").length()).isEqualTo(2);
+    }    
 }
 
 
