@@ -7,6 +7,10 @@ Changes in Backwards Compatibility
 
 * Compatibility upgrade to Carrot2 3.9.0 and Lingo3G 1.9.0.
 
+* include_hits parameter is now deprecated in favor of setting 
+  max_hits to 0. include_hits = false will act as an alias of
+  setting max_hits to 0.
+
 New Features
 
 * GH-9: Add a more flexible limit of the set of returned search results.

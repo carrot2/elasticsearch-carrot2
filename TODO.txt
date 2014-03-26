@@ -1,5 +1,5 @@
 
-VERSION 1.4.0
+VERSION 1.5.0
 =============
 
 DOCS
@@ -23,11 +23,3 @@ PERFORMANCE/ ROBUSTNESS
 
 REFACTORINGS/ ITCHES
 --------------------
-
-- Should we limit or augment the search window somehow (so that the clustering takes place on, say, 100 top results,
-  but the returned list is only the top-k)? 
-  This is problematic from the technical POV (parsed SearchRequest doesn't expose the internal search request directly;
-  uri parameters get injected as extraSource); in most cases the user will need all document references anyway to link
-  them up from clusters. Leaving for now. The search query determines the number of documents (and the type of aggregation,
-  etc.) to use.
-  
