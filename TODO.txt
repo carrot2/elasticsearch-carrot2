@@ -5,6 +5,8 @@ VERSION 1.5.0
 DOCS
 ----
 
+- clicking on 'visualize' directly without the test collection should index it first
+
 BUGS/ TESTS
 -----------
 
