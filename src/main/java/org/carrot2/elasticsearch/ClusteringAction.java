@@ -4,7 +4,6 @@ import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.action.ValidateActions.addValidationError;
 import static org.elasticsearch.rest.RestRequest.Method.GET;
 import static org.elasticsearch.rest.RestRequest.Method.POST;
-import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -58,10 +57,10 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.rest.BaseRestHandler;
+import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
-import org.elasticsearch.rest.XContentRestResponse;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
@@ -1112,13 +1111,12 @@ public class ClusteringAction
                 @Override
                 public void onResponse(ClusteringActionResponse response) {
                     try {
-                        XContentBuilder builder = restContentBuilder(request);
+                        XContentBuilder builder = channel.newBuilder();
                         builder.startObject();
                         response.toXContent(builder, request);
                         builder.endObject();
                         channel.sendResponse(
-                                new XContentRestResponse(
-                                        request, 
+                                new BytesRestResponse(
                                         response.getSearchResponse().status(), 
                                         builder));
                     } catch (Exception e) {

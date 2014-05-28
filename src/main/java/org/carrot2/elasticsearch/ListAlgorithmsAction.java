@@ -1,7 +1,6 @@
 package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
-import static org.elasticsearch.rest.action.support.RestXContentBuilder.restContentBuilder;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,12 +24,12 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.rest.BaseRestHandler;
+import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.rest.XContentRestResponse;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
@@ -241,13 +240,12 @@ public class ListAlgorithmsAction
                 @Override
                 public void onResponse(ListAlgorithmsActionResponse response) {
                     try {
-                        XContentBuilder builder = restContentBuilder(request);
+                        XContentBuilder builder = channel.newBuilder();
                         builder.startObject();
                         response.toXContent(builder, request);
                         builder.endObject();
                         channel.sendResponse(
-                                new XContentRestResponse(
-                                        request, 
+                                new BytesRestResponse(
                                         RestStatus.OK, 
                                         builder));
                     } catch (Exception e) {

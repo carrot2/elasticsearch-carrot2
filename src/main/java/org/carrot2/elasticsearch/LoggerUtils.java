@@ -8,9 +8,9 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.varia.NullAppender;
 import org.carrot2.core.ProcessingComponentSuite;
 import org.elasticsearch.common.logging.ESLogger;
+import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
 import org.elasticsearch.rest.RestRequest;
-import org.elasticsearch.rest.XContentThrowableRestResponse;
 
 final class LoggerUtils {
     private static Appender quietAppender = NullAppender.getNullAppender();
@@ -56,7 +56,7 @@ final class LoggerUtils {
                                   ESLogger logger,
                                   Throwable t) {
         try {
-            channel.sendResponse(new XContentThrowableRestResponse(request, t));
+            channel.sendResponse(new BytesRestResponse(channel, t));
         } catch (IOException e) {
             logger.error("Failed to send failure response.", e);
         }
