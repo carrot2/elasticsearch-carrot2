@@ -123,20 +123,7 @@
             backgroundColor: "#fff"
           });
 
-          // Index some sample documents.
-          $("#indexform").submit(function (e) {
-            e.preventDefault();
-            doIndex(function(current, total) {
-              $("#indexbtn").text(
-                      current < total ? "Indexing... " + current : "[you've indexed]"
-              );
-            });
-          });
-
-          // Initiate search when form is submitted
-          $("#searchform").submit(function (e) {
-            e.preventDefault();
-
+          function doVisualize() {
             var $progress = $("#progress");
             var query = $("#query").val();
             var algorithm = $("#algorithm option:selected").val();
@@ -207,7 +194,47 @@
                 };
                 foamtree.set("dataObject", visualizationInput);
                 circles.set("dataObject", visualizationInput);
-            })
+            });            
+          }
+
+          // Index some sample documents.
+          $("#indexform").submit(function (e) {
+            e.preventDefault();
+            doIndex(function(current, total) {
+              $("#indexbtn").text(
+                      current < total ? "Indexing... " + current : "[you've indexed]"
+              );
+            });
+          });
+
+          // Initiate search when form is submitted
+          $("#searchform").submit(function (e) {
+            e.preventDefault();
+            
+            $.ajax({
+              url: "/_stats?pretty=true",
+              success: function(response) {
+                var indexReady = response &&
+                                 response.indices &&
+                                 response.indices.test;
+    
+                // Reindex once per window session, even if the index seems to be ready.
+                if (indexReady) {
+                  doVisualize();
+                } else {
+                  doIndex(function(current, total) {
+                    if (current < total) {
+                      $("#indexbtn").text(current < total ? "Indexing... " + current : "[you've indexed]");
+                    } else {
+                      doVisualize();                      
+                    }
+                  });
+                }
+              },
+              error: function() {
+                $("#noes").slideDown(1000);
+              }
+            });
           });
 
           // Check if we have the ES available at all.
@@ -216,7 +243,7 @@
             error: function() {
               $("#noes").slideDown(1000);
             },
-            success: function() {
+            success: function(response) {
               // Update algorithms list.
               $.get("/_algorithms", function(data) {
                 data.algorithms.forEach(function(algorithm) {

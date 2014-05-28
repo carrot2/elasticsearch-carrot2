@@ -2,23 +2,24 @@
  * Some sample data for clustering examples.
  */
 
-doIndex = (function() {
+doIndex = function(progressFn) {
   var i = 0;
   var sampleData;
 
-  function doIndex(progressFn) {
+  function _doIndex() {
     var url = "/test/test/" + i;
-    var data = sampleData[i];
 
-    var current = i;
     if (i < sampleData.length) {
-      i++;
-      $.post(url, JSON.stringify(data), function(result) {
-        doIndex(progressFn);
+      $.post(url, JSON.stringify(sampleData[i]), function(result) {
+        progressFn && progressFn(i, sampleData.length);
+        i++;
+        _doIndex(progressFn);
+      });
+    } else {
+      $.post("/_flush", function(result) {
+        progressFn && progressFn(i, sampleData.length);
       });
     }
-
-    progressFn && progressFn(current, sampleData.length);
   }
 
   // Some sample documents.
@@ -319,5 +320,5 @@ doIndex = (function() {
     {"lang": "de", "title": "CSU-Landesgruppe im Deutschen Bundestag: Abgeordnete: Biografien ...", "content": "Weblinks", "url": "http://www.csu-landesgruppe.de/Titel__Abgeordnete/TabID__53/SubTabID__60/Abgeordnete.aspx"}
   ];
 
-  return doIndex;
-})();
+  _doIndex();
+}

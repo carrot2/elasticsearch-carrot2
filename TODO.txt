@@ -2,8 +2,6 @@
 DOCS
 ----
 
-- clicking on 'visualize' directly without the test collection should index it first
-
 BUGS/ TESTS
 -----------
 
