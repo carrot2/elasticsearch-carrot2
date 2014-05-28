@@ -2,6 +2,8 @@
 DOCS
 ----
 
+- update visualizations
+
 BUGS/ TESTS
 -----------
 
