@@ -22,19 +22,18 @@ import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchIllegalArgumentException;
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ClientAction;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.internal.InternalClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.base.Function;
 import org.elasticsearch.common.base.Joiner;
@@ -82,7 +81,7 @@ import org.elasticsearch.transport.TransportService;
  * Perform clustering of search results.
  */
 public class ClusteringAction 
-    extends Action<ClusteringAction.ClusteringActionRequest, 
+    extends ClientAction<ClusteringAction.ClusteringActionRequest, 
                    ClusteringAction.ClusteringActionResponse, 
                    ClusteringAction.ClusteringActionRequestBuilder> {
     /* Action name. */
@@ -468,10 +467,11 @@ public class ClusteringAction
     public static class ClusteringActionRequestBuilder 
         extends ActionRequestBuilder<ClusteringActionRequest, 
                                      ClusteringActionResponse, 
-                                     ClusteringActionRequestBuilder>
+                                     ClusteringActionRequestBuilder,
+                                     Client>
     {
         public ClusteringActionRequestBuilder(Client client) {
-            super((InternalClient) client, new ClusteringActionRequest());
+            super(client, new ClusteringActionRequest());
         }
     
         public ClusteringActionRequestBuilder setSearchRequest(SearchRequestBuilder builder) {
@@ -564,7 +564,7 @@ public class ClusteringAction
         @Override
         protected void doExecute(
                 ActionListener<ClusteringActionResponse> listener) {
-            ((Client) client).execute(ClusteringAction.INSTANCE, request, listener);
+            client.execute(ClusteringAction.INSTANCE, request, listener);
         }
     }
 
@@ -727,7 +727,7 @@ public class ClusteringAction
                 TransportService transportService,
                 TransportSearchAction searchAction,
                 ControllerSingleton controllerSingleton) {
-            super(settings, threadPool);
+            super(settings, ClusteringAction.NAME, threadPool);
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
             transportService.registerHandler(ClusteringAction.NAME, new TransportHandler());
@@ -1063,9 +1063,9 @@ public class ClusteringAction
             controller.registerHandler(GET, "/{index}/" + NAME,         this);
             controller.registerHandler(GET, "/{index}/{type}/" + NAME,  this);            
         }
-
+        
         @Override
-        public void handleRequest(final RestRequest request, final RestChannel channel) {
+        public void handleRequest(final RestRequest request, final RestChannel channel, Client client) {
             // A POST request must have a body.
             if (request.method() == POST && !request.hasContent()) {
                 emitErrorResponse(channel, request, logger, 

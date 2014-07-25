@@ -7,15 +7,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ClientAction;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.internal.InternalClient;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -39,7 +38,7 @@ import org.elasticsearch.transport.TransportService;
  * List all available clustering algorithms.
  */
 public class ListAlgorithmsAction 
-    extends Action<ListAlgorithmsAction.ListAlgorithmsActionRequest, 
+    extends ClientAction<ListAlgorithmsAction.ListAlgorithmsActionRequest, 
                    ListAlgorithmsAction.ListAlgorithmsActionResponse, 
                    ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder> {
     /* Action name. */
@@ -79,14 +78,15 @@ public class ListAlgorithmsAction
     public static class ListAlgorithmsActionRequestBuilder
         extends ActionRequestBuilder<ListAlgorithmsActionRequest, 
                                      ListAlgorithmsActionResponse, 
-                                     ListAlgorithmsActionRequestBuilder> {
+                                     ListAlgorithmsActionRequestBuilder,
+                                     Client> {
         public ListAlgorithmsActionRequestBuilder(Client client) {
-            super((InternalClient) client, new ListAlgorithmsActionRequest());
+            super(client, new ListAlgorithmsActionRequest());
         }
 
         @Override
         protected void doExecute(ActionListener<ListAlgorithmsActionResponse> listener) {
-            ((Client) client).execute(ListAlgorithmsAction.INSTANCE, request, listener);
+            client.execute(ListAlgorithmsAction.INSTANCE, request, listener);
         }
     }
 
@@ -159,7 +159,7 @@ public class ListAlgorithmsAction
         protected TransportListAlgorithmsAction(Settings settings, ThreadPool threadPool,
                 TransportService transportService,
                 ControllerSingleton controllerSingleton) {
-            super(settings, threadPool);
+            super(settings, ListAlgorithmsAction.NAME, threadPool);
             this.controllerSingleton = controllerSingleton;
             transportService.registerHandler(ListAlgorithmsAction.NAME, new TransportHandler());
         }
@@ -228,7 +228,7 @@ public class ListAlgorithmsAction
         }
 
         @Override
-        public void handleRequest(final RestRequest request, final RestChannel channel) {
+        public void handleRequest(final RestRequest request, final RestChannel channel, Client client) {
             if (request.hasContent()) {
                 emitErrorResponse(channel, request, logger, 
                         new IllegalArgumentException("Request body was expected."));
