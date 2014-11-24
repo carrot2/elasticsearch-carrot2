@@ -32,6 +32,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
+import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.Strings;
@@ -726,8 +727,9 @@ public class ClusteringAction
         protected TransportClusteringAction(Settings settings, ThreadPool threadPool,
                 TransportService transportService,
                 TransportSearchAction searchAction,
-                ControllerSingleton controllerSingleton) {
-            super(settings, ClusteringAction.NAME, threadPool);
+                ControllerSingleton controllerSingleton,
+                ActionFilters actionFilters) {
+            super(settings, ClusteringAction.NAME, threadPool, actionFilters);
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
             transportService.registerHandler(ClusteringAction.NAME, new TransportHandler());
@@ -832,7 +834,8 @@ public class ClusteringAction
                             facets,
                             aggregations,
                             response.getSuggest(), 
-                            response.isTimedOut()),
+                            response.isTimedOut(),
+                            response.isTerminatedEarly()),
                     response.getScrollId(),
                     response.getTotalShards(),
                     response.getSuccessfulShards(),
@@ -1053,7 +1056,7 @@ public class ClusteringAction
                 Settings settings, 
                 Client client, 
                 RestController controller) {
-            super(settings, client);
+            super(settings, controller, client);
 
             controller.registerHandler(POST, "/" + NAME,                this);
             controller.registerHandler(POST, "/{index}/" + NAME,        this);

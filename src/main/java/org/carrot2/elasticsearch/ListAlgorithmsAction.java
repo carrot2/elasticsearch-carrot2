@@ -13,6 +13,7 @@ import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.ClientAction;
+import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.inject.Inject;
@@ -158,8 +159,9 @@ public class ListAlgorithmsAction
         @Inject
         protected TransportListAlgorithmsAction(Settings settings, ThreadPool threadPool,
                 TransportService transportService,
-                ControllerSingleton controllerSingleton) {
-            super(settings, ListAlgorithmsAction.NAME, threadPool);
+                ControllerSingleton controllerSingleton,
+                ActionFilters actionFilters) {
+            super(settings, ListAlgorithmsAction.NAME, threadPool, actionFilters);
             this.controllerSingleton = controllerSingleton;
             transportService.registerHandler(ListAlgorithmsAction.NAME, new TransportHandler());
         }
@@ -221,7 +223,7 @@ public class ListAlgorithmsAction
                 Settings settings, 
                 Client client, 
                 RestController controller) {
-            super(settings, client);
+            super(settings, controller, client);
 
             controller.registerHandler(Method.POST, "/" + NAME, this);
             controller.registerHandler(Method.GET,  "/" + NAME, this);
