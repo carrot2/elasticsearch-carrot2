@@ -1,6 +1,10 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 1.9.1 ================
+
+Changes in Backwards Compatibility
+
 ================ ElasticSearch-Carrot2 1.9.0 ================
 
 Changes in Backwards Compatibility
