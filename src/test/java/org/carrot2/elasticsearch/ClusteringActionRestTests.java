@@ -18,7 +18,7 @@ import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import com.google.common.collect.Lists;

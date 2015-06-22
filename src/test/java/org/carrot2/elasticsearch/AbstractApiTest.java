@@ -2,8 +2,10 @@ package org.carrot2.elasticsearch;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
@@ -30,7 +32,6 @@ import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.transport.TransportService;
-import org.fest.assertions.api.Assertions;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;

@@ -10,7 +10,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

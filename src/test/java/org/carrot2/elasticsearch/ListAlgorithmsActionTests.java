@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.elasticsearch.client.Client;
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.Test;
 
 /**

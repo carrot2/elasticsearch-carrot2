@@ -24,7 +24,7 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.fest.assertions.api.Assertions;
+import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
