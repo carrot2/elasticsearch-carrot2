@@ -22,7 +22,7 @@
 
     <properties>
         <elasticsearch.version>1.6.0</elasticsearch.version>
-        <carrot2.version>3.10.1</carrot2.version>
+        <carrot2.version>3.10.2</carrot2.version>
         <slf4j.version>1.7.12</slf4j.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

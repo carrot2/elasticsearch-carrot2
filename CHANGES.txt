@@ -9,6 +9,8 @@ Changes in Backwards Compatibility
 
 Changes in Backwards Compatibility
 
+* Dependency update to Carrot2 3.10.2 (and Lingo3G 1.12.1).
+
 ================ ElasticSearch-Carrot2 1.9.0 ================
 
 Changes in Backwards Compatibility
