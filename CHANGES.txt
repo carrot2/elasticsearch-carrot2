@@ -5,7 +5,7 @@ ElasticSearch-Carrot2 Change Log
 
 Changes in Backwards Compatibility
 
-* Dependency update to Carrot2 3.10.2 (and Lingo3G 1.12.1).
+* Dependency update to Carrot2 3.10.4 (and Lingo3G 1.12.3).
 
 ================ ElasticSearch-Carrot2 1.9.0 ================
 
