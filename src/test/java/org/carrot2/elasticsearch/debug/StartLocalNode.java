@@ -1,11 +1,10 @@
 package org.carrot2.elasticsearch.debug;
 
-import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.elasticsearch.common.settings.Settings.*;
+import static org.elasticsearch.node.NodeBuilder.*;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.elasticsearch.common.network.NetworkUtils;
 import org.elasticsearch.node.Node;
 
 /**
@@ -18,7 +17,7 @@ public class StartLocalNode {
         Node node = nodeBuilder().settings(settingsBuilder()
                 .put("path.data", "target/data")
                 .put("path.plugins", "src")
-                .put("cluster.name", "test-cluster-" + NetworkUtils.getLocalAddress()))
+                .put("cluster.name", "test-cluster"))
                 .local(false)
                 .node();
 

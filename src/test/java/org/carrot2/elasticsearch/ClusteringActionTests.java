@@ -1,10 +1,12 @@
 package org.carrot2.elasticsearch;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
 import org.carrot2.clustering.stc.STCClusteringAlgorithmDescriptor;
 import org.carrot2.core.LanguageCode;
@@ -19,12 +21,10 @@ import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.ShardSearchFailure;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
 import org.testng.annotations.Test;
 
@@ -113,7 +113,7 @@ public class ClusteringActionTests extends AbstractApiTest {
 
         // Top level groups should be input documents' languages (aggregation strategy above).
         DocumentGroup[] documentGroups = result.getDocumentGroups();
-        Set<String> allLanguages = Sets.newHashSet();
+        Set<String> allLanguages = new HashSet<>();
         for (LanguageCode code : LanguageCode.values()) {
             allLanguages.add(code.toString());
         }
@@ -278,7 +278,7 @@ public class ClusteringActionTests extends AbstractApiTest {
         // without hits
         ClusteringActionResponse resultWithoutHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .setIncludeHits("false")
+            .setMaxHits(0)
             .setAlgorithm("stc")
             .addFieldMapping("title", LogicalField.TITLE)
             .setSearchRequest(req)

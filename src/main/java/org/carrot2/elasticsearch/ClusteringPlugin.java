@@ -1,8 +1,8 @@
 package org.carrot2.elasticsearch;
 
-import static org.elasticsearch.common.collect.Lists.newArrayList;
-
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
@@ -12,11 +12,11 @@ import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.plugins.AbstractPlugin;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.rest.RestModule;
 
 /** */
-public class ClusteringPlugin extends AbstractPlugin {
+public class ClusteringPlugin extends Plugin {
     /**
      * Master on/off switch property for the plugin (general settings).
      */
@@ -92,25 +92,25 @@ public class ClusteringPlugin extends AbstractPlugin {
             restModule.addRestAction(ListAlgorithmsAction.RestListAlgorithmsAction.class);
         }
     }
-
+    
     @Override
-    public Collection<Class<? extends Module>> modules() {
-        Collection<Class<? extends Module>> modules = newArrayList();
+    public Collection<Module> nodeModules() {
         if (pluginEnabled) {
-            modules.add(ClusteringModule.class);
+            return Arrays.<Module> asList(new ClusteringModule());
+        } else {
+            return Collections.emptyList();
         }
-        return modules;
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Collection<Class<? extends LifecycleComponent>> services() {
-        Collection<Class<? extends LifecycleComponent>> services = newArrayList();
+    public Collection<Class<? extends LifecycleComponent>> nodeServices() {
         if (pluginEnabled) {
-            services.add(ControllerSingleton.class);
+            return Arrays.<Class<? extends LifecycleComponent>> asList(
+                    ControllerSingleton.class);
         } else {
             logger.info("Plugin disabled.", name());
+            return Collections.emptyList();
         }
-        return services;
     }
 }

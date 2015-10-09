@@ -6,7 +6,7 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
 import static org.carrot2.elasticsearch.ClusteringPlugin.PLUGIN_CONFIG_FILE_NAME;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,16 +24,15 @@ import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.common.collect.Maps;
+
+import com.google.common.collect.Maps;
+
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
-import org.elasticsearch.env.FailedToResolveConfigException;
 import org.elasticsearch.node.Node;
 
 import com.google.common.base.Joiner;
@@ -59,16 +58,14 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     @Override
     protected void doStart() throws ElasticsearchException {
         try {
-            Builder builder = ImmutableSettings.builder();
+            Settings.Builder builder = Settings.builder();
             for (String configName : new String [] {
                     PLUGIN_CONFIG_FILE_NAME + ".yml",
                     PLUGIN_CONFIG_FILE_NAME + ".json",
                     PLUGIN_CONFIG_FILE_NAME + ".properties"
             }) {
                 try {
-                    builder.loadFromUrl(environment.resolveConfig(configName));
-                } catch (FailedToResolveConfigException e) {
-                    // fall-through
+                    builder.loadFromPath(environment.resolveRepoFile(configName));
                 } catch (NoClassDefFoundError e) {
                     logger.warn("Could not parse: {}", e, configName);
                 }
@@ -76,16 +73,14 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             Settings c2Settings = builder.build();
 
             final String resourcesPath = c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, ".");
-            final File resourcesDir;
-            if (new File(resourcesPath).isAbsolute()) {
-                resourcesDir = new File(resourcesPath);
-            } else {
-                resourcesDir = new File(environment.configFile(), resourcesPath);
-            }
-            logger.info("Resources dir: {}", resourcesDir.getAbsolutePath());
+            final Path resourcesDir = environment.configFile().resolveSibling(resourcesPath)
+                        .toAbsolutePath()
+                        .normalize();
+
+            logger.info("Resources dir: {}", resourcesDir);
 
             final ResourceLookup resourceLookup = new ResourceLookup(
-                    new DirLocator(resourcesDir),
+                    new DirLocator(resourcesDir.toFile()),
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).

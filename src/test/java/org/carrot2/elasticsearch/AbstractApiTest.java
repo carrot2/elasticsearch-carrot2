@@ -1,7 +1,15 @@
 package org.carrot2.elasticsearch;
 
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
+import static org.elasticsearch.node.NodeBuilder.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Random;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -9,25 +17,22 @@ import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequestBuilder;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.index.IndexRequestBuilder;
-import org.elasticsearch.action.support.QuerySourceBuilder;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.Priority;
-import org.elasticsearch.common.base.Charsets;
-import org.elasticsearch.common.network.NetworkUtils;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.common.xcontent.*;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.http.HttpServerTransport;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.internal.InternalNode;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -37,13 +42,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import org.testng.collections.Maps;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.*;
-
-import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import com.google.common.base.Charsets;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Resources;
 
 public class AbstractApiTest {
     protected static Node node;
@@ -81,7 +82,7 @@ public class AbstractApiTest {
 
     @BeforeSuite
     public static void beforeClass() throws IOException {
-        node = nodeBuilder().settings(settingsBuilder()
+        node = nodeBuilder().settings(Settings.builder()
                 // Setup thread pool policy consistent across machines.
                 .put("threadpool.search.type", "fixed")
                 .put("threadpool.search.size", "4")
@@ -89,7 +90,7 @@ public class AbstractApiTest {
                 .put("threadpool.search.reject_policy", "caller")
 
                 .put("path.data", "target/data")
-                .put("cluster.name", "test-cluster-" + NetworkUtils.getLocalAddress()))
+                .put("cluster.name", "test-cluster-"))
                 .node();
 
         // Wait for the node/ cluster to come alive.
@@ -99,17 +100,19 @@ public class AbstractApiTest {
 
         localClient = node.client();
 
-        transportAddr = ((InternalNode) node).injector()
+        transportAddr = node.injector()
                 .getInstance(TransportService.class)
                 .boundAddress()
                 .publishAddress();
 
-        transportClient = new TransportClient(ImmutableSettings.builder()
+        transportClient = TransportClient.builder()
+                .settings(Settings.builder()
                     .put("cluster.name", node.settings().get("cluster.name"))
                     .put("client.transport.sniff", true))
+                .build()
                 .addTransportAddress(transportAddr);
 
-        restAddr = ((InternalNode) node).injector()
+        restAddr = node.injector()
                 .getInstance(HttpServerTransport.class)
                 .boundAddress()
                 .publishAddress();
@@ -118,11 +121,8 @@ public class AbstractApiTest {
         restBaseUrl = "http://" + address.getHostName() + ":" + address.getPort();
 
         // Delete any previous documents.
-        if (new IndicesExistsRequestBuilder(node.client().admin().indices(), INDEX_NAME).execute().actionGet().isExists()) {
-            QuerySourceBuilder querySourceBuilder = new QuerySourceBuilder();
-            querySourceBuilder.setQuery(QueryBuilders.matchAllQuery());
-            node.client().deleteByQuery(
-                    Requests.deleteByQueryRequest(INDEX_NAME).source(querySourceBuilder)).actionGet();
+        if (node.client().admin().indices().prepareExists(INDEX_NAME).execute().actionGet().isExists()) {
+            node.client().admin().indices().prepareDelete(INDEX_NAME).execute();
         }
 
         // Index some sample "documents".
@@ -132,9 +132,7 @@ public class AbstractApiTest {
 
         BulkRequestBuilder bulk = node.client().prepareBulk();
         for (String[] data : SampleDocumentData.SAMPLE_DATA) {
-            bulk.add(new IndexRequestBuilder(node.client())
-                .setIndex(INDEX_NAME)
-                .setType("test")
+            bulk.add(node.client().prepareIndex(INDEX_NAME, "test")
                 .setSource(XContentFactory.jsonBuilder()
                         .startObject()
                             .field("url",     data[0])
@@ -145,9 +143,7 @@ public class AbstractApiTest {
                         .endObject()));
         }
 
-        bulk.add(new IndexRequestBuilder(node.client())
-            .setIndex(INDEX_NAME)
-            .setType("empty")
+        bulk.add(node.client().prepareIndex(INDEX_NAME, "empty")
             .setSource(XContentFactory.jsonBuilder()
                     .startObject()
                         .field("url",     "")
@@ -173,11 +169,13 @@ public class AbstractApiTest {
         result.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
         String json = builder.string();
-        
-        Map<String, Object> mapAndClose = JsonXContent.jsonXContent.createParser(json).mapAndClose();
-        Assertions.assertThat(mapAndClose)
-            .as("json-result")
-            .containsKey(Fields.CLUSTERS.underscore().getValue());
+
+        try (XContentParser createParser = JsonXContent.jsonXContent.createParser(json)) {
+            Map<String, Object> mapAndClose = createParser.map();
+            Assertions.assertThat(mapAndClose)
+                .as("json-result")
+                .containsKey(Fields.CLUSTERS.underscore().getValue());
+        }
     }
 
     /**
@@ -248,13 +246,13 @@ public class AbstractApiTest {
             .describedAs(responseDescription)
             .isEqualTo(HttpStatus.SC_OK);
     
-        XContentParser parser = JsonXContent.jsonXContent.createParser(responseString);
-        Map<String, Object> map = parser.mapAndClose();
-        Assertions.assertThat(map)
-            .describedAs(responseDescription)
-            .doesNotContainKey("error");
-
-        return map; 
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(responseString)) {
+            Map<String, Object> map = parser.map();
+            Assertions.assertThat(map)
+                .describedAs(responseDescription)
+                .doesNotContainKey("error");
+            return map; 
+        }
     }
 
     protected static void expectErrorResponseWithMessage(HttpResponse response, int expectedStatus, String messageSubstring) throws IOException {
@@ -269,16 +267,17 @@ public class AbstractApiTest {
             .isEqualTo(expectedStatus);
 
         XContent xcontent = XContentFactory.xContent(responseBytes);
-        XContentParser parser = xcontent.createParser(responseBytes);
-        Map<String, Object> responseJson = parser.mapOrderedAndClose();
-        
-        Assertions.assertThat(responseJson)
-            .describedAs(responseString)
-            .containsKey("error");
-
-        Assertions.assertThat((String) responseJson.get("error"))
-            .describedAs(responseString)
-            .contains(messageSubstring);
+        try (XContentParser parser = xcontent.createParser(responseBytes)) {
+            Map<String, Object> responseJson = parser.mapOrdered();
+            
+            Assertions.assertThat(responseJson)
+                .describedAs(responseString)
+                .containsKey("error");
+    
+            Assertions.assertThat((String) responseJson.get("error"))
+                .describedAs(responseString)
+                .contains(messageSubstring);
+        }
     }
 
     protected static byte[] resourceAs(String resourceName, XContentType type) throws IOException {

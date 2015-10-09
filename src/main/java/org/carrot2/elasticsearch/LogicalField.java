@@ -3,7 +3,6 @@ package org.carrot2.elasticsearch;
 import java.util.HashMap;
 
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequest;
-import org.elasticsearch.common.collect.Maps;
 
 /**
  * Logical fields of a document to be clustered.
@@ -26,7 +25,7 @@ public enum LogicalField {
 
     static final HashMap<String,LogicalField> aliases;
     static {
-        aliases = Maps.newHashMap();
+        aliases = new HashMap<>();
         for (LogicalField v : LogicalField.values()) {
             aliases.put(v.name(), v);
             aliases.put(v.name().toLowerCase(), v);

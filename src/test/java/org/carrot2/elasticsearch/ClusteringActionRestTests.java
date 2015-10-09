@@ -1,10 +1,7 @@
 package org.carrot2.elasticsearch;
 
-import org.apache.http.impl.client.CloseableHttpClient;
-
-import org.apache.http.impl.client.HttpClientBuilder;
-
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,13 +11,15 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
-import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.assertj.core.api.Assertions;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import com.google.common.collect.Lists;
 
 /**
@@ -148,7 +147,7 @@ public class ClusteringActionRestTests extends AbstractApiTest {
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             // Check top level clusters labels.
-            Set<String> allLanguages = Sets.newHashSet();
+            Set<String> allLanguages = new HashSet<>();
             for (LanguageCode code : LanguageCode.values()) {
                 allLanguages.add(code.toString());
             }
