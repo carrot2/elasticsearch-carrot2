@@ -27,11 +27,8 @@
         <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
         <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>         
         <elasticsearch.plugin.classname>org.carrot2.elasticsearch.ClusteringPlugin</elasticsearch.plugin.classname>
-        <!-- 
-        <tests.rest.suite>jvm_example</tests.rest.suite>
-        <tests.rest.load_packaged>false</tests.rest.load_packaged>
+
         <skip.unit.tests>true</skip.unit.tests>
-         -->
     </properties>
 
     <inceptionYear>2013</inceptionYear>
@@ -63,6 +60,17 @@
           <artifactId>carrot2-mini</artifactId>
           <version>${carrot2.version}</version>
           <scope>compile</scope>
+          <exclusions>
+          <exclusion>
+            <artifactId>mahout-collections</artifactId>
+            <groupId>org.apache.mahout</groupId>
+          </exclusion>
+          </exclusions>
+        </dependency>
+
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
         </dependency>
 
         <dependency>
@@ -82,6 +90,13 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>

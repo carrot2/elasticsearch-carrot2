@@ -6,6 +6,7 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
 import static org.carrot2.elasticsearch.ClusteringPlugin.PLUGIN_CONFIG_FILE_NAME;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -67,7 +68,10 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     PLUGIN_CONFIG_FILE_NAME + ".properties"
             }) {
                 try {
-                    builder.loadFromPath(environment.resolveRepoFile(configName));
+                    Path resolved = environment.resolveRepoFile(configName);
+                    if (Files.exists(resolved)) {
+                        builder.loadFromPath(resolved);
+                    }
                 } catch (NoClassDefFoundError e) {
                     logger.warn("Could not parse: {}", e, configName);
                 }
@@ -104,7 +108,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                         if (isNoClassDefFound(desc.getInitializationFailure())) {
                             logger.debug("Algorithm not available on classpath: {}", desc.getId());
                         } else {
-                            logger.debug("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                            logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
                         }
                     }
                     return suite;
@@ -112,7 +116,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             },
             Logger.getLogger(ProcessingComponentDescriptor.class),
             Logger.getLogger(ReflectionUtils.class));
-            
+
             algorithms = Lists.newArrayList();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
                 algorithms.add(descriptor.getId());
