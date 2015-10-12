@@ -28,6 +28,12 @@
         <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>         
         <elasticsearch.plugin.classname>org.carrot2.elasticsearch.ClusteringPlugin</elasticsearch.plugin.classname>
 
+        <!-- 
+        https://github.com/carrot2/elasticsearch-carrot2/issues/23
+        We require context class loader.
+         -->
+        <tests.security.manager>false</tests.security.manager>
+
         <skip.unit.tests>true</skip.unit.tests>
     </properties>
 

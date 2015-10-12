@@ -101,22 +101,30 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             final List<String> failed = Lists.newArrayList();
             final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
                 public ProcessingComponentSuite call() throws Exception {
-                    ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                            suiteResource, resourceLookup);
-                    for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
-                        failed.add(desc.getId());
-                        if (isNoClassDefFound(desc.getInitializationFailure())) {
-                            logger.debug("Algorithm not available on classpath: {}", desc.getId());
-                        } else {
-                            logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                    final ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                    try {
+                        Thread.currentThread().setContextClassLoader(ClusteringPlugin.class.getClassLoader());
+
+                        ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
+                                suiteResource, resourceLookup);
+                        for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
+                            failed.add(desc.getId());
+                            if (isNoClassDefFound(desc.getInitializationFailure())) {
+                                logger.debug("Algorithm not available on classpath: {}", desc.getId());
+                            } else {
+                                logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                            }
+                            logger.info("Ex failed: {}", desc.getInitializationFailure(), desc.getId());
                         }
+                        return suite;
+                    } finally {
+                        Thread.currentThread().setContextClassLoader(cl);
                     }
-                    return suite;
                 }
             },
             Logger.getLogger(ProcessingComponentDescriptor.class),
             Logger.getLogger(ReflectionUtils.class));
-
+            
             algorithms = Lists.newArrayList();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
                 algorithms.add(descriptor.getId());
