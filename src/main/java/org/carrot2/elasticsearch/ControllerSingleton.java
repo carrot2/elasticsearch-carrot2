@@ -69,7 +69,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }) {
                 try {
                     Path resolved = environment.resolveRepoFile(configName);
-                    if (Files.exists(resolved)) {
+                    if (resolved != null && Files.exists(resolved)) {
                         builder.loadFromPath(resolved);
                     }
                 } catch (NoClassDefFoundError e) {
