@@ -27,6 +27,7 @@ import org.elasticsearch.ElasticsearchException;
 
 import com.google.common.collect.Maps;
 
+import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.logging.ESLogger;
@@ -55,6 +56,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
         this.logger = Loggers.getLogger("plugin.carrot2", settings);
     }
 
+    @SuppressForbidden(reason = "C2 integration (File API)")
     @Override
     protected void doStart() throws ElasticsearchException {
         try {
@@ -72,15 +74,14 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             Settings c2Settings = builder.build();
 
-            final String resourcesPath = c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, ".");
-            final Path resourcesDir = environment.configFile().resolveSibling(resourcesPath)
+            final Path resourcesPath = environment.configFile().resolveSibling(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
                         .toAbsolutePath()
                         .normalize();
 
-            logger.info("Resources dir: {}", resourcesDir);
+            logger.info("Resources dir: {}", resourcesPath);
 
             final ResourceLookup resourceLookup = new ResourceLookup(
-                    new DirLocator(resourcesDir.toFile()),
+                    new DirLocator(resourcesPath.toFile()),
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).

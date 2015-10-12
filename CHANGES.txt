@@ -1,9 +1,11 @@
 
 ElasticSearch-Carrot2 Change Log
 
-================ ElasticSearch-Carrot2 1.10.0 ================
+================ ElasticSearch-Carrot2 2.0.0 ================
 
 Changes in Backwards Compatibility
+
+* Plugin code restructured for ES 2.0.0.
 
 ================ ElasticSearch-Carrot2 1.9.1 ================
 

@@ -1,6 +1,7 @@
 package org.carrot2.elasticsearch;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequest;
 
@@ -28,7 +29,7 @@ public enum LogicalField {
         aliases = new HashMap<>();
         for (LogicalField v : LogicalField.values()) {
             aliases.put(v.name(), v);
-            aliases.put(v.name().toLowerCase(), v);
+            aliases.put(v.name().toLowerCase(Locale.ROOT), v);
         }
     }
 

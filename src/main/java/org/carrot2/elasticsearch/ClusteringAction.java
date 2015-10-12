@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -1116,7 +1117,7 @@ public class ClusteringAction
         static {
             GET_REQUEST_FIELDMAPPERS = Maps.newEnumMap(LogicalField.class);
             for (LogicalField lf : LogicalField.values()) {
-                GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase());
+                GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase(Locale.ROOT));
             }
         }
         
