@@ -29,6 +29,15 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
                 .put("plugin.types", ClusteringPlugin.class.getName())
                 .build();
     }
+    
+    @Override
+    protected Settings externalClusterClientSettings() {
+        System.out.println("## Invoked externalClusterClientSettings()");
+        return Settings.builder()
+                .put(super.externalClusterClientSettings())
+                .put("plugin.types", ClusteringPlugin.class.getName())
+                .build();
+    }
 
     public void testAlgorithmsAreListed() throws Exception {
         Client client = client();

@@ -18,7 +18,6 @@ import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.carrot2.core.ProcessingComponentDescriptor;
 import org.carrot2.core.ProcessingComponentSuite;
-import org.carrot2.mahout.math.Arrays;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
