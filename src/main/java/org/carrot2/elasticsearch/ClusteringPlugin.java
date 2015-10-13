@@ -7,6 +7,8 @@ import java.util.Collections;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.elasticsearch.action.ActionModule;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.logging.ESLogger;
@@ -55,12 +57,14 @@ public class ClusteringPlugin extends Plugin {
      */
     public static final String DEFAULT_COMPONENT_SIZE_PROPERTY_NAME = "controller.pool-size";
 
+    private final boolean transportClient;
     private final boolean pluginEnabled;
     private final ESLogger logger;
 
     public ClusteringPlugin(Settings settings) {
         this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
         this.logger = Loggers.getLogger("plugin.carrot2", settings);
+        this.transportClient = TransportClient.CLIENT_TYPE.equals(settings.get(Client.CLIENT_TYPE_SETTING));
     }
 
     @Override
@@ -95,7 +99,7 @@ public class ClusteringPlugin extends Plugin {
     
     @Override
     public Collection<Module> nodeModules() {
-        if (pluginEnabled) {
+        if (pluginEnabled && !transportClient) {
             return Arrays.<Module> asList(new ClusteringModule());
         } else {
             return Collections.emptyList();
@@ -106,11 +110,12 @@ public class ClusteringPlugin extends Plugin {
     @Override
     public Collection<Class<? extends LifecycleComponent>> nodeServices() {
         if (pluginEnabled) {
-            return Arrays.<Class<? extends LifecycleComponent>> asList(
-                    ControllerSingleton.class);
+            if (!transportClient) {
+                return Arrays.<Class<? extends LifecycleComponent>> asList(ControllerSingleton.class);
+            }
         } else {
             logger.info("Plugin disabled.", name());
-            return Collections.emptyList();
         }
+        return Collections.emptyList();
     }
 }
