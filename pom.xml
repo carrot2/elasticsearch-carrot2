@@ -22,7 +22,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <carrot2.version>3.10.4</carrot2.version>
+        <carrot2.version>3.11.0-SNAPSHOT</carrot2.version>
 
         <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
         <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>         

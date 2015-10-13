@@ -18,6 +18,7 @@ import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.carrot2.core.ProcessingComponentDescriptor;
 import org.carrot2.core.ProcessingComponentSuite;
+import org.carrot2.mahout.math.Arrays;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
@@ -61,6 +62,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     @Override
     protected void doStart() throws ElasticsearchException {
         try {
+             // TODO: embed sample config like in the sample?
             Settings.Builder builder = Settings.builder();
             for (String configName : new String [] {
                     PLUGIN_CONFIG_FILE_NAME + ".yml",
@@ -68,7 +70,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     PLUGIN_CONFIG_FILE_NAME + ".properties"
             }) {
                 try {
-                    Path resolved = environment.resolveRepoFile(configName);
+                    Path resolved = environment.configFile().resolve(configName);
                     if (resolved != null && Files.exists(resolved)) {
                         builder.loadFromPath(resolved);
                     }
@@ -78,10 +80,11 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             Settings c2Settings = builder.build();
 
-            final Path resourcesPath = environment.configFile().resolveSibling(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
-                        .toAbsolutePath()
-                        .normalize();
+            final Path resourcesPath = environment.configFile().resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
+                    .toAbsolutePath()
+                    .normalize();
 
+            // TODO: can we read from files, instead of resources?
             logger.info("Resources dir: {}", resourcesPath);
 
             final ResourceLookup resourceLookup = new ResourceLookup(
@@ -101,30 +104,22 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             final List<String> failed = Lists.newArrayList();
             final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
                 public ProcessingComponentSuite call() throws Exception {
-                    final ClassLoader cl = Thread.currentThread().getContextClassLoader();
-                    try {
-                        Thread.currentThread().setContextClassLoader(ClusteringPlugin.class.getClassLoader());
-
-                        ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                                suiteResource, resourceLookup);
-                        for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
-                            failed.add(desc.getId());
-                            if (isNoClassDefFound(desc.getInitializationFailure())) {
-                                logger.debug("Algorithm not available on classpath: {}", desc.getId());
-                            } else {
-                                logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
-                            }
-                            logger.info("Ex failed: {}", desc.getInitializationFailure(), desc.getId());
+                    ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
+                            suiteResource, resourceLookup);
+                    for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
+                        failed.add(desc.getId());
+                        if (isNoClassDefFound(desc.getInitializationFailure())) {
+                            logger.debug("Algorithm not available on classpath: {}", desc.getId());
+                        } else {
+                            logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
                         }
-                        return suite;
-                    } finally {
-                        Thread.currentThread().setContextClassLoader(cl);
                     }
+                    return suite;
                 }
             },
             Logger.getLogger(ProcessingComponentDescriptor.class),
             Logger.getLogger(ReflectionUtils.class));
-            
+
             algorithms = Lists.newArrayList();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
                 algorithms.add(descriptor.getId());

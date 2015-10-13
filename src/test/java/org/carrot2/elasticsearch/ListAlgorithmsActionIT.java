@@ -16,6 +16,8 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
     }
 
     public void testAlgorithmsAreListed() throws Exception {
+        ensureGreen();
+        
         ListAlgorithmsActionResponse response = new ListAlgorithmsActionRequestBuilder(client()).get();
         Assertions.assertThat(response.getAlgorithms())
           .describedAs("A list of algorithms")
