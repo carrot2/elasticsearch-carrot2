@@ -5,7 +5,10 @@ ElasticSearch-Carrot2 Change Log
 
 Changes in Backwards Compatibility
 
-* Plugin code restructured for ES 2.0.0.
+* GH-23: Plugin code restructured for ES 2.0.0. Versioning
+  scheme will now follow ElasticSearch strictly since starting
+  from version 2.0.0 plugins must declare an (exact) version
+  of ES they were compiled against.
 
 ================ ElasticSearch-Carrot2 1.9.1 ================
 
