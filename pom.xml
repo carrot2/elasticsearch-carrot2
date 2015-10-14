@@ -27,6 +27,8 @@
         <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
         <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>         
         <elasticsearch.plugin.classname>org.carrot2.elasticsearch.ClusteringPlugin</elasticsearch.plugin.classname>
+
+        <tests.rest.load_packaged>false</tests.rest.load_packaged>        
     </properties>
 
     <inceptionYear>2013</inceptionYear>

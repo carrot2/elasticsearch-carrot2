@@ -1,0 +1,11 @@
+"Plugin loaded":
+    - do:
+        cluster.state: {}
+
+    - set: { master_node: master }
+
+    - do:
+        nodes.info: {}
+
+    - match:  { nodes.$master.plugins.0.name: "clustering-carrot2"  }
+    - match:  { nodes.$master.plugins.0.jvm:  true }

@@ -38,7 +38,9 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
 
     public void testAlgorithmsAreListed() throws Exception {
         Client client = client();
-        System.out.println("## test(): " + client + " " + client.settings().toDelimitedString('\n'));
+        
+        System.out.println(client().admin().cluster().prepareNodesInfo().get());
+        
         ListAlgorithmsActionResponse response = new ListAlgorithmsActionRequestBuilder(client).get();
         Assertions.assertThat(response.getAlgorithms())
           .describedAs("A list of algorithms")
