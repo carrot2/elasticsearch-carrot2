@@ -69,7 +69,7 @@ public class ClusteringPlugin extends Plugin {
 
     @Override
     public String name() {
-        return "clustering-carrot2";
+        return "elasticsearch-carrot2";
     }
 
     @Override

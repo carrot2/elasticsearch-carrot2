@@ -7,5 +7,5 @@
     - do:
         nodes.info: {}
 
-    - match:  { nodes.$master.plugins.0.name: "clustering-carrot2"  }
+    - match:  { nodes.$master.plugins.0.name: "elasticsearch-carrot2"  }
     - match:  { nodes.$master.plugins.0.jvm:  true }
