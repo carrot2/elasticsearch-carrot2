@@ -1,0 +1,5 @@
+"List default algorithms":
+    - do:
+        algorithms: {}
+
+    - match: { algorithms: ["lingo", "stc", "kmeans", "byurl"] }

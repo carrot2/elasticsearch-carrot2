@@ -6,18 +6,23 @@
   </formats>
   
   <includeBaseDirectory>false</includeBaseDirectory>
-  
+
   <dependencySets>
     <dependencySet>
       <outputDirectory>/</outputDirectory>
       <useProjectArtifact>true</useProjectArtifact>
       <useTransitiveFiltering>true</useTransitiveFiltering>
-      <excludes>
-        <exclude>org.elasticsearch:elasticsearch</exclude>
-        <exclude>log4j:log4j</exclude>
-      </excludes>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
     </dependencySet>
   </dependencySets>
+
+  <files>
+    <file>
+      <source>${elasticsearch.tools.directory}/plugin-metadata/plugin-descriptor.properties</source>
+      <outputDirectory></outputDirectory>
+      <filtered>true</filtered>
+    </file>
+  </files>
 
   <fileSets>
     <fileSet>

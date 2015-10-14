@@ -1,22 +1,24 @@
 package org.carrot2.elasticsearch;
 
-import static org.elasticsearch.common.collect.Lists.newArrayList;
-
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.elasticsearch.action.ActionModule;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.plugins.AbstractPlugin;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.rest.RestModule;
 
 /** */
-public class ClusteringPlugin extends AbstractPlugin {
+public class ClusteringPlugin extends Plugin {
     /**
      * Master on/off switch property for the plugin (general settings).
      */
@@ -55,17 +57,19 @@ public class ClusteringPlugin extends AbstractPlugin {
      */
     public static final String DEFAULT_COMPONENT_SIZE_PROPERTY_NAME = "controller.pool-size";
 
+    private final boolean transportClient;
     private final boolean pluginEnabled;
     private final ESLogger logger;
 
     public ClusteringPlugin(Settings settings) {
         this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
         this.logger = Loggers.getLogger("plugin.carrot2", settings);
+        this.transportClient = TransportClient.CLIENT_TYPE.equals(settings.get(Client.CLIENT_TYPE_SETTING));
     }
 
     @Override
     public String name() {
-        return "clustering-carrot2";
+        return "elasticsearch-carrot2";
     }
 
     @Override
@@ -92,25 +96,26 @@ public class ClusteringPlugin extends AbstractPlugin {
             restModule.addRestAction(ListAlgorithmsAction.RestListAlgorithmsAction.class);
         }
     }
-
+    
     @Override
-    public Collection<Class<? extends Module>> modules() {
-        Collection<Class<? extends Module>> modules = newArrayList();
-        if (pluginEnabled) {
-            modules.add(ClusteringModule.class);
+    public Collection<Module> nodeModules() {
+        if (pluginEnabled && !transportClient) {
+            return Arrays.<Module> asList(new ClusteringModule());
+        } else {
+            return Collections.emptyList();
         }
-        return modules;
     }
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Collection<Class<? extends LifecycleComponent>> services() {
-        Collection<Class<? extends LifecycleComponent>> services = newArrayList();
+    public Collection<Class<? extends LifecycleComponent>> nodeServices() {
         if (pluginEnabled) {
-            services.add(ControllerSingleton.class);
+            if (!transportClient) {
+                return Arrays.<Class<? extends LifecycleComponent>> asList(ControllerSingleton.class);
+            }
         } else {
             logger.info("Plugin disabled.", name());
         }
-        return services;
+        return Collections.emptyList();
     }
 }

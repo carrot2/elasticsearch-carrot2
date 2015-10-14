@@ -1,11 +1,11 @@
 package org.carrot2.elasticsearch.debug;
 
-import static org.elasticsearch.common.settings.ImmutableSettings.settingsBuilder;
-import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
+import static org.elasticsearch.common.settings.Settings.*;
+import static org.elasticsearch.node.NodeBuilder.*;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.elasticsearch.common.network.NetworkUtils;
+import org.carrot2.elasticsearch.ClusteringPlugin;
 import org.elasticsearch.node.Node;
 
 /**
@@ -14,11 +14,14 @@ import org.elasticsearch.node.Node;
  */
 public class StartLocalNode {
     public static void main(String[] args) throws Exception {
-        System.setProperty("log4j.configuration", "log4j-verbose.properties");
+        System.setProperty("es.logger.level", "TRACE");
+        System.setProperty("es.logger.prefix", "");
         Node node = nodeBuilder().settings(settingsBuilder()
+                .extendArray("plugin.types", ClusteringPlugin.class.getName())
+                .put("path.home", "target/home")
                 .put("path.data", "target/data")
                 .put("path.plugins", "src")
-                .put("cluster.name", "test-cluster-" + NetworkUtils.getLocalAddress()))
+                .put("cluster.name", "test-cluster"))
                 .local(false)
                 .node();
 

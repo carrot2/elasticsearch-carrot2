@@ -1,14 +1,14 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
-import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.GET;
-import static org.elasticsearch.rest.RestRequest.Method.POST;
+import static org.carrot2.elasticsearch.LoggerUtils.*;
+import static org.elasticsearch.action.ValidateActions.*;
+import static org.elasticsearch.rest.RestRequest.Method.*;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -21,13 +21,12 @@ import org.carrot2.core.ProcessingException;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.ElasticsearchIllegalArgumentException;
+import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.ClientAction;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -35,15 +34,10 @@ import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.ElasticsearchClient;
+import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.base.Function;
-import org.elasticsearch.common.base.Joiner;
-import org.elasticsearch.common.base.Preconditions;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.collect.ImmutableMap;
-import org.elasticsearch.common.collect.Lists;
-import org.elasticsearch.common.collect.Maps;
-import org.elasticsearch.common.collect.Sets;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -56,6 +50,9 @@ import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
+
+import com.google.common.base.Preconditions;
+
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
@@ -68,21 +65,27 @@ import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.InternalAggregation;
 import org.elasticsearch.search.aggregations.InternalAggregations;
-import org.elasticsearch.search.facet.InternalFacets;
 import org.elasticsearch.search.highlight.HighlightField;
 import org.elasticsearch.search.internal.InternalSearchHit;
 import org.elasticsearch.search.internal.InternalSearchHits;
 import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.threadpool.ThreadPool;
-import org.elasticsearch.transport.BaseTransportRequestHandler;
 import org.elasticsearch.transport.TransportChannel;
+import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
+
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Perform clustering of search results.
  */
 public class ClusteringAction 
-    extends ClientAction<ClusteringAction.ClusteringActionRequest, 
+    extends Action<ClusteringAction.ClusteringActionRequest, 
                    ClusteringAction.ClusteringActionResponse, 
                    ClusteringAction.ClusteringActionRequestBuilder> {
     /* Action name. */
@@ -96,15 +99,15 @@ public class ClusteringAction
     }
 
     @Override
-    public ClusteringActionRequestBuilder newRequestBuilder(Client client) {
-        return new ClusteringActionRequestBuilder(client);
-    }
-
-    @Override
     public ClusteringActionResponse newResponse() {
         return new ClusteringActionResponse();
     }
     
+    @Override
+    public ClusteringActionRequestBuilder newRequestBuilder(ElasticsearchClient client) {
+        return new ClusteringActionRequestBuilder(client);
+    }
+
     /**
      * An {@link ActionRequest} for {@link ClusteringAction}. 
      */
@@ -253,13 +256,11 @@ public class ClusteringAction
                 return;
             }
 
-            XContentParser parser = null;
-            try {
+            try (XContentParser parser = XContentFactory.xContent(source).createParser(source)) {
                 // TODO: we should avoid reparsing search_request here 
                 // but it's terribly difficult to slice the underlying byte 
                 // buffer to get just the search request.
-                parser = XContentFactory.xContent(source).createParser(source);
-                Map<String, Object> asMap = parser.mapOrderedAndClose();
+                Map<String, Object> asMap = parser.mapOrdered();
 
                 String queryHint = (String) asMap.get("query_hint"); 
                 if (queryHint != null) {
@@ -306,10 +307,6 @@ public class ClusteringAction
                     // ignore
                 }
                 throw new ElasticsearchException("Failed to parse source [" + sSource + "]", e);
-            } finally {
-                if (parser != null) {
-                    parser.close();
-                }
             }            
         }
 
@@ -468,11 +465,10 @@ public class ClusteringAction
     public static class ClusteringActionRequestBuilder 
         extends ActionRequestBuilder<ClusteringActionRequest, 
                                      ClusteringActionResponse, 
-                                     ClusteringActionRequestBuilder,
-                                     Client>
+                                     ClusteringActionRequestBuilder>
     {
-        public ClusteringActionRequestBuilder(Client client) {
-            super(client, new ClusteringActionRequest());
+        public ClusteringActionRequestBuilder(ElasticsearchClient client) {
+            super(client, ClusteringAction.INSTANCE, new ClusteringActionRequest());
         }
     
         public ClusteringActionRequestBuilder setSearchRequest(SearchRequestBuilder builder) {
@@ -560,12 +556,6 @@ public class ClusteringAction
         public ClusteringActionRequestBuilder addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
             super.request.addFieldMappingSpec(fieldSpec, logicalField);
             return this;
-        }
-    
-        @Override
-        protected void doExecute(
-                ActionListener<ClusteringActionResponse> listener) {
-            client.execute(ClusteringAction.INSTANCE, request, listener);
         }
     }
 
@@ -724,15 +714,21 @@ public class ClusteringAction
         private final ControllerSingleton controllerSingleton;
     
         @Inject
-        protected TransportClusteringAction(Settings settings, ThreadPool threadPool,
+        protected TransportClusteringAction(Settings settings, 
+                ThreadPool threadPool,
                 TransportService transportService,
                 TransportSearchAction searchAction,
                 ControllerSingleton controllerSingleton,
-                ActionFilters actionFilters) {
-            super(settings, ClusteringAction.NAME, threadPool, actionFilters);
+                ActionFilters actionFilters,
+                IndexNameExpressionResolver indexNameExpressionResolver) {
+            super(settings, ClusteringAction.NAME, threadPool, actionFilters, indexNameExpressionResolver);
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
-            transportService.registerHandler(ClusteringAction.NAME, new TransportHandler());
+            transportService.registerRequestHandler(
+                    ClusteringAction.NAME,
+                    ClusteringActionRequest.class,
+                    ThreadPool.Names.SAME,
+                    new TransportHandler());
         }
     
         @Override
@@ -755,8 +751,7 @@ public class ClusteringAction
                         algorithmId = algorithmComponentIds.get(0);                    
                     } else {
                         if (!algorithmComponentIds.contains(algorithmId)) {
-                            listener.onFailure(
-                                    new ElasticsearchIllegalArgumentException("No such algorithm: " + algorithmId));
+                            listener.onFailure(new IllegalArgumentException("No such algorithm: " + algorithmId));
                             return;
                         }
                     }
@@ -818,11 +813,6 @@ public class ClusteringAction
             InternalSearchHit [] trimmedHits = new InternalSearchHit[Math.min(maxHits, allHits.hits().length)];
             System.arraycopy(allHits.hits(), 0, trimmedHits, 0, trimmedHits.length);
 
-            InternalFacets facets = null;
-            if (response.getFacets() != null) {
-                facets = new InternalFacets(response.getFacets().facets());
-            }
-
             InternalAggregations aggregations = null;
             if (response.getAggregations() != null) {
                 aggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
@@ -831,7 +821,6 @@ public class ClusteringAction
             return new SearchResponse(
                     new InternalSearchResponse(
                             new InternalSearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore()),
-                            facets,
                             aggregations,
                             response.getSuggest(), 
                             response.isTimedOut(),
@@ -1004,15 +993,9 @@ public class ClusteringAction
             return documents;
         }
     
-        private final class TransportHandler extends BaseTransportRequestHandler<ClusteringActionRequest> {
-            @Override
-            public ClusteringActionRequest newInstance() {
-                return new ClusteringActionRequest();
-            }
-    
+        private final class TransportHandler implements TransportRequestHandler<ClusteringActionRequest> {
             @Override
             public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel) throws Exception {
-                request.listenerThreaded(false);
                 execute(request, new ActionListener<ClusteringActionResponse>() {
                     @Override
                     public void onResponse(ClusteringActionResponse response) {
@@ -1033,11 +1016,6 @@ public class ClusteringAction
                         }
                     }
                 });
-            }
-    
-            @Override
-            public String executor() {
-                return ThreadPool.Names.SAME;
             }
         }
     }
@@ -1100,7 +1078,7 @@ public class ClusteringAction
                     break;
 
                 case GET:
-                    actionBuilder.setSearchRequest(RestSearchAction.parseSearchRequest(request));
+                    actionBuilder.setSearchRequest(RestSearchAction.parseSearchRequest(request, parseFieldMatcher));
                     fillFromGetRequest(actionBuilder, request);
                     break;
 
@@ -1139,7 +1117,7 @@ public class ClusteringAction
         static {
             GET_REQUEST_FIELDMAPPERS = Maps.newEnumMap(LogicalField.class);
             for (LogicalField lf : LogicalField.values()) {
-                GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase());
+                GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase(Locale.ROOT));
             }
         }
         

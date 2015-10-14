@@ -6,7 +6,8 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
 import static org.carrot2.elasticsearch.ClusteringPlugin.PLUGIN_CONFIG_FILE_NAME;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -24,16 +25,16 @@ import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.common.collect.Maps;
+
+import com.google.common.collect.Maps;
+
+import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.common.settings.ImmutableSettings;
-import org.elasticsearch.common.settings.ImmutableSettings.Builder;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
-import org.elasticsearch.env.FailedToResolveConfigException;
 import org.elasticsearch.node.Node;
 
 import com.google.common.base.Joiner;
@@ -56,36 +57,37 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
         this.logger = Loggers.getLogger("plugin.carrot2", settings);
     }
 
+    @SuppressForbidden(reason = "C2 integration (File API)")
     @Override
     protected void doStart() throws ElasticsearchException {
         try {
-            Builder builder = ImmutableSettings.builder();
+             // TODO: embed sample config like in the sample?
+            Settings.Builder builder = Settings.builder();
             for (String configName : new String [] {
                     PLUGIN_CONFIG_FILE_NAME + ".yml",
                     PLUGIN_CONFIG_FILE_NAME + ".json",
                     PLUGIN_CONFIG_FILE_NAME + ".properties"
             }) {
                 try {
-                    builder.loadFromUrl(environment.resolveConfig(configName));
-                } catch (FailedToResolveConfigException e) {
-                    // fall-through
+                    Path resolved = environment.configFile().resolve(configName);
+                    if (resolved != null && Files.exists(resolved)) {
+                        builder.loadFromPath(resolved);
+                    }
                 } catch (NoClassDefFoundError e) {
                     logger.warn("Could not parse: {}", e, configName);
                 }
             }
             Settings c2Settings = builder.build();
 
-            final String resourcesPath = c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, ".");
-            final File resourcesDir;
-            if (new File(resourcesPath).isAbsolute()) {
-                resourcesDir = new File(resourcesPath);
-            } else {
-                resourcesDir = new File(environment.configFile(), resourcesPath);
-            }
-            logger.info("Resources dir: {}", resourcesDir.getAbsolutePath());
+            final Path resourcesPath = environment.configFile().resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
+                    .toAbsolutePath()
+                    .normalize();
+
+            // TODO: can we read from files, instead of resources?
+            logger.info("Resources dir: {}", resourcesPath);
 
             final ResourceLookup resourceLookup = new ResourceLookup(
-                    new DirLocator(resourcesDir),
+                    new DirLocator(resourcesPath.toFile()),
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Parse suite's descriptors with loggers turned off (shut them up a bit).
@@ -108,7 +110,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                         if (isNoClassDefFound(desc.getInitializationFailure())) {
                             logger.debug("Algorithm not available on classpath: {}", desc.getId());
                         } else {
-                            logger.debug("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                            logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
                         }
                     }
                     return suite;
@@ -116,7 +118,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             },
             Logger.getLogger(ProcessingComponentDescriptor.class),
             Logger.getLogger(ReflectionUtils.class));
-            
+
             algorithms = Lists.newArrayList();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
                 algorithms.add(descriptor.getId());

@@ -1,36 +1,28 @@
 package org.carrot2.elasticsearch;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.assertj.core.api.Assertions;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.assertj.core.api.Assertions;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import com.google.common.collect.Lists;
+import org.junit.Test;
 
 /**
  * Java API tests.
  */
-public class StressTests extends AbstractApiTest {
-    @DataProvider(name = "clients")
-    public static Object[][] clientProvider() {
-        return new Object[][] {
-                {localClient},
-                {transportClient},
-        };
-    }
+public class MultithreadedClusteringIT extends SampleIndexTestCase {
+    @Test
+    public void testRequestFlood() throws Exception {
+        final Client client = client();
 
-    @Test(dataProvider = "clients")
-    public void testRequestFlood(final Client client) throws Exception {
-        List<Callable<ClusteringActionResponse>> tasks = Lists.newArrayList();
+        List<Callable<ClusteringActionResponse>> tasks = new ArrayList<>();
 
         final int requests = 100;
         final int threads = 10;
@@ -80,5 +72,3 @@ public class StressTests extends AbstractApiTest {
         }
     }
 }
-
-
