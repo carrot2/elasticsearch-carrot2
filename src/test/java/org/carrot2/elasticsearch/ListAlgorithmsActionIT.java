@@ -14,7 +14,6 @@ import static org.elasticsearch.test.ESIntegTestCase.Scope.SUITE;
 public class ListAlgorithmsActionIT extends ESIntegTestCase {
     @Override
     protected Settings nodeSettings(int nodeOrdinal) {
-        System.out.println("## Invoked nodeSettings()");
         return Settings.builder()
                 .put(super.nodeSettings(nodeOrdinal))
                 .put("plugin.types", ClusteringPlugin.class.getName())
@@ -23,7 +22,6 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
     
     @Override
     protected Settings transportClientSettings() {
-        System.out.println("## Invoked transportClientSettings()");
         return Settings.builder()
                 .put(super.transportClientSettings())
                 .put("plugin.types", ClusteringPlugin.class.getName())
@@ -32,7 +30,6 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
     
     @Override
     protected Settings externalClusterClientSettings() {
-        System.out.println("## Invoked externalClusterClientSettings()");
         return Settings.builder()
                 .put(super.externalClusterClientSettings())
                 .put("plugin.types", ClusteringPlugin.class.getName())
