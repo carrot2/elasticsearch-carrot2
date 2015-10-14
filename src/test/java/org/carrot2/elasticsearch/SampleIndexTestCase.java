@@ -42,6 +42,7 @@ import com.google.common.io.Resources;
  */
 public abstract class SampleIndexTestCase extends ESIntegTestCase {
     protected String restBaseUrl;
+    protected Client client;
 
     @Override
     protected Settings nodeSettings(int nodeOrdinal) {
@@ -79,7 +80,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             LanguageCode [] languages = LanguageCode.values();
             Collections.shuffle(Arrays.asList(languages), rnd);
 
-            Client client = client();
+            this.client = client();
             BulkRequestBuilder bulk = client.prepareBulk();
             for (String[] data : SampleDocumentData.SAMPLE_DATA) {
                 bulk.add(client.prepareIndex()
