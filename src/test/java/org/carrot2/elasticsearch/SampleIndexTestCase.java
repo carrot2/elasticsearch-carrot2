@@ -18,6 +18,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContent;
@@ -109,7 +110,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         ensureGreen(INDEX_NAME);
 
         InetSocketAddress endpoint = randomFrom(cluster().httpAddresses());
-        this.restBaseUrl = "http:/" + endpoint.toString();
+        this.restBaseUrl = "http://" + NetworkAddress.formatAddress(endpoint);
     }
 
     /**
