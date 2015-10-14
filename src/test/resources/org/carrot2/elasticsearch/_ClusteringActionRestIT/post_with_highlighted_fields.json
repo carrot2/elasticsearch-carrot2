@@ -1,0 +1,29 @@
+{
+    "search_request": {
+        "fields" : [
+          "url", 
+          "title", 
+          "content"
+        ],
+        "highlight" : {
+            "pre_tags" :  ["", ""],
+            "post_tags" : ["", ""],
+            "fields" : {
+                "content" : { "fragment_size" : 150, "number_of_fragments" : 3 },
+                "title"   : { "fragment_size" : 150, "number_of_fragments" : 3 }
+            }
+        },
+        "query" : {
+            "match" : {
+              "_all" : "data mining" 
+            }
+        },
+        "size": 100
+    },
+
+    "query_hint": "data mining",
+    "field_mapping": {
+        "title"  : ["fields.title"],
+        "content": ["highlight.content"]
+    }
+}

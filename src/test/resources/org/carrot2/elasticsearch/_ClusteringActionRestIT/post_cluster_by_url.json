@@ -1,0 +1,18 @@
+{
+    "search_request": {
+        "query" : {
+            "match" : {
+              "_all" : "data mining" 
+            }
+        },
+        "size": 100
+    },
+
+    "query_hint": "data mining",
+    "field_mapping": {
+        "url"    : ["_source.url"],
+        "title"  : ["_source.title"],
+        "content": ["_source.content"]
+    },
+    "algorithm": "byurl"
+}
