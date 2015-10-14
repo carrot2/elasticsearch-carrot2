@@ -28,7 +28,7 @@ Usage guide
 -----------
 
 Once installed, restart ElasticSearch and point your browser to:
-<http://localhost:9200/_plugin/carrot2/>
+<http://localhost:9200/_plugin/elasticsearch-carrot2/>
 (or wherever your ES node is deployed). That file contains
 some sample data and query examples.
 
