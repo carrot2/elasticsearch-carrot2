@@ -10,6 +10,10 @@ Changes in Backwards Compatibility
   from version 2.0.0 plugins must declare an (exact) version
   of ES they were compiled against.
 
+Other changes
+
+* GH-24: Update JS visualizations in plugin documentation.
+
 ================ ElasticSearch-Carrot2 1.9.1 ================
 
 Changes in Backwards Compatibility
