@@ -784,7 +784,8 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
               setting (see <a href="#plugin-configuration">plugin configuration</a>).</p>
 
             <p>For example to override the default attributes
-              for all requests to the <code>lingo</code> algorithm, one would create a <code>{es.home}/config/lingo-attributes.xml</code>
+              for all requests to the <code>lingo</code> algorithm, one would tweak 
+              <code>{plugin.zip}/config/algorithms/lingo-attributes.xml</code>
               and place any overridden attributes in there, as in:</p>
 
             <pre class="linenums prettyprint">
@@ -916,16 +917,16 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
             <p>The plugin comes with sensible defaults out of the box and should
             require no additional configuration. Customize only if really necessary.</p>
 
-            <p>The following configuration files and properties can be used
-            to modify plugin defaults.</p>
+            <p>The following configuration properties can be tweaked at the global 
+            ES configuration level.</p>
 
             <dl>
-              <dt><code>{path.conf}/elasticsearch.yml</code>,<br/>
-                  <code>{path.conf}/elasticsearch.json</code>,<br/>
-                  <code>{path.conf}/elasticsearch.properties</code></dt>
+              <dt><code>{es.home}/config/elasticsearch.yml</code>,<br/>
+                  <code>{es.home}/config/elasticsearch.json</code>,<br/>
+                  <code>{es.home}/config/elasticsearch.properties</code></dt>
               <dd>
                 <p>The main ES configuration file can be used to enable/ disable the plugin
-                  and to tweak the resources assiogned to clustering requests.</p>
+                  and to tweak the resources assigned to clustering requests.</p>
 
                 <dl class="dl-horizontal">
                   <dt><code>carrot2.enabled</code></dt>
@@ -941,30 +942,35 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
                   </dd>
                 </dl>
               </dd>
+            </dl>
 
-              <dt><code>{path.conf}/carrot2.yml</code>,<br/>
-                  <code>{path.conf}/carrot2.json</code>,<br/>
-                  <code>{path.conf}/carrot2.properties</code></dt>
+            <p>The following configuration files and properties can be found inside the 
+            plugin's ZIP file (<code>config/</code> folder) or 
+            under <code>{es.home}/config/elasticsearch-carrot2/</code> after 
+            plugin installation).</p>
+
+            <dl>
+              <dt><code>carrot2.yml</code>,<br/>
+                  <code>carrot2.json</code>,<br/>
+                  <code>carrot2.properties</code></dt>
               <dd>
-                <p>An optional configuration file with plugin-specific settings.</p>
+                <p>The master configuration file for the plugin.</p>
 
                 <dl class="dl-horizontal">
                   <dt><code>suite</code></dt>
-                  <dd><p>Algorithm suite XML. The resource is looked up in <code>path.conf</code>
-                  and in classpath. The default suite resource name is <code>carrot2.suite.xml</code>,
-                  it contains the defaults for all open-source algorithms and attempts to load Lingo3G.</p></dd>
+                  <dd><p>Path to the algorithm suite XML. The resource is looked up relative
+                  to the configuration folder. The algorithm suite XML is in Carrot<sup>2</sup> format
+                  ant it contains the defaults for all open-source algorithms and Lingo3G.</p></dd>
 
                   <dt><code>resources</code></dt>
                   <dd><p>Resource lookup path for loading
                     <a href="http://download.carrot2.org/head/manual/index.html#chapter.lexical-resources">Carrot<sup>2</sup> lexical resources</a>,
                     <a href="http://download.carrotsearch.com/lingo3g/manual/#chapter.lexical-resources">Lingo3G's lexical resources</a>
-                    and algorithm descriptor files (including any initialization-time attributes). Relative paths are resolved from
-                    ElasticSearch's <code>path.conf</code> variable (typically <code>config</code> folder). The value
-                    can be an absolute path.</p>
+                    and algorithm descriptor files (including any initialization-time attributes).</p>
 
                     <p>Any resources not present in this location will be loaded from classpath (defaults).</p>
                   </dd>
-                  
+
                   <dt><code>controller.pool-size</code></dt>
                   <dd><p>Size of the internal pool of algorithm instances. This pool is sized automatically depending on
                   the configuration of the search threadpool in ElasticSearch. If too many resources are consumed, the pool

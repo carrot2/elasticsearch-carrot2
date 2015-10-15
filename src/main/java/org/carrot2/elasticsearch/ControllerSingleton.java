@@ -1,13 +1,10 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_RESOURCE;
-import static org.carrot2.elasticsearch.ClusteringPlugin.PLUGIN_CONFIG_FILE_NAME;
+import static org.carrot2.elasticsearch.ClusteringPlugin.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +22,6 @@ import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
-
-import com.google.common.collect.Maps;
-
 import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
@@ -39,6 +33,7 @@ import org.elasticsearch.node.Node;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Holds the {@link Controller} singleton initialized and ready throughout
@@ -61,15 +56,29 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     @Override
     protected void doStart() throws ElasticsearchException {
         try {
-             // TODO: embed sample config like in the sample?
             Settings.Builder builder = Settings.builder();
+            Path configPath = environment.configFile().resolve(ClusteringPlugin.PLUGIN_NAME);
+
+            if (!Files.isDirectory(configPath)) {
+              Path srcConfig = Paths.get("src/main/config");
+              if (Files.isDirectory(srcConfig)) {
+                // Allow running from within the IDE.
+                configPath = srcConfig;
+              } else {
+                throw new ElasticsearchException("Config folder missing: " + configPath);
+              }
+            } else {
+              logger.info("Configuration files at: {}", configPath.toAbsolutePath());
+            }
+
             for (String configName : new String [] {
-                    PLUGIN_CONFIG_FILE_NAME + ".yml",
-                    PLUGIN_CONFIG_FILE_NAME + ".json",
-                    PLUGIN_CONFIG_FILE_NAME + ".properties"
+                    "config.yml",
+                    "config.yaml",
+                    "config.json",
+                    "config.properties"
             }) {
                 try {
-                    Path resolved = environment.configFile().resolve(configName);
+                    Path resolved = configPath.resolve(configName);
                     if (resolved != null && Files.exists(resolved)) {
                         builder.loadFromPath(resolved);
                     }
@@ -79,32 +88,23 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             }
             Settings c2Settings = builder.build();
 
-            final Path resourcesPath = environment.configFile().resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
-                    .toAbsolutePath()
-                    .normalize();
-
-            // TODO: can we read from files, instead of resources?
-            logger.info("Resources dir: {}", resourcesPath);
-
-            final ResourceLookup resourceLookup = new ResourceLookup(
-                    new DirLocator(resourcesPath.toFile()),
-                    new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
-
-            // Parse suite's descriptors with loggers turned off (shut them up a bit).
-            final String suiteResourceName = c2Settings.get(
-                    DEFAULT_SUITE_PROPERTY_NAME, 
-                    DEFAULT_SUITE_RESOURCE);
-            final IResource suiteResource = resourceLookup.getFirst(suiteResourceName);
-            if (suiteResource == null) {
+            // Parse suite descriptors with loggers turned off (shut them up a bit).
+            final Path suitePath = configPath.resolve(c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
+            if (!Files.isRegularFile(suitePath)) {
                 throw new ElasticsearchException(
-                        "Could not find algorithm suite: " + suiteResourceName);
+                        "Could not find algorithm suite: " + suitePath.toAbsolutePath().normalize());
             }
+
+            final ResourceLookup suiteLookup = new ResourceLookup(
+                new DirLocator(suitePath.getParent().toFile()));
+            final IResource suiteResource = 
+                suiteLookup.getFirst(suitePath.getFileName().toString());
 
             final List<String> failed = Lists.newArrayList();
             final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
                 public ProcessingComponentSuite call() throws Exception {
                     ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                            suiteResource, resourceLookup);
+                            suiteResource, suiteLookup);
                     for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
                         failed.add(desc.getId());
                         if (isNoClassDefFound(desc.getInitializationFailure())) {
@@ -131,6 +131,16 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             if (!failed.isEmpty()) {
                 logger.info("Unavailable clustering components: {}", Joiner.on(", ").join(failed));
             }
+
+            final Path resourcesPath = configPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
+                .toAbsolutePath()
+                .normalize();
+
+            logger.info("Lexical resources dir: {}", resourcesPath);
+
+            final ResourceLookup resourceLookup = new ResourceLookup(
+                    new DirLocator(resourcesPath.toFile()),
+                    new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Change the default resource lookup to include the configured location.
             Map<String, Object> c2SettingsAsMap = Maps.newHashMap();

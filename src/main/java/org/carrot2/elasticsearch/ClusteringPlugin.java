@@ -25,21 +25,15 @@ public class ClusteringPlugin extends Plugin {
     public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
 
     /**
-     * Plugin's main configuration file (under ES/conf).
+     * Plugin name.
      */
-    public static final String PLUGIN_CONFIG_FILE_NAME = "carrot2";
+    public static final String PLUGIN_NAME = "elasticsearch-carrot2";
 
     /**
      * A property key in {@link #PLUGIN_CONFIG_FILE_NAME} holding
      * the default component suite's resource name.
      */
     public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
-
-    /**
-     * The default suite resource. 
-     * @see #DEFAULT_SUITE_PROPERTY_NAME
-     */
-    public static final String DEFAULT_SUITE_RESOURCE = "carrot2.suite.xml";
 
     /**
      * A property key in {@link #PLUGIN_CONFIG_FILE_NAME} holding
@@ -69,7 +63,7 @@ public class ClusteringPlugin extends Plugin {
 
     @Override
     public String name() {
-        return "elasticsearch-carrot2";
+        return PLUGIN_NAME;
     }
 
     @Override

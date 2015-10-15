@@ -1,156 +1,143 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.elasticsearch.plugin</groupId>
-        <artifactId>plugins</artifactId>
-        <version>2.0.0-rc1</version>
-    </parent>
+  <parent>
+    <groupId>org.elasticsearch.plugin</groupId>
+    <artifactId>plugins</artifactId>
+    <version>2.0.0-rc1</version>
+  </parent>
 
-    <groupId>org.carrot2</groupId>
-    <artifactId>elasticsearch-carrot2</artifactId>
-    <packaging>jar</packaging>
+  <groupId>org.carrot2</groupId>
+  <artifactId>elasticsearch-carrot2</artifactId>
+  <packaging>jar</packaging>
 
-    <name>elasticsearch-carrot2</name>
-    <description>Search results clustering plugin for ElasticSearch</description>
+  <name>elasticsearch-carrot2</name>
+  <description>Search results clustering plugin for ElasticSearch</description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <carrot2.version>3.11.0-SNAPSHOT</carrot2.version>
+    <carrot2.version>3.11.0-SNAPSHOT</carrot2.version>
 
-        <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
-        <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>         
-        <elasticsearch.plugin.classname>org.carrot2.elasticsearch.ClusteringPlugin</elasticsearch.plugin.classname>
+    <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
+    <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>
+    <elasticsearch.plugin.classname>org.carrot2.elasticsearch.ClusteringPlugin</elasticsearch.plugin.classname>
 
-        <tests.rest.load_packaged>false</tests.rest.load_packaged>        
-    </properties>
+    <tests.rest.load_packaged>false</tests.rest.load_packaged>
+  </properties>
 
-    <inceptionYear>2013</inceptionYear>
+  <inceptionYear>2013</inceptionYear>
 
-    <licenses>
-        <license>
-            <name>The Apache Software License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
-    <scm>
-        <connection>scm:git:git@github.com:carrot2/elasticsearch-carrot2.git</connection>
-        <developerConnection>scm:git:git@github.com:carrot2/elasticsearch-carrot2.git</developerConnection>
-        <url>http://github.com/carrot2/elasticsearch-carrot2</url>
-    </scm>
+  <scm>
+    <connection>scm:git:git@github.com:carrot2/elasticsearch-carrot2.git</connection>
+    <developerConnection>scm:git:git@github.com:carrot2/elasticsearch-carrot2.git</developerConnection>
+    <url>http://github.com/carrot2/elasticsearch-carrot2</url>
+  </scm>
 
-    <repositories>
-        <repository>
-            <id>oss-releases</id>
-            <url>https://oss.sonatype.org/content/repositories/releases/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>            
-        </repository>
-        <repository>
-            <id>oss-snapshots</id>
-            <name>Sonatype OSS Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>            
-        </repository>
-    </repositories>
+  <repositories>
+    <repository>
+      <id>oss-releases</id>
+      <url>https://oss.sonatype.org/content/repositories/releases/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>oss-snapshots</id>
+      <name>Sonatype OSS Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
-    <dependencies>
-        <dependency>
-          <groupId>org.carrot2</groupId>
-          <artifactId>carrot2-mini</artifactId>
-          <version>${carrot2.version}</version>
-          <scope>compile</scope>
-          <exclusions>
-          <exclusion>
-            <artifactId>mahout-collections</artifactId>
-            <groupId>org.apache.mahout</groupId>
-          </exclusion>
-          </exclusions>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>org.carrot2</groupId>
+      <artifactId>carrot2-mini</artifactId>
+      <version>${carrot2.version}</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>mahout-collections</artifactId>
+          <groupId>org.apache.mahout</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
 
-        <dependency>
-          <groupId>org.assertj</groupId>
-          <artifactId>assertj-core</artifactId>
-          <version>2.1.0</version>
-          <type>jar</type>
-          <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>2.1.0</version>
+      <type>jar</type>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-          <groupId>org.json</groupId>
-          <artifactId>json</artifactId>
-          <version>20140107</version>
-          <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20140107</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
 
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <outputDirectory>${project.build.directory}/releases/</outputDirectory>
-                    <descriptors>
-                        <descriptor>src/main/assemblies/plugin.xml</descriptor>
-                    </descriptors>
-                </configuration>
-            </plugin>
-        </plugins>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <outputDirectory>${project.build.directory}/releases/</outputDirectory>
+          <descriptors>
+            <descriptor>src/main/assemblies/plugin.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
+  <profiles>
+    <profile>
+      <id>ide.eclipse</id>
+      <activation>
+        <property>
+          <name>m2e.version</name>
+        </property>
+      </activation>
+      <build>
         <pluginManagement>
           <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>check-license</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>check-license-headers</id>
-                        <phase>none</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
               <groupId>org.eclipse.m2e</groupId>
               <artifactId>lifecycle-mapping</artifactId>
@@ -223,25 +210,51 @@
                       <action>
                         <ignore></ignore>
                       </action>
-                    </pluginExecution>                    
+                    </pluginExecution>
                   </pluginExecutions>
                 </lifecycleMappingMetadata>
               </configuration>
             </plugin>
           </plugins>
         </pluginManagement>
-    </build>
-    
-    <profiles>
-      <profile>
-        <id>disable-es-checks</id>
-        <activation>
-          <property>
-            <name>java.version</name>
-          </property>
-        </activation>
-        
-        
+      </build>
     </profile>
-    </profiles>
+
+    <profile>
+      <id>disable-es-checks</id>
+      <activation>
+        <property>
+          <name>java.version</name>
+        </property>
+      </activation>
+
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-antrun-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>check-license</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
+
+            <plugin>
+              <groupId>com.mycila</groupId>
+              <artifactId>license-maven-plugin</artifactId>
+              <executions>
+                <execution>
+                  <id>check-license-headers</id>
+                  <phase>none</phase>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>

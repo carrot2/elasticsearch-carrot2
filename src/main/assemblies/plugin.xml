@@ -26,7 +26,11 @@
 
   <fileSets>
     <fileSet>
-      <directory>${project.basedir}/src/main/_site</directory>
+        <directory>src/main/config</directory>
+        <outputDirectory>config</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>src/main/_site</directory>
       <outputDirectory>_site</outputDirectory>
       <excludes>
         <exclude>.idea/**</exclude>

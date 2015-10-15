@@ -9,6 +9,11 @@ Changes in Backwards Compatibility
   scheme will now follow ElasticSearch strictly since starting
   from version 2.0.0 plugins must declare an (exact) version
   of ES they were compiled against.
+  
+* GH-25: Plugin configuration files have been moved to reside
+  inside the plugin. They should be automatically installed
+  (copied) to ElasticSearch's config/ folder, where they can
+  be tweaked.
 
 Other changes
 
