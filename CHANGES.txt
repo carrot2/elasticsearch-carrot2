@@ -17,6 +17,8 @@ Changes in Backwards Compatibility
 
 Other changes
 
+* GH-27: Add dependency on morfologik-stemming.
+
 * GH-24: Update JS visualizations in plugin documentation.
 
 ================ ElasticSearch-Carrot2 1.9.1 ================

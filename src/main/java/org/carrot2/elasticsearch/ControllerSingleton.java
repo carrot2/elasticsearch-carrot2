@@ -5,6 +5,7 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
+import org.carrot2.util.resource.FileResource;
 import org.carrot2.util.resource.IResource;
 import org.carrot2.util.resource.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
@@ -57,18 +59,18 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
     protected void doStart() throws ElasticsearchException {
         try {
             Settings.Builder builder = Settings.builder();
-            Path configPath = environment.configFile().resolve(ClusteringPlugin.PLUGIN_NAME);
+            Path pluginConfigPath = environment.configFile().resolve(ClusteringPlugin.PLUGIN_NAME);
 
-            if (!Files.isDirectory(configPath)) {
+            if (!Files.isDirectory(pluginConfigPath)) {
               Path srcConfig = Paths.get("src/main/config");
               if (Files.isDirectory(srcConfig)) {
                 // Allow running from within the IDE.
-                configPath = srcConfig;
+                pluginConfigPath = srcConfig;
               } else {
-                throw new ElasticsearchException("Config folder missing: " + configPath);
+                throw new ElasticsearchException("Config folder missing: " + pluginConfigPath);
               }
             } else {
-              logger.info("Configuration files at: {}", configPath.toAbsolutePath());
+              logger.info("Configuration files at: {}", pluginConfigPath.toAbsolutePath());
             }
 
             for (String configName : new String [] {
@@ -78,7 +80,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                     "config.properties"
             }) {
                 try {
-                    Path resolved = configPath.resolve(configName);
+                    Path resolved = pluginConfigPath.resolve(configName);
                     if (resolved != null && Files.exists(resolved)) {
                         builder.loadFromPath(resolved);
                     }
@@ -89,7 +91,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             Settings c2Settings = builder.build();
 
             // Parse suite descriptors with loggers turned off (shut them up a bit).
-            final Path suitePath = configPath.resolve(c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
+            final Path suitePath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
             if (!Files.isRegularFile(suitePath)) {
                 throw new ElasticsearchException(
                         "Could not find algorithm suite: " + suitePath.toAbsolutePath().normalize());
@@ -132,7 +134,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                 logger.info("Unavailable clustering components: {}", Joiner.on(", ").join(failed));
             }
 
-            final Path resourcesPath = configPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
+            final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
                 .toAbsolutePath()
                 .normalize();
 
@@ -147,6 +149,14 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             DefaultLexicalDataFactoryDescriptor.attributeBuilder(c2SettingsAsMap)
                 .resourceLookup(resourceLookup);
             c2SettingsAsMap.putAll(c2Settings.getAsMap());
+
+            // Set up the license for Lingo3G, if it's available.
+            Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
+            if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
+              c2SettingsAsMap.put("license", new FileResource(lingo3gLicense.toFile()));
+            } else if (algorithms.contains("lingo3g")) {
+              logger.warn("Lingo3G is on classpath, but no licenses have been found. Check out the documentation.");
+            }
 
             // Create component pool.
             Integer poolSize = c2Settings.getAsInt(DEFAULT_COMPONENT_SIZE_PROPERTY_NAME, 0);
@@ -164,6 +174,38 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
         if (algorithms == null || algorithms.isEmpty()) {
             throw new ElasticsearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
         }
+    }
+
+    /**
+     * Because we're running with a security manager (most likely), we need to scan for Lingo3G
+     * license in ES configuration directories.
+     */
+    private Path scanForLingo3GLicense(Environment environment, Path pluginConfigPath) {
+      List<Path> licenses = new ArrayList<>();
+
+      for (Path candidate : new Path [] {
+          pluginConfigPath.resolve("license.xml"),
+          pluginConfigPath.resolve(".license.xml"),
+          environment.configFile().resolve("license.xml"),
+          environment.configFile().resolve(".license.xml")
+      }) {
+        logger.debug("Lingo3G license location scan: {} {}.",
+            candidate.toAbsolutePath().normalize(),
+            Files.isRegularFile(candidate) ? "(found)" : "(not found)");
+        if (Files.isRegularFile(candidate)) {
+          licenses.add(candidate);
+        }
+      }
+
+      if (licenses.size() > 1) {
+        throw new ElasticsearchException("There should be exactly one Lingo3G license on scan paths: {}", licenses);
+      }
+
+      if (licenses.size() == 1) {
+        return licenses.iterator().next();
+      } else {
+        return null;
+      }
     }
 
     /** */

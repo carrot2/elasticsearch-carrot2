@@ -800,6 +800,8 @@ public class ClusteringAction
                         // clients cannot deserialize exception classes).
                         String message = "Search results clustering error: " + e.getMessage();
                         listener.onFailure(new ElasticsearchException(message));
+
+                        logger.warn("Could not process clustering request.", e);
                         return;
                     }
                 }
