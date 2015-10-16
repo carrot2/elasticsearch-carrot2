@@ -40,22 +40,21 @@ ES and query the clustering plugin.
 Versions and compatibility
 --------------------------
 
-Recommended compatiblity chart (matching versions of ES, Carrot2, 
+Recommended compatibility chart (matching versions of ES, Carrot2, 
 and optionally Lingo3G). (+) means it'll probably work with newer
 releases (we test against latest version from that branch). Starting
 with ES 2.0, the plugin is compiled against an exact version of ES
 and will not work with any other version. The numbering of the plugin
-will always correspond to the numbering of ES to keep things simple.
+will always correspond to the numbering of ES to easily identify
+the version of ES the plugin will work with.
 
     ------------------------------------------------------------------
     | Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
-    | master            | 2.0.0.rc1              | 3.11.0-SNAPSHOT | 1.12.3  |
+    | master            | 2.0.0.rc1              | 3.11.0  | 1.12.3  |
     ------------------------------------------------------------------
     | 1.9.1             | 1.6.0  -> 1.7.2+?      | 3.10.4  | 1.12.3  |
     | 1.9.0             | 1.6.0  -> 1.7.0+?      | 3.10.1  | 1.12.0  |
-    | 1.8.0             | 1.4.0  -> 1.6.0+       | 3.9.3   | 1.10.0  |
-    | 1.7.0             | 1.3.0  -> 1.3.5+       | 3.9.3   | 1.10.0  |
     ------------------------------------------------------------------
 
 
@@ -64,6 +63,8 @@ Discontinued version branches:
     ------------------------------------------------------------------
     | Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
+    | 1.8.0             | 1.4.0  -> 1.6.0+       | 3.9.3   | 1.10.0  |
+    | 1.7.0             | 1.3.0  -> 1.3.5+       | 3.9.3   | 1.10.0  |
     | 1.6.0             | 1.2.0  -> 1.2.2+       | 3.9.2   |  1.9.1  |
     | 1.5.0             | 1.1.0  -> 1.1.2+       | 3.9.2   |  1.9.1  |
     | 1.4.0             | 1.0.0  -> 1.0.3        | 3.9.0   |  1.9.0  |

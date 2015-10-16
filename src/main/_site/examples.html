@@ -978,10 +978,27 @@ $.post("/test/test/_search_with_clusters", JSON.stringify(request), function(res
                 </dl>
               </dd>
             </dl>
+            
+            <p>For <a href="http://carrotsearch.com/lingo3g">Lingo3G</a>, the license needs to be installed
+            at any of the following locations.</p>
+
+            <dl>
+              <dt><code>{es.home}/config/license.xml</code>,<br/>
+                  <code>{es.home}/config/.license.xml</code>,<br/>
+                  <code>{plugin-zip}/config/license.xml</code>,<br/>
+                  <code>{plugin-zip}/config/.license.xml</code></dt>
+              <dd></dd>
+            </dl>            
+            
+            <p>Note that if the license is installed inside the plugin, it should be copied to the ZIP file
+            <strong>before</strong> the installation. Once installed, the plugin's configuration is
+            copied to <code>{es.home}/config/plugin-name/</code> and can be tweaked there.</p>
           </div>
         </div>
       </section>
     </div>
+
+    <p style="margin-bottom: 3em;" />
 
     <script src="assets/js/jquery-2.0.2.min.js"></script>
     <script src="assets/js/sample-data.js"></script>

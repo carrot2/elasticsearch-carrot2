@@ -17,9 +17,15 @@ Changes in Backwards Compatibility
 
 Other changes
 
+* GH-28: Add support for es/config and plugin/config relative 
+  license locations in Lingo3G
+
 * GH-27: Add dependency on morfologik-stemming.
 
 * GH-24: Update JS visualizations in plugin documentation.
+
+* Dropped support for plugin branches 1.7.x and 1.8.x (ES 1.3.x and
+  1.4.x).
 
 ================ ElasticSearch-Carrot2 1.9.1 ================
 
