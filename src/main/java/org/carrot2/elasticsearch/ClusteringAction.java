@@ -44,7 +44,6 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -248,7 +247,7 @@ public class ClusteringAction
         }
 
         /**
-         * Parses some {@link XContent} and fills in the request. 
+         * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request. 
          */
         @SuppressWarnings("unchecked")
         public void source(BytesReference source) {
