@@ -21,7 +21,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <carrot2.version>3.11.0-SNAPSHOT</carrot2.version>
+    <carrot2.version>3.11.0</carrot2.version>
     <lingo3g.version>1.12.3</lingo3g.version>
 
     <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
