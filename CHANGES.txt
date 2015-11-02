@@ -1,6 +1,12 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 2.0.0 ====================
+
+Other changes
+
+* GH-29: Upgrade to ES 2.0.0 (official).
+
 ================ ElasticSearch-Carrot2 2.0.0-rc1 ================
 
 Changes in Backwards Compatibility
