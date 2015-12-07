@@ -5,8 +5,11 @@ import static org.elasticsearch.action.ValidateActions.*;
 import static org.elasticsearch.rest.RestRequest.Method.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -38,20 +41,19 @@ import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.collect.CopyOnWriteHashSet;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
-
-import com.google.common.base.Preconditions;
-
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestChannel;
@@ -72,13 +74,6 @@ import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
-
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 /**
  * Perform clustering of search results.
@@ -113,7 +108,7 @@ public class ClusteringAction
     public static class ClusteringActionRequest extends ActionRequest<ClusteringActionRequest> {
         private SearchRequest searchRequest;
         private String queryHint;
-        private List<FieldMappingSpec> fieldMapping = Lists.newArrayList();
+        private List<FieldMappingSpec> fieldMapping = new ArrayList<>();
         private String algorithm;
         private int maxHits = Integer.MAX_VALUE;
         private Map<String, Object> attributes;
@@ -522,16 +517,18 @@ public class ClusteringAction
 
         public ClusteringActionRequestBuilder addAttributes(Map<String,Object> attributes) {
             if (super.request.getAttributes() == null) {
-                super.request.setAttributes(Maps.<String,Object> newHashMap());
+                super.request.setAttributes(new HashMap<String, Object>());
             }
             super.request.getAttributes().putAll(attributes);
             return this;
         }
     
         public ClusteringActionRequestBuilder addAttribute(String key, Object value) {
-            return addAttributes(ImmutableMap.of(key, value));
+            HashMap<String, Object> tmp = new HashMap<String, Object>();
+            tmp.put(key, value);
+            return addAttributes(tmp);
         }
-    
+
         public ClusteringActionRequestBuilder setAttributes(Map<String,Object> attributes) {
             super.request.setAttributes(attributes);
             return this;
@@ -608,9 +605,9 @@ public class ClusteringAction
                 SearchResponse searchResponse, 
                 DocumentGroup[] topGroups,
                 Map<String,String> info) {
-            this.searchResponse = Preconditions.checkNotNull(searchResponse);
-            this.topGroups = Preconditions.checkNotNull(topGroups);
-            this.info = Collections.unmodifiableMap(Preconditions.checkNotNull(info));
+            this.searchResponse = checkNotNull(searchResponse);
+            this.topGroups = checkNotNull(topGroups);
+            this.info = Collections.unmodifiableMap(checkNotNull(info));
         }
 
         public SearchResponse getSearchResponse() {
@@ -688,7 +685,7 @@ public class ClusteringAction
             }
             
             int entries = in.readVInt();
-            info = Maps.newLinkedHashMap();
+            info = new LinkedHashMap<>();
             for (int i = 0; i < entries; i++) {
                 info.put(in.readOptionalString(), in.readOptionalString());
             }
@@ -707,8 +704,8 @@ public class ClusteringAction
         extends TransportAction<ClusteringAction.ClusteringActionRequest,
                                 ClusteringAction.ClusteringActionResponse>
     {
-        private final Set<String> langCodeWarnings = Sets.newCopyOnWriteArraySet();
-    
+        private final Set<String> langCodeWarnings = new CopyOnWriteHashSet<>();
+
         private final TransportSearchAction searchAction;
         private final ControllerSingleton controllerSingleton;
     
@@ -762,7 +759,7 @@ public class ClusteringAction
                      */
                     Controller controller = controllerSingleton.getController();
     
-                    Map<String, Object> processingAttrs = Maps.newHashMap();
+                    Map<String, Object> processingAttrs = new HashMap<>();
                     Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
                     if (requestAttrs != null) {
                         processingAttrs.putAll(requestAttrs);
@@ -778,14 +775,13 @@ public class ClusteringAction
                         final DocumentGroup[] groups = adapt(result.getClusters());
                         final long tsClusteringEnd = System.nanoTime();
 
-                        final Map<String,String> info = ImmutableMap.<String,String> builder()
-                                .put(ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId)
-                                .put(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)))
-                                .put(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)))
-                                .put(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)))
-                                .put(ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()))
-                                .put(ClusteringActionResponse.Fields.Info.MAX_HITS, clusteringRequest.getMaxHits() == Integer.MAX_VALUE ? "" : Integer.toString(clusteringRequest.getMaxHits()))                                
-                                .build();
+                        final Map<String,String> info = new LinkedHashMap<>();
+                        info.put(ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId);
+                        info.put(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)));
+                        info.put(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsClusteringStart)));
+                        info.put(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS, Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringEnd - tsSearchStart)));
+                        info.put(ClusteringActionResponse.Fields.Info.INCLUDE_HITS, Boolean.toString(clusteringRequest.getIncludeHits()));
+                        info.put(ClusteringActionResponse.Fields.Info.MAX_HITS, clusteringRequest.getMaxHits() == Integer.MAX_VALUE ? "" : Integer.toString(clusteringRequest.getMaxHits()));
 
                         // Trim search response's hits if we need to.
                         if (clusteringRequest.getMaxHits() != Integer.MAX_VALUE) {
@@ -834,11 +830,11 @@ public class ClusteringAction
         }
 
         private List<InternalAggregation> toInternal(List<Aggregation> list) {
-            return Lists.transform(list, new Function<Aggregation,InternalAggregation>() {
-                public InternalAggregation apply(Aggregation a) {
-                    return (InternalAggregation) a;
-                }
-            });
+            List<InternalAggregation> t = new ArrayList<>(list.size());
+            for (Aggregation a : list) {
+              t.add((InternalAggregation) a);
+            }
+            return t;
         }
 
         /* */
@@ -881,14 +877,12 @@ public class ClusteringAction
                 final ClusteringActionRequest request,
                 SearchResponse response) {
             SearchHit [] hits = response.getHits().hits();
-            List<Document> documents = Lists.newArrayListWithCapacity(hits.length);
+            List<Document> documents = new ArrayList<>(hits.length);
             List<FieldMappingSpec> fieldMapping = request.getFieldMapping();
             StringBuilder title = new StringBuilder();
             StringBuilder content = new StringBuilder();
             StringBuilder url = new StringBuilder();
             StringBuilder language = new StringBuilder();
-            Joiner joiner = Joiner.on(" . ");
-            
             boolean emptySourceWarningEmitted = false;
     
             for (SearchHit hit : hits) {
@@ -916,7 +910,14 @@ public class ClusteringAction
                         case HIGHLIGHT:
                             HighlightField highlightField = highlightFields.get(spec.field);
                             if (highlightField != null) {
-                                appendContent = joiner.join(highlightField.fragments());
+                                StringBuilder sb = new StringBuilder();
+                                for (Text t : highlightField.fragments()) {
+                                  if (sb.length() > 0) { 
+                                    sb.append(" . ");
+                                  }
+                                  sb.append(t != null ? t.toString() : "");
+                                }
+                                appendContent = sb.toString();
                             }
                             break;
     
@@ -1116,7 +1117,7 @@ public class ClusteringAction
 
         private final static EnumMap<LogicalField, String> GET_REQUEST_FIELDMAPPERS;
         static {
-            GET_REQUEST_FIELDMAPPERS = Maps.newEnumMap(LogicalField.class);
+            GET_REQUEST_FIELDMAPPERS = new EnumMap<>(LogicalField.class);
             for (LogicalField lf : LogicalField.values()) {
                 GET_REQUEST_FIELDMAPPERS.put(lf, "field_mapping_" + lf.name().toLowerCase(Locale.ROOT));
             }
@@ -1160,5 +1161,12 @@ public class ClusteringAction
                 }
             }
         }
+    }
+
+    static <T> T checkNotNull(T in) {
+      if (in == null) {
+        throw new NullPointerException("Argument cannot be null.");
+      }
+      return in;
     }
 }

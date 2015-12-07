@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import com.carrotsearch.randomizedtesting.RandomizedTest;
 
-public class DummyTest extends RandomizedTest {
+public class DummyTests extends RandomizedTest {
     @Test
     public void success() {}
 }
