@@ -1,8 +1,13 @@
 
 ElasticSearch-Carrot2 Change Log
 
-================ ElasticSearch-Carrot2 2.1.0-SNAPSHOT ====================
+================ ElasticSearch-Carrot2 2.1.0 ====================
 
+No changes (ES version compatibility release).
+
+================ ElasticSearch-Carrot2 2.0.1 ====================
+
+No changes (ES version compatibility release).
 
 ================ ElasticSearch-Carrot2 2.0.0 ====================
 
