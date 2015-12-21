@@ -6,7 +6,7 @@
               "_all" : "data mining" 
             }
         },
-        "size": 100
+        "size": 300
     },
 
     "query_hint": "data mining",
