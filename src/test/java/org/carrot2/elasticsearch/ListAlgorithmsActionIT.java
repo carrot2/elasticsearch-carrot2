@@ -1,39 +1,28 @@
 package org.carrot2.elasticsearch;
 
+import static org.elasticsearch.test.ESIntegTestCase.Scope.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.assertj.core.api.Assertions;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.test.ESIntegTestCase;
-import org.elasticsearch.test.ESIntegTestCase.ClusterScope;
-
-import static org.elasticsearch.test.ESIntegTestCase.Scope.SUITE; 
+import org.elasticsearch.test.ESIntegTestCase.ClusterScope; 
 
 @ClusterScope(scope = SUITE, transportClientRatio = 0) 
 public class ListAlgorithmsActionIT extends ESIntegTestCase {
     @Override
-    protected Settings nodeSettings(int nodeOrdinal) {
-        return Settings.builder()
-                .put(super.nodeSettings(nodeOrdinal))
-                .put("plugin.types", ClusteringPlugin.class.getName())
-                .build();
+    protected Collection<Class<? extends Plugin>> nodePlugins() {
+      return Arrays.<Class<? extends Plugin>> asList(ClusteringPlugin.class);
     }
-    
+
     @Override
-    protected Settings transportClientSettings() {
-        return Settings.builder()
-                .put(super.transportClientSettings())
-                .put("plugin.types", ClusteringPlugin.class.getName())
-                .build();
-    }
-    
-    @Override
-    protected Settings externalClusterClientSettings() {
-        return Settings.builder()
-                .put(super.externalClusterClientSettings())
-                .put("plugin.types", ClusteringPlugin.class.getName())
-                .build();
+    protected Collection<Class<? extends Plugin>> transportClientPlugins() {
+      return nodePlugins();
     }
 
     public void testAlgorithmsAreListed() throws Exception {

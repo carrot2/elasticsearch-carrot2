@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +29,7 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.node.Node;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
@@ -49,24 +51,17 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         return Settings.builder()
                 .put(super.nodeSettings(nodeOrdinal))
                 .put(Node.HTTP_ENABLED, true)
-                .put("plugin.types", ClusteringPlugin.class.getName())
                 .build();
     }
     
     @Override
-    protected Settings transportClientSettings() {
-        return Settings.builder()
-                .put(super.transportClientSettings())
-                .put("plugin.types", ClusteringPlugin.class.getName())
-                .build();
+    protected Collection<Class<? extends Plugin>> nodePlugins() {
+      return Arrays.<Class<? extends Plugin>> asList(ClusteringPlugin.class);
     }
     
     @Override
-    protected Settings externalClusterClientSettings() {
-        return Settings.builder()
-                .put(super.externalClusterClientSettings())
-                .put("plugin.types", ClusteringPlugin.class.getName())
-                .build();
+    protected Collection<Class<? extends Plugin>> transportClientPlugins() {
+      return nodePlugins();
     }
 
     protected final static String INDEX_NAME = "test"; 

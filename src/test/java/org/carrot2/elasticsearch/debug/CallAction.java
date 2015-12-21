@@ -19,8 +19,8 @@ public class CallAction {
     public static void main(String[] args) throws Exception {
         TransportClient client = TransportClient.builder()
                 .settings(Settings.builder()
-                        .put("plugin.types", ClusteringPlugin.class.getName())
                         .put("client.transport.sniff", true))
+                .addPlugin(ClusteringPlugin.class)
                 .build();
         client.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9300)));
 
