@@ -1,6 +1,14 @@
 
 ElasticSearch-Carrot2 Change Log
 
+================ ElasticSearch-Carrot2 2.2.0 ====================
+
+Other changes
+
+* GH-37: Added workarounds for tighter security checks in ES 2.2.0.
+  The plugin from now on requires custom relaxed policy which has
+  to be manually approved during startup.
+
 ================ ElasticSearch-Carrot2 2.1.2 ====================
 
 No changes (ES version compatibility release).

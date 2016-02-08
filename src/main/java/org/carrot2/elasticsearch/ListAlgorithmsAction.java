@@ -153,7 +153,7 @@ public class ListAlgorithmsAction
         private final ControllerSingleton controllerSingleton;
 
         @Inject
-        protected TransportListAlgorithmsAction(Settings settings, ThreadPool threadPool,
+        public TransportListAlgorithmsAction(Settings settings, ThreadPool threadPool,
                 TransportService transportService,
                 ControllerSingleton controllerSingleton,
                 ActionFilters actionFilters,

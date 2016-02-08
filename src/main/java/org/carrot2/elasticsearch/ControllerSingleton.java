@@ -4,7 +4,9 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,14 +43,14 @@ import com.google.common.collect.Maps;
  * Holds the {@link Controller} singleton initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
-class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
+public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
     private final Environment environment;
     private Controller controller;
     private List<String> algorithms;
     private ESLogger logger;
 
     @Inject
-    protected ControllerSingleton(Settings settings, Environment environment) {
+    public ControllerSingleton(Settings settings, Environment environment) {
         super(settings);
         this.environment = environment;
         this.logger = Loggers.getLogger("plugin.carrot2", settings);
@@ -62,13 +64,7 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
             Path pluginConfigPath = environment.configFile().resolve(ClusteringPlugin.PLUGIN_NAME);
 
             if (!Files.isDirectory(pluginConfigPath)) {
-              Path srcConfig = Paths.get("src/main/config");
-              if (Files.isDirectory(srcConfig)) {
-                // Allow running from within the IDE.
-                pluginConfigPath = srcConfig;
-              } else {
-                throw new ElasticsearchException("Config folder missing: " + pluginConfigPath);
-              }
+              throw new ElasticsearchException("Missing config files: {}", pluginConfigPath);
             } else {
               logger.info("Configuration files at: {}", pluginConfigPath.toAbsolutePath());
             }
@@ -103,23 +99,28 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
                 suiteLookup.getFirst(suitePath.getFileName().toString());
 
             final List<String> failed = Lists.newArrayList();
-            final ProcessingComponentSuite suite = LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
-                public ProcessingComponentSuite call() throws Exception {
-                    ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                            suiteResource, suiteLookup);
-                    for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
-                        failed.add(desc.getId());
-                        if (isNoClassDefFound(desc.getInitializationFailure())) {
-                            logger.debug("Algorithm not available on classpath: {}", desc.getId());
-                        } else {
-                            logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
-                        }
-                    }
-                    return suite;
-                }
-            },
-            Logger.getLogger(ProcessingComponentDescriptor.class),
-            Logger.getLogger(ReflectionUtils.class));
+            final ProcessingComponentSuite suite = AccessController.doPrivileged(new   PrivilegedExceptionAction<ProcessingComponentSuite>() {
+              @Override
+              public ProcessingComponentSuite run() throws Exception {
+                return LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
+                  public ProcessingComponentSuite call() throws Exception {
+                      ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
+                              suiteResource, suiteLookup);
+                      for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
+                          failed.add(desc.getId());
+                          if (isNoClassDefFound(desc.getInitializationFailure())) {
+                              logger.debug("Algorithm not available on classpath: {}", desc.getId());
+                          } else {
+                              logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
+                          }
+                      }
+                      return suite;
+                  }
+                },
+                Logger.getLogger(ProcessingComponentDescriptor.class),
+                Logger.getLogger(ReflectionUtils.class));
+              }
+            });
 
             algorithms = Lists.newArrayList();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
@@ -229,11 +230,17 @@ class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton
 
     @Override
     protected void doStop() throws ElasticsearchException {
-        Controller c = controller;
+        final Controller c = controller;
         controller = null;
 
         if (c != null) {
-            c.close();
+          AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+              c.close();
+              return null;
+            }
+          });
         }
     }
 

@@ -26,6 +26,15 @@
 
   <fileSets>
     <fileSet>
+        <directory>${project.basedir}/src/main/plugin-metadata</directory>
+        <includes>
+          <include>plugin-security.policy</include>
+        </includes>
+        <outputDirectory></outputDirectory>
+        <filtered>false</filtered>
+    </fileSet>
+
+    <fileSet>
         <directory>src/main/config</directory>
         <outputDirectory>config</outputDirectory>
     </fileSet>

@@ -5,6 +5,8 @@ import static org.elasticsearch.action.ValidateActions.*;
 import static org.elasticsearch.rest.RestRequest.Method.*;
 
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -70,6 +72,7 @@ import org.elasticsearch.search.highlight.HighlightField;
 import org.elasticsearch.search.internal.InternalSearchHit;
 import org.elasticsearch.search.internal.InternalSearchHits;
 import org.elasticsearch.search.internal.InternalSearchResponse;
+import org.elasticsearch.search.profile.InternalProfileShardResults;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
@@ -710,7 +713,7 @@ public class ClusteringAction
         private final ControllerSingleton controllerSingleton;
     
         @Inject
-        protected TransportClusteringAction(Settings settings, 
+        public TransportClusteringAction(Settings settings, 
                 ThreadPool threadPool,
                 TransportService transportService,
                 TransportSearchAction searchAction,
@@ -751,15 +754,16 @@ public class ClusteringAction
                             return;
                         }
                     }
+                    final String _algorithmId = algorithmId;
 
                     /*
                      * We're not a threaded listener so we're running on the search thread. This
                      * is good -- we don't want to serve more clustering requests than we can handle
                      * anyway. 
                      */
-                    Controller controller = controllerSingleton.getController();
+                    final Controller controller = controllerSingleton.getController();
     
-                    Map<String, Object> processingAttrs = new HashMap<>();
+                    final Map<String, Object> processingAttrs = new HashMap<>();
                     Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
                     if (requestAttrs != null) {
                         processingAttrs.putAll(requestAttrs);
@@ -771,7 +775,12 @@ public class ClusteringAction
                             .query(clusteringRequest.getQueryHint());
         
                         final long tsClusteringStart = System.nanoTime();
-                        final ProcessingResult result = controller.process(processingAttrs, algorithmId);
+                        final ProcessingResult result = AccessController.doPrivileged(new PrivilegedAction<ProcessingResult>() {
+                          @Override
+                          public ProcessingResult run() {
+                            return controller.process(processingAttrs, _algorithmId);
+                          }
+                        });
                         final DocumentGroup[] groups = adapt(result.getClusters());
                         final long tsClusteringEnd = System.nanoTime();
 
@@ -810,23 +819,32 @@ public class ClusteringAction
             InternalSearchHit [] trimmedHits = new InternalSearchHit[Math.min(maxHits, allHits.hits().length)];
             System.arraycopy(allHits.hits(), 0, trimmedHits, 0, trimmedHits.length);
 
-            InternalAggregations aggregations = null;
+            InternalAggregations _internalAggregations = null;
             if (response.getAggregations() != null) {
-                aggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
+                _internalAggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
             }
 
+            InternalSearchHits _searchHits = 
+                new InternalSearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore());
+
+            InternalProfileShardResults _internalProfileShardResults = new InternalProfileShardResults(response.getProfileResults());
+
+            InternalSearchResponse _searchResponse = 
+                new InternalSearchResponse(
+                    _searchHits, 
+                    _internalAggregations, 
+                    response.getSuggest(), 
+                    _internalProfileShardResults, 
+                    response.isTimedOut(), 
+                    response.isTerminatedEarly());
+            
             return new SearchResponse(
-                    new InternalSearchResponse(
-                            new InternalSearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore()),
-                            aggregations,
-                            response.getSuggest(), 
-                            response.isTimedOut(),
-                            response.isTerminatedEarly()),
-                    response.getScrollId(),
-                    response.getTotalShards(),
-                    response.getSuccessfulShards(),
-                    response.getTookInMillis(),
-                    response.getShardFailures());
+                               _searchResponse, 
+                               response.getScrollId(), 
+                               response.getTotalShards(), 
+                               response.getSuccessfulShards(), 
+                               response.getTookInMillis(), 
+                               response.getShardFailures());
         }
 
         private List<InternalAggregation> toInternal(List<Aggregation> list) {

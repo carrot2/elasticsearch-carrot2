@@ -307,7 +307,14 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         jsonWithoutHits.remove("info");
         jsonWithHits.remove("info");
 
+        // profile can vary
+        jsonWithoutHits.remove("profile");
+        jsonWithHits.remove("profile");
+
         // now they should match
+        System.out.println("--> with:\n" + jsonWithHits.toString());
+        System.out.println();
+        System.out.println("--> without:\n" + jsonWithoutHits.toString());
         Assertions.assertThat(jsonWithHits.toString()).isEqualTo(jsonWithoutHits.toString());
     }
     
