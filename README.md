@@ -14,7 +14,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/plugin install org.carrot2/elasticsearch-carrot2/2.1.1
+    bin/plugin install org.carrot2/elasticsearch-carrot2/2.1.2
 
 To install from sources (master branch), run:
 
@@ -42,21 +42,18 @@ Versions and compatibility
 
 Recommended compatibility chart (matching versions of ES, Carrot2, 
 and optionally Lingo3G). (+) means it'll probably work with newer
-releases (we test against latest version from that branch). Starting
-with ES 2.0, the plugin is compiled against an exact version of ES
-and will not work with any other version. The numbering of the plugin
+releases (we test against latest version from that branch). 
+
+Starting with ES 2.0, the plugin is compiled against *an exact* version of ES
+and *will not work* with any other version. The numbering of the plugin
 will always correspond to the numbering of ES to easily identify
 the version of ES the plugin will work with.
 
     ------------------------------------------------------------------
-    | Clustering Plugin for ES 2.x+ (matching)   | Carrot2 | Lingo3G |
+    | Clustering Plugin, ES (matching versions)  | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
-    | 2.1.1                                      | 3.11.0  | 1.12.3  |
-    | 2.1.0                                      | 3.11.0  | 1.12.3  |
-    | 2.0.2                                      | 3.11.0  | 1.12.3  |
-    | 2.0.1                                      | 3.11.0  | 1.12.3  |
-    | 2.0.0                                      | 3.11.0  | 1.12.3  |
-    | 2.0.0-rc1                                  | 3.11.0  | 1.12.3  |
+    | 2.1.0 -> 2.1.2                             | 3.11.0  | 1.12.3  |
+    | 2.0.0 -> 2.0.2                             | 3.11.0  | 1.12.3  |
     ------------------------------------------------------------------
 
     ------------------------------------------------------------------
