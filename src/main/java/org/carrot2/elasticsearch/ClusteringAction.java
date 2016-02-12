@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -49,7 +50,6 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentBuilderString;
@@ -928,14 +928,7 @@ public class ClusteringAction
                         case HIGHLIGHT:
                             HighlightField highlightField = highlightFields.get(spec.field);
                             if (highlightField != null) {
-                                StringBuilder sb = new StringBuilder();
-                                for (Text t : highlightField.fragments()) {
-                                  if (sb.length() > 0) { 
-                                    sb.append(" . ");
-                                  }
-                                  sb.append(t != null ? t.toString() : "");
-                                }
-                                appendContent = sb.toString();
+                                appendContent = join(Arrays.asList(highlightField.fragments()));
                             }
                             break;
     
@@ -951,7 +944,26 @@ public class ClusteringAction
                                 }
                             }
                             if (sourceAsMap != null) {
-                                appendContent = sourceAsMap.get(spec.field);
+                                String[] fieldNames = spec.field.split(".");
+                                Object data = sourceAsMap;
+                                for (String fieldName : fieldNames) {
+                                    if (!(data instanceof Map)){
+                                        logger.warn("cannot find: " + spec.field);
+                                        break;
+                                    }
+                                    data = ((Map<?,?>) data).get(fieldName);
+                                }
+
+                                if (data != null) {
+                                    logger.info("_source " + spec.field + " is " + data.getClass().getName());
+                                    if (data instanceof List) {
+                                        appendContent = join((List<?>) data);
+                                    } else {
+                                        appendContent = data;
+                                    }
+                                } else {
+                                    logger.warn("Cannot find: " + spec.field);
+                                }
                             }
                             break;
     
@@ -1011,6 +1023,17 @@ public class ClusteringAction
             }
     
             return documents;
+        }
+
+        static String join(List<?> list) {
+          StringBuilder sb = new StringBuilder();
+          for (Object t : list) {
+            if (sb.length() > 0) { 
+              sb.append(" . ");
+            }
+            sb.append(t != null ? t.toString() : "");
+          }
+          return sb.toString();
         }
     
         private final class TransportHandler implements TransportRequestHandler<ClusteringActionRequest> {
