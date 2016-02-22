@@ -917,6 +917,7 @@ public class ClusteringAction
                 for (FieldMappingSpec spec : fieldMapping) {
                     // Determine the content source.
                     Object appendContent = null;
+outer:
                     switch (spec.source) {
                         case FIELD:
                             SearchHitField searchHitField = fields.get(spec.field);
@@ -943,26 +944,34 @@ public class ClusteringAction
                                     sourceAsMap = hit.getSource();
                                 }
                             }
+
                             if (sourceAsMap != null) {
-                                String[] fieldNames = spec.field.split(".");
-                                Object data = sourceAsMap;
+                                String[] fieldNames = spec.field.split("\\.");
+                                Object value = sourceAsMap;
+
+                                // Descend into maps.
                                 for (String fieldName : fieldNames) {
-                                    if (!(data instanceof Map)){
-                                        logger.warn("cannot find: " + spec.field);
-                                        break;
+                                    if (Map.class.isInstance(value)) {
+                                      value = ((Map<?,?>) value).get(fieldName);
+                                      if (value == null) {
+                                        // No such key.
+                                        logger.warn("Cannot find into field {} from spec: {}",
+                                            fieldName,
+                                            spec.field);
+                                        break outer;
+                                      }
+                                    } else {
+                                      logger.warn("Field is not a map: {} in spec.: {}",
+                                          fieldName,
+                                          spec.field);
+                                      break outer;
                                     }
-                                    data = ((Map<?,?>) data).get(fieldName);
                                 }
 
-                                if (data != null) {
-                                    logger.info("_source " + spec.field + " is " + data.getClass().getName());
-                                    if (data instanceof List) {
-                                        appendContent = join((List<?>) data);
-                                    } else {
-                                        appendContent = data;
-                                    }
+                                if (value instanceof List) {
+                                    appendContent = join((List<?>) value);
                                 } else {
-                                    logger.warn("Cannot find: " + spec.field);
+                                    appendContent = value;
                                 }
                             }
                             break;
