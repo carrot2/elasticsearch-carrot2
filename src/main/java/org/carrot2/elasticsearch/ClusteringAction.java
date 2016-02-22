@@ -911,6 +911,7 @@ public class ClusteringAction
                 for (FieldMappingSpec spec : fieldMapping) {
                     // Determine the content source.
                     Object appendContent = null;
+outer:
                     switch (spec.source) {
                         case FIELD:
                             SearchHitField searchHitField = fields.get(spec.field);
@@ -938,30 +939,35 @@ public class ClusteringAction
                                 }
                             }
                             if (sourceAsMap != null) {
-//                                appendContent = sourceAsMap.get(spec.field);
-                                String[] fieldNames = spec.field.split(".");
-                                Object data = sourceAsMap;
-                                for(String fieldName : fieldNames) {
-                                    if(!(data instanceof Map)){
-                                        logger.warn("cannot find " + spec.field);
-                                        break;
+                              String[] fieldNames = spec.field.split("\\.");
+                              Object value = sourceAsMap;
+
+                              // Descend into maps.
+                              for (String fieldName : fieldNames) {
+                                  if (Map.class.isInstance(value)) {
+                                    value = ((Map<?,?>) value).get(fieldName);
+                                    if (value == null) {
+                                      // No such key.
+                                      logger.warn("Cannot find into field {} from spec: {}",
+                                          fieldName,
+                                          spec.field);
+                                      break outer;
                                     }
-                                    data = ((Map)data).get(fieldName);
-                                }
-                                if(data != null) {
-                                    if(data != null) {
-                                        logger.info("_source " + spec.field + " is " + data.getClass().getCanonicalName());
-                                        if(data instanceof List) {
-                                            appendContent = joiner.join((List)data);
-                                        } else {
-                                            appendContent = data;
-                                        }
-                                    }
-                                } else {
-                                    logger.warn("cannot find " + spec.field);
-                                }
-                            }
-                            break;
+                                  } else {
+                                    logger.warn("Field is not a map: {} in spec.: {}",
+                                        fieldName,
+                                        spec.field);
+                                    break outer;
+                                  }
+                              }
+
+                              if (value instanceof List) {
+                                  appendContent = joiner.join((List<?>) value);
+                              } else {
+                                  appendContent = value;
+                              }
+                          }
+                          break;
     
                         default:
                             throw org.carrot2.elasticsearch.Preconditions.unreachable();
