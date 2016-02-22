@@ -6,11 +6,7 @@ import static org.elasticsearch.rest.RestRequest.Method.GET;
 import static org.elasticsearch.rest.RestRequest.Method.POST;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.carrot2.core.Cluster;
@@ -942,7 +938,28 @@ public class ClusteringAction
                                 }
                             }
                             if (sourceAsMap != null) {
-                                appendContent = sourceAsMap.get(spec.field);
+//                                appendContent = sourceAsMap.get(spec.field);
+                                String[] fieldNames = spec.field.split(".");
+                                Object data = sourceAsMap;
+                                for(String fieldName : fieldNames) {
+                                    if(!(data instanceof Map)){
+                                        logger.warn("cannot find " + spec.field);
+                                        break;
+                                    }
+                                    data = ((Map)data).get(fieldName);
+                                }
+                                if(data != null) {
+                                    if(data != null) {
+                                        logger.info("_source " + spec.field + " is " + data.getClass().getCanonicalName());
+                                        if(data instanceof List) {
+                                            appendContent = joiner.join((List)data);
+                                        } else {
+                                            appendContent = data;
+                                        }
+                                    }
+                                } else {
+                                    logger.warn("cannot find " + spec.field);
+                                }
                             }
                             break;
     
