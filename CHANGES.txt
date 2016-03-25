@@ -3,6 +3,8 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.2.1 ====================
+
 Other changes
 
 * GH-40: Upgrade to C2 3.12.0 and L3G 1.13.0.
