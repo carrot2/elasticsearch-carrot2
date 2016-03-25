@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
 import org.carrot2.core.Cluster;
@@ -44,7 +45,6 @@ import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
-import org.elasticsearch.common.collect.CopyOnWriteHashSet;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -707,7 +707,7 @@ public class ClusteringAction
         extends TransportAction<ClusteringAction.ClusteringActionRequest,
                                 ClusteringAction.ClusteringActionResponse>
     {
-        private final Set<String> langCodeWarnings = new CopyOnWriteHashSet<>();
+        private final Set<String> langCodeWarnings = new CopyOnWriteArraySet<>();
 
         private final TransportSearchAction searchAction;
         private final ControllerSingleton controllerSingleton;
