@@ -720,7 +720,8 @@ public class ClusteringAction
                 ControllerSingleton controllerSingleton,
                 ActionFilters actionFilters,
                 IndexNameExpressionResolver indexNameExpressionResolver) {
-            super(settings, ClusteringAction.NAME, threadPool, actionFilters, indexNameExpressionResolver);
+            super(settings, ClusteringAction.NAME, threadPool, actionFilters, indexNameExpressionResolver, transportService.getTaskManager());
+
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
             transportService.registerRequestHandler(
@@ -1045,30 +1046,30 @@ outer:
           return sb.toString();
         }
     
-        private final class TransportHandler implements TransportRequestHandler<ClusteringActionRequest> {
-            @Override
-            public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel) throws Exception {
-                execute(request, new ActionListener<ClusteringActionResponse>() {
-                    @Override
-                    public void onResponse(ClusteringActionResponse response) {
-                        try {
-                            channel.sendResponse(response);
-                        } catch (Exception e) {
-                            onFailure(e);
-                        }
-                    }
-    
-                    @Override
-                    public void onFailure(Throwable e) {
-                        try {
-                            channel.sendResponse(e);
-                        } catch (Exception e1) {
-                            logger.warn("Failed to send error response for action ["
-                                    + ClusteringAction.NAME + "] and request [" + request + "]", e1);
-                        }
-                    }
-                });
-            }
+        private final class TransportHandler extends TransportRequestHandler<ClusteringActionRequest> {
+          @Override
+          public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel) throws Exception {
+            execute(request, new ActionListener<ClusteringActionResponse>() {
+              @Override
+              public void onResponse(ClusteringActionResponse response) {
+                  try {
+                      channel.sendResponse(response);
+                  } catch (Exception e) {
+                      onFailure(e);
+                  }
+              }
+
+              @Override
+              public void onFailure(Throwable e) {
+                  try {
+                      channel.sendResponse(e);
+                  } catch (Exception e1) {
+                      logger.warn("Failed to send error response for action ["
+                              + ClusteringAction.NAME + "] and request [" + request + "]", e1);
+                  }
+              }
+            });
+          }
         }
     }
 
@@ -1120,9 +1121,9 @@ outer:
             // Parse incoming arguments depending on the HTTP method used to make
             // the request.
             final ClusteringActionRequestBuilder actionBuilder = new ClusteringActionRequestBuilder(client);
+            SearchRequest searchRequest = new SearchRequest();
             switch (request.method()) {
                 case POST:
-                    SearchRequest searchRequest = new SearchRequest();
                     searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
                     searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
                     actionBuilder.setSearchRequest(searchRequest);
@@ -1130,7 +1131,8 @@ outer:
                     break;
 
                 case GET:
-                    actionBuilder.setSearchRequest(RestSearchAction.parseSearchRequest(request, parseFieldMatcher));
+                    RestSearchAction.parseSearchRequest(searchRequest, request, parseFieldMatcher, null);
+                    actionBuilder.setSearchRequest(searchRequest);
                     fillFromGetRequest(actionBuilder, request);
                     break;
 

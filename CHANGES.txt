@@ -3,6 +3,15 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.3.0 ====================
+
+Other changes
+
+* ES version/ API compatibility release.
+
+* Visualizations in the docs display proper resolution on high 
+  DPI screens.
+
 ================ ElasticSearch-Carrot2 2.2.1 ====================
 
 Other changes

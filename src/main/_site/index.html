@@ -116,11 +116,13 @@
             groupOutlineWidth: 3,
             titleBar: "inscribed",
             titleBarTextColor: "rgba(0,0,0,.5)",
-            visibleGroupCount: 10
+            visibleGroupCount: 10,
+            pixelRatio: window.devicePixelRatio || 1
           });
           var foamtree = new CarrotSearchFoamTree({
             id: "foamtree",
-            backgroundColor: "#fff"
+            backgroundColor: "#fff",
+            pixelRatio: window.devicePixelRatio || 1
           });
 
           function doVisualize() {

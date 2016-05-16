@@ -1,18 +1,18 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
+import static org.carrot2.elasticsearch.LoggerUtils.*;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.Client;
@@ -158,7 +158,7 @@ public class ListAlgorithmsAction
                 ControllerSingleton controllerSingleton,
                 ActionFilters actionFilters,
                 IndexNameExpressionResolver indexNameExpressionResolver) {
-            super(settings, ListAlgorithmsAction.NAME, threadPool, actionFilters, indexNameExpressionResolver);
+            super(settings, ListAlgorithmsAction.NAME, threadPool, actionFilters, indexNameExpressionResolver, transportService.getTaskManager());
             this.controllerSingleton = controllerSingleton;
             transportService.registerRequestHandler(
                     ListAlgorithmsAction.NAME,
@@ -173,7 +173,7 @@ public class ListAlgorithmsAction
             listener.onResponse(new ListAlgorithmsActionResponse(controllerSingleton.getAlgorithms()));
         }
 
-        private final class TransportHandler implements TransportRequestHandler<ListAlgorithmsActionRequest> {
+        private final class TransportHandler extends TransportRequestHandler<ListAlgorithmsActionRequest> {
             @Override
             public void messageReceived(final ListAlgorithmsActionRequest request, 
                                         final TransportChannel channel) throws Exception {
