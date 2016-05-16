@@ -123,7 +123,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         }
 
         Assertions.assertThat(allLanguages.size())
-            .describedAs("Expected a lot of languages to appear in top groups.")
+            .describedAs("Expected a lot of languages to appear in top groups: " + allLanguages)
             .isLessThan(LanguageCode.values().length / 2);
     }
     
