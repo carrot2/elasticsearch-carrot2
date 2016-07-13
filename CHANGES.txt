@@ -3,6 +3,10 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.3.4 ====================
+
+No changes (ES version compatibility release).
+
 ================ ElasticSearch-Carrot2 2.3.2 ====================
 
 No changes (ES version compatibility release).
