@@ -14,7 +14,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/plugin install org.carrot2/elasticsearch-carrot2/2.3.2
+    bin/plugin install org.carrot2/elasticsearch-carrot2/2.3.4
 
 To install from sources (master branch), run:
 
@@ -54,11 +54,16 @@ and *will not work* with any other version. The numbering of the plugin
 will always correspond to the numbering of ES to easily identify
 the version of ES the plugin will work with.
 
+If you need a point version that has not been released (yet or skipped),
+then update the project descriptor (pom.xml) and recompile from sources,
+this will yield a binary version of the plugin compatible with the 
+given ES version.
+
     ------------------------------------------------------------------
     | Clustering Plugin, ES (matching versions)  | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
     | (master, unreleased)                       | 3.12.0  | 1.13.0  |
-    | 2.3.0 -> 2.3.2                             | 3.12.0  | 1.13.0  |
+    | 2.3.0 -> 2.3.4                             | 3.12.0  | 1.13.0  |
     | 2.2.1                                      | 3.12.0  | 1.13.0  |
     | 2.2.0                                      | 3.11.0  | 1.12.3  |
     | 2.1.0 -> 2.1.2                             | 3.11.0  | 1.12.3  |
