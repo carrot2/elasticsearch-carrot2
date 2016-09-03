@@ -106,7 +106,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         ensureGreen(INDEX_NAME);
 
         InetSocketAddress endpoint = randomFrom(cluster().httpAddresses());
-        this.restBaseUrl = "http://" + NetworkAddress.formatAddress(endpoint);
+        this.restBaseUrl = "http://" + NetworkAddress.format(endpoint);
     }
 
     /**

@@ -3,6 +3,10 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.4.0 ====================
+
+* GH-47: Method renamed in ES (compatibility release).
+
 ================ ElasticSearch-Carrot2 2.3.4 ====================
 
 No changes (ES version compatibility release).
