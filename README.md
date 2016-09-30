@@ -14,7 +14,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/plugin install org.carrot2/elasticsearch-carrot2/2.4.0
+    bin/plugin install org.carrot2/elasticsearch-carrot2/2.4.0.1
 
 To install from sources (master branch), run:
 
@@ -52,7 +52,9 @@ releases (we test against latest version from that branch).
 Starting with ES 2.0, the plugin is compiled against *an exact* version of ES
 and *will not work* with any other version. The numbering of the plugin
 will always correspond to the numbering of ES to easily identify
-the version of ES the plugin will work with.
+the version of ES the plugin will work with. The only exceptions from this rule
+will be critical bugfixes, which will have the fourth version number: then
+the first three numbers denote ES release the plugin is compiled against.
 
 If you need a point version that has not been released (yet or skipped),
 then update the project descriptor (pom.xml) and recompile from sources,
@@ -63,12 +65,8 @@ given ES version.
     | Clustering Plugin, ES (matching versions)  | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
     | (master, unreleased)                       | 3.12.0  | 1.13.0  |
-    | 2.4.0 -> 2.4.0                             | 3.12.0  | 1.13.0  |
+    | 2.4.0 -> 2.4.0.1                           | 3.12.0  | 1.13.0  |
     | 2.3.0 -> 2.3.4                             | 3.12.0  | 1.13.0  |
-    | 2.2.1                                      | 3.12.0  | 1.13.0  |
-    | 2.2.0                                      | 3.11.0  | 1.12.3  |
-    | 2.1.0 -> 2.1.2                             | 3.11.0  | 1.12.3  |
-    | 2.0.0 -> 2.0.2                             | 3.11.0  | 1.12.3  |
     ------------------------------------------------------------------
 
     ------------------------------------------------------------------
@@ -84,6 +82,10 @@ Discontinued version branches:
     ------------------------------------------------------------------
     | Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
+    | 2.2.1                                      | 3.12.0  | 1.13.0  |
+    | 2.2.0                                      | 3.11.0  | 1.12.3  |
+    | 2.1.0 -> 2.1.2                             | 3.11.0  | 1.12.3  |
+    | 2.0.0 -> 2.0.2                             | 3.11.0  | 1.12.3  |
     | 1.8.0             | 1.4.0  -> 1.6.0+       | 3.9.3   | 1.10.0  |
     | 1.7.0             | 1.3.0  -> 1.3.5+       | 3.9.3   | 1.10.0  |
     | 1.6.0             | 1.2.0  -> 1.2.2+       | 3.9.2   |  1.9.1  |

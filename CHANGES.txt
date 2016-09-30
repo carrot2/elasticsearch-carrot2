@@ -3,6 +3,12 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.4.0.1 ==================
+
+* GH-49: Wrong version of morfologik stemming shipped (2.0.1 
+  instead of 2.1.0). This is a bugfix release, it will work 
+  with ES 2.4.0.
+
 ================ ElasticSearch-Carrot2 2.4.0 ====================
 
 * GH-47: Method renamed in ES (compatibility release).
