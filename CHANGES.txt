@@ -3,6 +3,10 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.4.1 ==================
+
+* GH-50: Upgrade to C2 3.14.0 and L3G 1.14.0.
+
 ================ ElasticSearch-Carrot2 2.4.0.1 ==================
 
 * GH-49: Wrong version of morfologik stemming shipped (2.0.1 
