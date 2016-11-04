@@ -14,7 +14,7 @@
   <groupId>org.carrot2</groupId>
   <artifactId>elasticsearch-carrot2</artifactId>
   <packaging>jar</packaging>
-  <version>2.4.1</version>
+  <version>2.4.1.1</version>
 
   <name>elasticsearch-carrot2</name>
   <description>Search results clustering plugin for ElasticSearch</description>
@@ -23,8 +23,8 @@
     <elasticsearch.version>${project.parent.version}</elasticsearch.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <carrot2.version>3.14.0</carrot2.version>
-    <lingo3g.version>1.14.0</lingo3g.version>
+    <carrot2.version>3.15.0</carrot2.version>
+    <lingo3g.version>1.15.0</lingo3g.version>
 
     <elasticsearch.plugin.site>true</elasticsearch.plugin.site>
     <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>
