@@ -16,7 +16,6 @@ import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -52,7 +51,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
 
     @SuppressWarnings("unchecked")
     @Test
-    @Ignore("Requires Lingo3G")
+    @Lingo3G
     public void testPostWithClusters() throws Exception {
         Map<?, ?> response = post("post_with_clusters.json");
         
