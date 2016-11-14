@@ -1,0 +1,28 @@
+{
+    "search_request": {
+        "query" : {
+            "match" : {
+              "_all" : "data mining" 
+            }
+        },
+        "size": 100
+    },
+
+    "query_hint": "data mining",
+    "field_mapping": {
+        "title"  : ["_source.title"],
+        "content": ["_source.content"]
+    },
+    "attributes": {
+        "allow-one-document-clusters": true,
+        "clusters": [
+          { "label": "Top Level"},
+          { "label": "Conference",
+            "clusters": [
+              { "label": "Foo" }
+            ]
+          }
+        ]
+    },
+    "algorithm": "lingo3g"
+}

@@ -6,3 +6,6 @@
 /.settings
 *.versionsBackup
 .local*
+
+# l3g license for tests.
+src/main/config/license.xml

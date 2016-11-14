@@ -767,6 +767,7 @@ public class ClusteringAction
                     final Map<String, Object> processingAttrs = new HashMap<>();
                     Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
                     if (requestAttrs != null) {
+                        handleInputClustersSpec(requestAttrs);
                         processingAttrs.putAll(requestAttrs);
                     }
 
@@ -812,7 +813,47 @@ public class ClusteringAction
                 }
             });
         }
-    
+
+        @SuppressWarnings("unchecked")
+        private void handleInputClustersSpec(Map<String, Object> requestAttrs) {
+          // Handle the "special" attribute key "clusters", which Lingo3G recognizes as a request
+          // for incremental clustering. The structure of the input clusters must follow this xcontent
+          // schema:
+          //
+          // "clusters": [{}, {}, ...]
+          // 
+          // with zero, one or more objects representing cluster labels inside:
+          //
+          // { "label": "cluster label",
+          //   "subclusters": [{}, {}, ...] } 
+          //
+          // There is very limited input validation; this feature is largerly undocumented and 
+          // officially unsupported.
+          if (requestAttrs.containsKey("clusters")) {
+            requestAttrs.put("clusters", parseClusters((List<Object>) requestAttrs.get("clusters")));
+          }
+        }
+
+        @SuppressWarnings("unchecked")
+        private List<Cluster> parseClusters(List<Object> xcontentList) {
+          ArrayList<Cluster> result = new ArrayList<>();
+          for (Object xcontent : xcontentList) {
+            result.add(parseCluster((Map<String, Object>) xcontent));
+          }
+          return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        private Cluster parseCluster(Map<String, Object> xcontent) {
+          String label = (String) xcontent.get("label");
+          Cluster cluster = new Cluster(label);
+          List<Object> subclusters = (List<Object>) xcontent.get("clusters");
+          if (subclusters != null) {
+            cluster = cluster.addSubclusters(parseClusters(subclusters));
+          }
+          return cluster;
+        }
+
         protected SearchResponse filterMaxHits(SearchResponse response, int maxHits) {
             // We will use internal APIs here for efficiency. The plugin has restricted explicit ES compatibility
             // anyway. Alternatively, we could serialize/ filter/ deserialize JSON, but this seems simpler.

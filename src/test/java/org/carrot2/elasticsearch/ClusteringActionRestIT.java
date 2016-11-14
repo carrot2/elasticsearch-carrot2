@@ -16,6 +16,7 @@ import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -49,7 +50,41 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
         post("post_with_source_fields.json");
     }
 
-    protected void post(String queryJsonResource) throws Exception {
+    @SuppressWarnings("unchecked")
+    @Test
+    @Ignore("Requires Lingo3G")
+    public void testPostWithClusters() throws Exception {
+        Map<?, ?> response = post("post_with_clusters.json");
+        
+        List<Map<String, ?>> clusterList = (List<Map<String, ?>>) response.get("clusters");
+        int indent = 0;
+        dumpClusters(clusterList, indent);
+    }
+
+    @SuppressWarnings("unchecked")
+    void dumpClusters(List<Map<String, ?>> clusterList, int indent) {
+      for (Map<String, ?> cluster : clusterList) {
+        float score = ((Number) cluster.get("score")).floatValue();
+        String label = (String) cluster.get("label");
+        List<?> documents = (List<?>) cluster.get("documents");
+
+        for (int i = 0; i < indent; i++) {
+          System.out.print("    ");
+        }
+        
+        List<Map<String, ?>> subclusters = (List<Map<String, ?>>) cluster.get("clusters");
+
+        System.out.println("> " + label + " (score=" + score 
+            + ", documents=" + (documents == null ? 0 : documents.size()) 
+            + ", subclusters=" + (subclusters == null ? 0 : subclusters.size()));
+
+        if (subclusters != null) {
+          dumpClusters(subclusters, indent + 1);
+        }
+      }
+    }
+
+    protected Map<?,?> post(String queryJsonResource) throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
 
@@ -65,6 +100,8 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
 
             Assertions.assertThat(clusterList.size())
                 .isGreaterThan(5);
+
+            return map;
         }
     }
 
