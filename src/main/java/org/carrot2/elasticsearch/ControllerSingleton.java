@@ -21,7 +21,6 @@ import org.carrot2.core.ProcessingComponentSuite;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
-import org.carrot2.util.resource.ClassResource;
 import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.FileResource;
 import org.carrot2.util.resource.IResource;
