@@ -3,6 +3,10 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 2.4.2 ====================
+
+No changes (ES version compatibility release).
+
 ================ ElasticSearch-Carrot2 2.4.1.1 ==================
 
 * GH-53: Upgrade to C2 3.15.0 and L3G 1.15.0. This is a compatibility
