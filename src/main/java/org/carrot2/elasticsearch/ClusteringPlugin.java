@@ -1,24 +1,25 @@
 package org.carrot2.elasticsearch;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
-import org.elasticsearch.action.ActionModule;
+import org.elasticsearch.action.ActionRequest;
+import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
-import org.elasticsearch.common.logging.ESLogger;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.plugins.ActionPlugin;
 import org.elasticsearch.plugins.Plugin;
-import org.elasticsearch.rest.RestModule;
+import org.elasticsearch.rest.RestHandler;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /** */
-public class ClusteringPlugin extends Plugin {
+public class ClusteringPlugin extends Plugin implements ActionPlugin {
     /**
      * Master on/off switch property for the plugin (general settings).
      */
@@ -47,68 +48,51 @@ public class ClusteringPlugin extends Plugin {
      * A property key with the size
      * of the clustering controller's algorithm pool. By default the size
      * is zero, meaning the pool is sized dynamically. You can specify a fixed
-     * number of component instances to limit resource usage. 
+     * number of component instances to limit resource usage.
      */
     public static final String DEFAULT_COMPONENT_SIZE_PROPERTY_NAME = "controller.pool-size";
 
     private final boolean transportClient;
     private final boolean pluginEnabled;
-    private final ESLogger logger;
 
     public ClusteringPlugin(Settings settings) {
         this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
-        this.logger = Loggers.getLogger("plugin.carrot2", settings);
-        this.transportClient = TransportClient.CLIENT_TYPE.equals(settings.get(Client.CLIENT_TYPE_SETTING));
+        this.transportClient = TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
     }
 
     @Override
-    public String name() {
-        return PLUGIN_NAME;
-    }
-
-    @Override
-    public String description() {
-        return "Provides search results clustering via the Carrot2 framework";
-    }
-
-    /* Invoked on component assembly. */
-    public void onModule(ActionModule actionModule) {
+    public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
         if (pluginEnabled) {
-            actionModule.registerAction(
-                    ClusteringAction.INSTANCE, 
-                    TransportClusteringAction.class);
-            actionModule.registerAction(
-                    ListAlgorithmsAction.INSTANCE, 
-                    ListAlgorithmsAction.TransportListAlgorithmsAction.class);
+            return Arrays.asList(
+                    new ActionHandler<>(ClusteringAction.INSTANCE, TransportClusteringAction.class),
+                    new ActionHandler<>(ListAlgorithmsAction.INSTANCE, ListAlgorithmsAction.TransportListAlgorithmsAction.class));
         }
+        return Collections.emptyList();
     }
 
-    /* Invoked on component assembly. */
-    public void onModule(RestModule restModule) {
-        if (pluginEnabled) {
-            restModule.addRestAction(RestClusteringAction.class);
-            restModule.addRestAction(ListAlgorithmsAction.RestListAlgorithmsAction.class);
-        }
-    }
-    
     @Override
-    public Collection<Module> nodeModules() {
+    public List<Class<? extends RestHandler>> getRestHandlers() {
+        if (pluginEnabled) {
+            return Arrays.asList(RestClusteringAction.class, ListAlgorithmsAction.RestListAlgorithmsAction.class);
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<Module> createGuiceModules() {
         if (pluginEnabled && !transportClient) {
-            return Arrays.<Module> asList(new ClusteringModule());
+            return Collections.singletonList(new ClusteringModule());
         } else {
             return Collections.emptyList();
         }
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public Collection<Class<? extends LifecycleComponent>> nodeServices() {
+    public Collection<Class<? extends LifecycleComponent>> getGuiceServiceClasses() {
         if (pluginEnabled) {
             if (!transportClient) {
-                return Arrays.<Class<? extends LifecycleComponent>> asList(ControllerSingleton.class);
+                return Collections.singletonList(ControllerSingleton.class);
             }
-        } else {
-            logger.info("Plugin disabled.", name());
         }
         return Collections.emptyList();
     }

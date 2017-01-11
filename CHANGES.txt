@@ -3,6 +3,21 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 5.1.1 ====================
+
+Other changes
+
+* ES version/ API compatibility release.
+
+* Moved to Java 8.
+
+* Fields won't work if not stored. Use source filtering instead.
+  https://www.elastic.co/guide/en/elasticsearch/reference/5.1/search-request-stored-fields.html
+
+* Moved to Gradle build system from Maven (Gradle 2.13).
+
+* Removed _site. ES 5.1.1 onwards there is no support for site plugins.
+
 ================ ElasticSearch-Carrot2 2.4.3 ====================
 
 No changes (ES version compatibility release).

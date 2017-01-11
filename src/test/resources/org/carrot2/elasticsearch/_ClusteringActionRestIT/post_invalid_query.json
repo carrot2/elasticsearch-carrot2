@@ -1,6 +1,6 @@
 {
     "search_request": {
-        "fields" : ["url", "title", "content"],
+        "_source" : ["url", "title", "content"],
         "query" : {
             "match" : {
               "_all" : "data mining",
@@ -12,8 +12,8 @@
 
     "query_hint": "data mining",
     "field_mapping": {
-        "title"  : ["fields.title"],
-        "content": ["fields.content"]
+        "title"  : ["_source.title"],
+        "content": ["_source.content"]
     },
     "algorithm": "stc",
     "attributes": {}

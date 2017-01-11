@@ -1,5 +1,27 @@
 package org.carrot2.elasticsearch;
 
+import org.apache.logging.log4j.Logger;
+import org.assertj.core.api.Assertions;
+import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
+import org.carrot2.clustering.stc.STCClusteringAlgorithmDescriptor;
+import org.carrot2.core.LanguageCode;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
+import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
+import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
+import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStrategy;
+import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.common.logging.Loggers;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.test.ESIntegTestCase;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,36 +29,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.assertj.core.api.Assertions;
-import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
-import org.carrot2.clustering.stc.STCClusteringAlgorithmDescriptor;
-import org.carrot2.core.LanguageCode;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
-import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
-import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
-import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStrategy;
-import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.search.SearchPhaseExecutionException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.ShardSearchFailure;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.json.JSONObject;
-import org.junit.Test;
-import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
-
 /**
  * API tests for {@link ClusteringAction}.
  */
 public class ClusteringActionIT extends SampleIndexTestCase {
-    @Test
+
+    private static final Logger LOGGER = Loggers.getLogger(ClusteringActionIT.class);
+
     public void testComplexQuery() throws IOException {
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .addFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)
             .setSearchRequest(
               client.prepareSearch()
@@ -44,17 +47,15 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
-                    .setHighlighterPreTags("")
-                    .setHighlighterPostTags("")
-                    .addField("title")
-                    .addHighlightedField("content"))
+                    .highlighter(new HighlightBuilder().preTags("").postTags(""))
+                    .setFetchSource(new String[] {"title"}, null)
+                    .highlighter(new HighlightBuilder().field("content")))
             .execute().actionGet();
     
         checkValid(result);
         checkJsonSerialization(result);
     }
 
-    @Test
     public void testAttributes() throws IOException {
         Map<String,Object> attrs = new HashMap<>();
         LingoClusteringAlgorithmDescriptor.attributeBuilder(attrs)
@@ -62,8 +63,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .addFieldMapping("title", LogicalField.TITLE)
-            .addFieldMapping("content", LogicalField.CONTENT)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("content", LogicalField.CONTENT)
             .addAttributes(attrs)
             .setSearchRequest(
               client.prepareSearch()
@@ -71,7 +72,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
-                    .addFields("title", "content"))
+                    .setFetchSource(new String[] {"title", "content"}, null))
             .execute().actionGet();
 
         checkValid(result);
@@ -81,7 +82,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .hasSize(5 + /* other topics */ 1);
     }
     
-    @Test
     public void testLanguageField() throws IOException {
         Map<String,Object> attrs = new HashMap<>();
 
@@ -93,9 +93,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .addFieldMapping("title", LogicalField.TITLE)
-            .addFieldMapping("content", LogicalField.CONTENT)
-            .addFieldMapping("rndlang", LogicalField.LANGUAGE)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("content", LogicalField.CONTENT)
+            .addSourceFieldMapping("rndlang", LogicalField.LANGUAGE)
             .addAttributes(attrs)
             .setSearchRequest(
               client.prepareSearch()
@@ -103,7 +103,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
-                    .addFields("title", "content", "rndlang"))
+                    .setFetchSource(new String[] {"title", "content", "rndlang"}, null))
             .get();
 
         checkValid(result);
@@ -127,7 +127,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .isLessThan(LanguageCode.values().length / 2);
     }
     
-    @Test
     public void testListAlgorithms() throws IOException {
         ListAlgorithmsActionResponse response = 
                 new ListAlgorithmsActionRequestBuilder(client).get();
@@ -138,19 +137,18 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .contains("stc", "lingo", "kmeans");
     }
 
-    @Test
     public void testNonexistentFields() throws IOException {
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .addFieldMapping("_nonexistent_", LogicalField.TITLE)
-            .addFieldMapping("_nonexistent_", LogicalField.CONTENT)
+            .addSourceFieldMapping("_nonexistent_", LogicalField.TITLE)
+            .addSourceFieldMapping("_nonexistent_", LogicalField.CONTENT)
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_NAME)
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("_all", "data"))
-                    .addFields("title", "content"))
+                    .setFetchSource(new String[] {"title", "content"}, null))
             .execute().actionGet();
 
         // There should be no clusters, but no errors.
@@ -166,13 +164,12 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         }
     }
     
-    @Test
     public void testNonexistentAlgorithmId() throws IOException {
         // The query should result in an error.
         try {
             new ClusteringActionRequestBuilder(client)
                 .setQueryHint("")
-                .addFieldMapping("_nonexistent_", LogicalField.TITLE)
+                .addSourceFieldMapping("_nonexistent_", LogicalField.TITLE)
                 .setAlgorithm("_nonexistent_")
                 .setSearchRequest(
                   client.prepareSearch()
@@ -180,7 +177,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                         .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("_all", "data"))
-                        .addFields("title", "content"))
+                        .setFetchSource(new String[] {"title", "content"}, null))
                 .execute().actionGet();
             throw Preconditions.unreachable();
         } catch (IllegalArgumentException e) {
@@ -189,33 +186,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         }
     }
 
-    @Test
-    public void testInvalidSearchQuery() throws IOException {
-        // The query should result in an error.
-        try {
-            new ClusteringActionRequestBuilder(client)
-                .setQueryHint("")
-                .addFieldMapping("_nonexistent_", LogicalField.TITLE)
-                .setAlgorithm("_nonexistent_")
-                .setSearchRequest(
-                  client.prepareSearch()
-                        .setExtraSource("{ invalid json; [}")
-                        .setIndices(INDEX_NAME)
-                        .setTypes("test")
-                        .setSize(100)
-                        .setQuery(QueryBuilders.termQuery("_all", "data"))
-                        .addFields("title", "content"))
-                .execute().actionGet();
-            throw Preconditions.unreachable();
-        } catch (SearchPhaseExecutionException e) {
-            ShardSearchFailure[] shardFailures = e.shardFailures();
-            Assertions.assertThat(shardFailures).isNotEmpty();
-            Assertions.assertThat(shardFailures[0].reason())
-                .contains("SearchParseException");
-        }
-    }
-
-    @Test
     public void testPropagatingAlgorithmException() throws IOException {
         // The query should result in an error.
         try {
@@ -226,8 +196,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
             new ClusteringActionRequestBuilder(client)
                 .setQueryHint("")
-                .addFieldMapping("title", LogicalField.TITLE)
-                .addFieldMapping("content", LogicalField.CONTENT)
+                .addSourceFieldMapping("title", LogicalField.TITLE)
+                .addSourceFieldMapping("content", LogicalField.CONTENT)
                 .setAlgorithm("stc")
                 .addAttributes(attrs)
                 .setSearchRequest(
@@ -236,7 +206,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                         .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("_all", "data"))
-                        .addFields("title", "content"))
+                        .setFetchSource(new String[] {"title", "content"}, null))
                 .execute().actionGet();
             throw Preconditions.unreachable();
         } catch (ElasticsearchException e) {
@@ -246,7 +216,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         }
     }    
 
-    @Test
     public void testIncludeHits() throws IOException {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
@@ -254,13 +223,13 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                 .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("_all", "data"))
-                .addField("content");
+                .setFetchSource(new String[] {"content"}, null);
 
         // with hits (default)
         ClusteringActionResponse resultWithHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .setAlgorithm("stc")
-            .addFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(resultWithHits);
@@ -278,7 +247,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .setQueryHint("data mining")
             .setMaxHits(0)
             .setAlgorithm("stc")
-            .addFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(resultWithoutHits);
@@ -312,13 +281,11 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         jsonWithHits.remove("profile");
 
         // now they should match
-        System.out.println("--> with:\n" + jsonWithHits.toString());
-        System.out.println();
-        System.out.println("--> without:\n" + jsonWithoutHits.toString());
+        LOGGER.debug("--> with:\n" + jsonWithHits.toString());
+        LOGGER.debug("--> without:\n" + jsonWithoutHits.toString());
         Assertions.assertThat(jsonWithHits.toString()).isEqualTo(jsonWithoutHits.toString());
     }
     
-    @Test
     public void testMaxHits() throws IOException {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
@@ -326,14 +293,14 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                 .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("_all", "data"))
-                .addField("content");
+                .setFetchSource(new String[] {"content"}, null);
 
         // Limit the set of hits to just top 2.
         ClusteringActionResponse limitedHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .setMaxHits(2)
             .setAlgorithm("stc")
-            .addFieldMapping("title", LogicalField.TITLE)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(limitedHits);

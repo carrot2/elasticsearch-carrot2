@@ -17,9 +17,13 @@ import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
+import org.carrot2.shaded.guava.common.base.Charsets;
+import org.carrot2.shaded.guava.common.io.ByteStreams;
+import org.carrot2.shaded.guava.common.io.Resources;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.network.NetworkAddress;
+import org.elasticsearch.common.network.NetworkModule;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContent;
@@ -28,16 +32,11 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
-import org.elasticsearch.node.Node;
 import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.junit.Before;
-
-import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
 
 /**
  * Perform tests on sample data. 
@@ -50,13 +49,13 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     protected Settings nodeSettings(int nodeOrdinal) {
         return Settings.builder()
                 .put(super.nodeSettings(nodeOrdinal))
-                .put(Node.HTTP_ENABLED, true)
+                .put(NetworkModule.HTTP_ENABLED, true)
                 .build();
     }
     
     @Override
     protected Collection<Class<? extends Plugin>> nodePlugins() {
-      return Arrays.<Class<? extends Plugin>> asList(ClusteringPlugin.class);
+      return Collections.singletonList(ClusteringPlugin.class);
     }
     
     @Override
@@ -64,7 +63,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
       return nodePlugins();
     }
 
-    protected final static String INDEX_NAME = "test"; 
+    protected static final String INDEX_NAME = "test";
 
     @Before
     public void createTestIndex() throws Exception {
@@ -101,7 +100,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                             .field("content", "")
                         .endObject()));
 
-            bulk.setRefresh(true).execute().actionGet();
+            bulk.execute().actionGet();
+            flushAndRefresh(INDEX_NAME);
         }
         ensureGreen(INDEX_NAME);
 
@@ -129,7 +129,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         final boolean containsAllHits = 
                 (maxHits == null || maxHits.isEmpty() || Integer.parseInt(maxHits) == Integer.MAX_VALUE);
 
-        ArrayDeque<DocumentGroup> queue = new ArrayDeque<DocumentGroup>();
+        ArrayDeque<DocumentGroup> queue = new ArrayDeque<>();
         queue.addAll(Arrays.asList(result.getDocumentGroups()));
         while (!queue.isEmpty()) {
             DocumentGroup g = queue.pop();
@@ -169,7 +169,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             Map<String, Object> mapAndClose = parser.map();
             Assertions.assertThat(mapAndClose)
                 .as("json-result")
-                .containsKey(Fields.CLUSTERS.underscore().getValue());
+                .containsKey(Fields.CLUSTERS);
         }
     }
 
@@ -203,8 +203,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
 
     protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
         String responseString = new String(
-                ByteStreams.toByteArray(response.getEntity().getContent()), 
-                Charsets.UTF_8); 
+                ByteStreams.toByteArray(response.getEntity().getContent()),
+                Charsets.UTF_8);
     
         String responseDescription = 
                 "HTTP response status: " + response.getStatusLine().toString() + ", " + 
@@ -223,7 +223,9 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         }
     }
 
-    protected static void expectErrorResponseWithMessage(HttpResponse response, int expectedStatus, String messageSubstring) throws IOException {
+    protected static void expectErrorResponseWithMessage(HttpResponse response,
+                                                         int expectedStatus,
+                                                         String messageSubstring) throws IOException {
         byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
         String responseString = new String(responseBytes, Charsets.UTF_8); 
             String responseDescription = 

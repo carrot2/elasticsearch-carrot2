@@ -1,6 +1,6 @@
 {
     "search_request": {
-        "fields" : ["url", "title", "content", "rndlang"],
+        "_source" : ["url", "title", "content", "rndlang"],
         "query" : {
             "match" : {
               "_all" : "data mining" 
@@ -11,9 +11,9 @@
 
     "query_hint": "data mining",
     "field_mapping": {
-        "title"   : ["fields.title"],
-        "content" : ["fields.content"],
-        "language": ["fields.rndlang"]
+        "title"   : ["_source.title"],
+        "content" : ["_source.content"],
+        "language": ["_source.rndlang"]
     },
     "algorithm": "lingo",
     "attributes": {

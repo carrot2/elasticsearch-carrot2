@@ -1,11 +1,18 @@
 /target
 .DS_Store
-.idea
+.gradle
 /.project
 /.classpath
 /.settings
 *.versionsBackup
 .local*
+build/
+
+# idea files
+.idea
+*.iml
+*.ipr
+*.iws
 
 # l3g license for tests.
 src/main/config/license.xml

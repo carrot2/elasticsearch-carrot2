@@ -3,7 +3,6 @@ package org.carrot2.elasticsearch;
 import java.io.IOException;
 
 import org.carrot2.core.Cluster;
-import com.google.common.base.Preconditions;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;

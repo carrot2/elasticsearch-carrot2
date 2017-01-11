@@ -8,4 +8,4 @@
         nodes.info: {}
 
     - match:  { nodes.$master.plugins.0.name: "elasticsearch-carrot2"  }
-    - match:  { nodes.$master.plugins.0.jvm:  true }
+    - match:  { nodes.$master.plugins.0.classname:  "org.carrot2.elasticsearch.ClusteringPlugin" }
