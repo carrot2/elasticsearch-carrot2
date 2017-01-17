@@ -19,7 +19,7 @@ public enum LogicalField {
     CONTENT,
     LANGUAGE;
 
-    final static LogicalField [] cachedByOrdinal = values();
+    static final LogicalField [] cachedByOrdinal = values();
     static LogicalField fromOrdinal(int ordinal) {
         return cachedByOrdinal[ordinal];
     }

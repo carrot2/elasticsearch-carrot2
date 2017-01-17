@@ -1,6 +1,6 @@
 {
     "search_request": {
-        "fields" : [
+        "_source" : [
           "url", 
           "title", 
           "content"
@@ -23,7 +23,7 @@
 
     "query_hint": "data mining",
     "field_mapping": {
-        "title"  : ["fields.title"],
+        "title"  : ["_source.title"],
         "content": ["highlight.content"]
     }
 }

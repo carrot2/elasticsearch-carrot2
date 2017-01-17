@@ -1,25 +1,11 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.ClusteringPlugin.*;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
 import org.carrot2.core.ProcessingComponentDescriptor;
 import org.carrot2.core.ProcessingComponentSuite;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
-import org.carrot2.util.ReflectionUtils;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
 import org.carrot2.util.resource.FileResource;
@@ -29,31 +15,41 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.logging.ESLogger;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
+import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
 
 /**
  * Holds the {@link Controller} singleton initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
-public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSingleton> {
+public class ControllerSingleton extends AbstractLifecycleComponent {
     private final Environment environment;
     private Controller controller;
     private List<String> algorithms;
-    private ESLogger logger;
+    private Logger logger;
 
     @Inject
-    public ControllerSingleton(Settings settings, Environment environment) {
+    public ControllerSingleton(Settings settings) {
         super(settings);
-        this.environment = environment;
-        this.logger = Loggers.getLogger("plugin.carrot2", settings);
+        this.environment = new Environment(settings);
+        this.logger = Loggers.getLogger("plugin.carrot2");
     }
 
     @SuppressForbidden(reason = "C2 integration (File API)")
@@ -81,7 +77,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
                         builder.loadFromPath(resolved);
                     }
                 } catch (NoClassDefFoundError e) {
-                    logger.warn("Could not parse: {}", e, configName);
+                    logger.warn("Could not parse: " + configName, e);
                 }
             }
             Settings c2Settings = builder.build();
@@ -94,44 +90,25 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
             }
 
             final ResourceLookup suiteLookup = new ResourceLookup(new DirLocator(suitePath.getParent()));
-            final IResource suiteResource = 
-                suiteLookup.getFirst(suitePath.getFileName().toString());
+            final IResource suiteResource =
+                    suiteLookup.getFirst(suitePath.getFileName().toString());
 
-            final List<String> failed = Lists.newArrayList();
-            final ProcessingComponentSuite suite = AccessController.doPrivileged(new   PrivilegedExceptionAction<ProcessingComponentSuite>() {
-              @Override
-              public ProcessingComponentSuite run() throws Exception {
-                return LoggerUtils.quietCall(new Callable<ProcessingComponentSuite>() {
-                  public ProcessingComponentSuite call() throws Exception {
-                      ProcessingComponentSuite suite = ProcessingComponentSuite.deserialize(
-                              suiteResource, suiteLookup);
-                      for (ProcessingComponentDescriptor desc : suite.removeUnavailableComponents()) {
-                          failed.add(desc.getId());
-                          if (isNoClassDefFound(desc.getInitializationFailure())) {
-                              logger.debug("Algorithm not available on classpath: {}", desc.getId());
-                          } else {
-                              logger.warn("Algorithm initialization failed: {}", desc.getInitializationFailure(), desc.getId());
-                          }
-                      }
-                      return suite;
-                  }
-                },
-                Logger.getLogger(ProcessingComponentDescriptor.class),
-                Logger.getLogger(ReflectionUtils.class));
-              }
-            });
+            final List<String> failed = new ArrayList<>();
+            final ProcessingComponentSuite suite = AccessController.doPrivileged(
+                    (PrivilegedExceptionAction<ProcessingComponentSuite>) () ->
+                            getProcessingComponentSuite(suiteResource, suiteLookup, failed));
 
-            algorithms = Lists.newArrayList();
+            algorithms = new ArrayList<>();
             for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
                 algorithms.add(descriptor.getId());
             }
             algorithms = Collections.unmodifiableList(algorithms);
 
             if (!algorithms.isEmpty()) {
-                logger.info("Available clustering components: {}", Joiner.on(", ").join(algorithms));
+                logger.info("Available clustering components: {}", String.join(", ", algorithms));
             }
             if (!failed.isEmpty()) {
-                logger.info("Unavailable clustering components: {}", Joiner.on(", ").join(failed));
+                logger.info("Unavailable clustering components: {}", String.join(", ", failed));
             }
 
             final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
@@ -145,7 +122,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
             // Change the default resource lookup to include the configured location.
-            Map<String, Object> c2SettingsAsMap = Maps.newHashMap();
+            Map<String, Object> c2SettingsAsMap = new HashMap<>();
             DefaultLexicalDataFactoryDescriptor.attributeBuilder(c2SettingsAsMap)
                 .resourceLookup(resourceLookup);
             c2SettingsAsMap.putAll(c2Settings.getAsMap());
@@ -190,8 +167,8 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
           environment.configFile().resolve(".license.xml")
       }) {
         logger.debug("Lingo3G license location scan: {} {}.",
-            candidate.toAbsolutePath().normalize(),
-            Files.isRegularFile(candidate) ? "(found)" : "(not found)");
+              candidate.toAbsolutePath().normalize(),
+              Files.isRegularFile(candidate) ? "(found)" : "(not found)");
         if (Files.isRegularFile(candidate)) {
           licenses.add(candidate);
         }
@@ -208,6 +185,22 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
       }
     }
 
+    private ProcessingComponentSuite getProcessingComponentSuite(IResource suiteResource,
+                                                                 ResourceLookup suiteLookup,
+                                                                 List<String> failedComponents) throws Exception {
+        ProcessingComponentSuite suite1 = ProcessingComponentSuite.deserialize(suiteResource, suiteLookup);
+        for (ProcessingComponentDescriptor desc : suite1.removeUnavailableComponents()) {
+            failedComponents.add(desc.getId());
+            if (isNoClassDefFound(desc.getInitializationFailure())) {
+                logger.debug("Algorithm not available on classpath: " + desc.getId());
+            } else {
+                logger.warn("Algorithm initialization failed: " + desc.getId(),
+                            desc.getInitializationFailure());
+            }
+        }
+        return suite1;
+    }
+
     /** */
     protected boolean isNoClassDefFound(Throwable initializationFailure) {
         if (initializationFailure != null) {
@@ -219,7 +212,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
     public Controller getController() {
         return controller;
     }
-    
+
     /**
      * Return a list of available algorithm component identifiers.
      */
@@ -233,12 +226,9 @@ public class ControllerSingleton extends AbstractLifecycleComponent<ControllerSi
         controller = null;
 
         if (c != null) {
-          AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
+          AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
               c.close();
               return null;
-            }
           });
         }
     }

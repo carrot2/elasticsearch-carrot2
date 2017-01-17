@@ -1,6 +1,6 @@
 {
     "search_request": {
-        "fields" : ["url", "title", "content"],
+        "_source" : ["url", "title", "content"],
         "query" : {
             "match" : {
               "_all" : "data mining" 
@@ -11,8 +11,8 @@
 
     "query_hint": "data mining",
     "field_mapping": {
-        "title"  : ["fields._nonexistent_"],
-        "content": ["fields._nonexistent_"]
+        "title"  : ["_source._nonexistent_"],
+        "content": ["_source._nonexistent_"]
     },
     "algorithm": "lingo",
     "attributes": {}
