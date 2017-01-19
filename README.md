@@ -27,11 +27,14 @@ or use the provided bootstrap script:
 
 then install with:
 
-    bin/plugin install file:(plugin)/build/distributions/*.zip
+    Linux:
+    bin/plugin install file:/.../(plugin)/build/distributions/*.zip
 
-From ES 2.2.0 the installer will request confirmation concerning
-extended security permissions. You have to accept it (and live with
-it).
+    Windows:
+    bin/plugin install file:///c:/.../(plugin)/build/distributions/*.zip
+
+Starting with ES 2.2.0, the installer will request confirmation 
+concerning extended security permissions. You have to accept it.
 
 
 Versions and compatibility
