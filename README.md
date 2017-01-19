@@ -16,11 +16,16 @@ ES-compatible version of the plugin from the table below!).
 
     bin/plugin install org.carrot2/elasticsearch-carrot2/5.1.1
 
-To install from sources (master branch), run:
+To install from sources (master branch), run (if you have Gradle
+installed alreadty):
 
     gradle clean build
-    
-and then install with:
+
+or use the provided bootstrap script:
+
+    gradlew clean build
+
+then install with:
 
     bin/plugin install file:(plugin)/build/distributions/*.zip
 
