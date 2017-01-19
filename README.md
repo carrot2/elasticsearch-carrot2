@@ -36,6 +36,26 @@ then install with:
 Starting with ES 2.2.0, the installer will request confirmation 
 concerning extended security permissions. You have to accept it.
 
+Usage
+-----
+
+To play with the examples in the documentation, you'll have to allow 
+CORS requests from null (if opened directly) or localhost (if served 
+by some local HTTP server). Add the following to ES/config/elasticsearch.yml:
+
+# Allow localhost cross-origin requests.
+http.cors.enabled: true
+http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)/
+
+Then start ES and open up the documentation in your browser:
+  (plugin sources)/doc/index.html
+
+More information about security implications of enabling CORS are here:
+https://www.elastic.co/guide/en/elasticsearch/reference/5.0/modules-http.html
+
+The plugin's source code contains CURL request examples as well, in addition
+to integration tests.
+
 
 Versions and compatibility
 --------------------------

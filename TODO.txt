@@ -1,3 +1,7 @@
-- reintegrate documentation and examples (!)
+- reintegrate documentation and curl examples (!)
+  - obsolete fields - _source filtering
+  - check ES documentation links
+
 - check installation with Lingo3G
 - check if custom resource overrides work
+- check if docs can be served directly from github?
