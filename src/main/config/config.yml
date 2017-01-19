@@ -2,7 +2,7 @@
 #
 # The main "algorithm suite" definition file.
 #
-suite: suite.xml
+suite: algorithms/suite.xml
 
 #
 # Path to lexical resources (when required by algorithms).
