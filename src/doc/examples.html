@@ -560,15 +560,15 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
             <pre class="executable example">
 var request = {
   "search_request": {
-    "fields": [ "title", "content" ],
+    "_source": [ "title", "content" ],
     "query": {"match" : { "_all": "data mining" }},
     "size": 100
   },
 
   "query_hint": "data mining",
   "field_mapping": {
-    "title": ["fields.title"],
-    "content": ["fields.content"]
+    "title": ["_source.title"],
+    "content": ["_source.content"]
   }
 };
 
@@ -634,16 +634,16 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
             <pre class="executable example">
 var request = {
   "search_request": {
-    "fields": ["url", "title", "content"],
+    "_source": ["url", "title", "content"],
     "query": {"match" : { "_all": "computer" }},
     "size": 100
   },
 
   "query_hint": "computer",
   "field_mapping": {
-    "url":     ["fields.url"],
-    "title":   ["fields.title"],
-    "content": ["fields.content"]
+    "url":     ["_source.url"],
+    "title":   ["_source.title"],
+    "content": ["_source.content"]
   }
 };
 
@@ -657,7 +657,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="executable example">
 var request = {
   "search_request": {
-    "fields": ["url", "title"],
+    "_source": ["url", "title"],
     "query": {"match" : { "_all": "computer" }},
     "size": 100,
     "highlight" : {
@@ -671,8 +671,8 @@ var request = {
 
   "query_hint": "computer",
   "field_mapping": {
-    "url":     ["fields.url"],
-    "title":   ["fields.title"],
+    "url":     ["_source.url"],
+    "title":   ["_source.title"],
     "content": ["highlight.content"]
   }
 };
