@@ -21,7 +21,7 @@
 curl -XPOST 'http://localhost:9200/test/test/_search_with_clusters?pretty=true' -d '
 {
     "search_request": {
-        "fields" : [
+        "_source" : [
           "url", 
           "title", 
           "content"
@@ -44,7 +44,7 @@ curl -XPOST 'http://localhost:9200/test/test/_search_with_clusters?pretty=true' 
 
     "query_hint": "data mining",
     "field_mapping": {
-        "title"  : ["fields.title"],
+        "title"  : ["_source.title"],
         "content": ["highlight.content"]
     }
 }'
