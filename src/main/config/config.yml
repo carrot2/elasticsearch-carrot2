@@ -7,7 +7,7 @@ suite: suite.xml
 #
 # Path to lexical resources (when required by algorithms).
 #
-resources: resources
+resources: .
 
 #
 # Size of the internal pool of algorithm instances. 
