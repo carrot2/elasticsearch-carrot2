@@ -16,12 +16,13 @@ ext {
 
 esplugin {
     name 'elasticsearch-carrot2'
-    description 'Search results clustering plugin for ElasticSearch'
+    description 'Search results clustering plugin for ElasticSearch (Carrot2-based)'
     classname 'org.carrot2.elasticsearch.ClusteringPlugin'
 }
 
-// FIXME
+// We don't have unit tests, only integration tests.
 test.enabled = false
+
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
