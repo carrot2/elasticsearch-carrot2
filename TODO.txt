@@ -1,4 +1,3 @@
 - reintegrate documentation and examples (!)
 - check installation with Lingo3G
-- set up CI system build.
 - check if custom resource overrides work
