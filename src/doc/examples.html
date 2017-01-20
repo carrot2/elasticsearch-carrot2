@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Carrot² search results clustering plugin for ElasticSearch (REST API)</title>
+    <title>Carrot² search results clustering plugin for Elasticsearch (REST API)</title>
 
     <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
     <link href="assets/css/prettify.css" rel="stylesheet" />
@@ -54,7 +54,7 @@
       <div class="row" id="noes">
         <div class="span12">
           <div class="alert alert-error">
-            <i class="icon-exclamation-sign"></i> <strong>ElasticSearch instance cannot be reached.</strong>
+            <i class="icon-exclamation-sign"></i> <strong>Elasticearch instance cannot be reached.</strong>
             This manual requires a running instance of ES to render examples.
           </div>
         </div>
@@ -102,12 +102,12 @@
               assign human-readable labels to these groups. The clusters can be thought-of as &quot;dynamic facets&quot;
               generated for each unique query and set of search result hits. Take a look at the
               <a target="_blank" href="http://search.carrot2.org/stable/search?query=elasticsearch&amp;results=200&amp;view=foamtree">Carrot<sup>2</sup>
-              demo page</a> to glimpse at how this can be used in practice.</p>
+              demo page</a> to see how this can be used in practice.</p>
 
             <p>Each document passed for clustering is composed of several logical parts: the document's identifier,
-              its origin URL, title, the main content and a language code. Only the identifier field is mandatory,
-              everything else is optional but at least one of these fields will be required to make the clustering
-              process reasonable.</p>
+              title, the main content, language code and origin URL (only the identifier field is mandatory,
+              everything else is optional). Either the title or the description should be provided to make the clustering
+              process reasonable, otherwise there will be no input text the algorithm can work with.</p>
           </div>
           <div class="span4">
             <div class="alert alert-danger">
@@ -120,21 +120,25 @@
         </div>
         <div class="row">
           <div class="span12">
-            <p>Documents indexed in ElasticSearch do not have to follow any predefined schema so actual fields
-              of a JSON document need to be mapped to the logical layout required by the clustering plugin. An example
+            <p>Documents indexed in Elasticsearch do not have to follow any predefined schema, so sections
+              of the input JSON document need to be mapped to the logical layout required by the clustering plugin. An example
               mapping can look as illustrated in the figure below:</p>
 
             <p class="text-center"><img src="assets/img/mapping.png" alt="Logical field mapping" width="500" /></p>
 
             <p>Note that two document fields are mapped to the title. This is not an error, any number of fields can
-              be mapped to either the title or the content—the content of those fields
+              be mapped to either the title or the content—concatenated values of those fields
               will be concatenated and used for clustering.</p>
 
-            <p>The logical fields can also be filled with generated content, for example by applying the
-              <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/">highlighter</a> to
-              the document's fields. This can be useful to decrease the amount of text passed to the clustering
-              algorithm (improves performance) or to make the clustered content more query-specific (this typically
-              clusters better). REST API examples <a href="#rest-api">below</a> demonstrate the API for field
+            <p>Another way to provide the title and content fields is to use the
+              <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-highlighting.html">highlighter</a>. 
+              This can 
+              be useful to decrease the amount of text passed to the clustering
+              algorithm (improves performance) or to make the content of documents passed for clustering
+              more focused on the query (because highlights typically provide the context of query terms).
+            </p>
+            
+            <p>The REST API examples <a href="#rest-api">below</a> demonstrate the API for field
               mapping in details.</p>
           </div>
         </div>
@@ -144,8 +148,8 @@
         <div class="page-header"><h3>Java API</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The Java API for clustering search results is fully functional and works the magic behind
-            all REST requests described in the following part of this document. For concrete code utilizing
+            <p>The Java API for clustering search results implements all the backend functionality behind
+            all REST requests described in the following parts of this document. For actual code utilizing
             the API see the source code of the plugin at <a href="https://github.com/carrot2/elasticsearch-carrot2">github</a>,
             especially the unit and integration tests.</p>
           </div>
@@ -156,7 +160,7 @@
         <div class="page-header"><h3>HTTP (REST) API</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The HTTP REST API of the plugin contains several methods reflecting Java API's functionality. Each of
+            <p>The HTTP REST API contains several methods closely reflecting the Java-side API's functionality. Each of
             these methods is described in detail below.</p>
           </div>
         </div>
@@ -165,7 +169,7 @@
           <div class="row">
             <div class="span11">
               <div class="well">
-                <h4>List available algorithms</h4>
+                <h4>List clustering algorithms</h4>
                 <ul>
                   <li><code>/_algorithms</code> (<code>GET</code> or <code>POST</code>)</li>
                 </ul>
@@ -212,7 +216,7 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
           <div class="row">
             <div class="span12">
               <div class="well">
-                <h4>Search and cluster results</h4>
+                <h4>Search documents and cluster results</h4>
                 <ul>
                   <li><code>/_search_with_clusters</code> (<code>POST</code>, <code>GET</code>)</li>
                   <li><code>/{index}/_search_with_clusters</code> (<code>POST</code>, <code>GET</code>)</li>
@@ -224,11 +228,11 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
 
               <p>The <code>index</code> and <code>type</code> URI segments implicitly bind the search request part of the
                 message to a given index and document type, exactly as in the
-                <a href="http://www.elasticsearch.org/guide/reference/api/search/">search request API</a>.</p>
+                <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html">search request API</a>.</p>
 
               <p>A clustering request is a HTTP REST request, where the full set of parameters is supported via
                 HTTP POST request with a JSON body. A limited subset of clustering functionality is also exposed
-                via the HTTP GET method.</p>
+                via the HTTP GET method (and URL parameters).</p>
             </div>
           </div>
 
@@ -242,15 +246,17 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                 <dt><code>search_request</code></dt>
                 <dd><p><span class="badge badge-info">required</span>
                   The search request to fetch documents to be clustered. This section follows <strong>exactly</strong>
-                  what <a href="http://www.elasticsearch.org/guide/reference/api/search/">the search DSL</a> specifies,
-                  including all optional bells and whistles such as sorting, filtering, query DSL, highlighter, etc.</p>
+                  what <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html">
+                  the search DSL</a> specifies, including all optional bells and whistles such as sorting, 
+                  filtering, query DSL, highlighter, etc.</p>
                 </dd>
 
                 <dt><code>query_hint</code></dt>
                 <dd><p><span class="badge badge-info">required</span>
-                  This is a string attribute specifying query terms which were used to fetch the matching documents.
-                  This hint helps the clustering algorithm to avoid trivial clusters around the query terms. Typically the query
-                  terms hint will be identical to what the user typed in the search box. If possible, it should be pruned
+                  This attribute specifies query terms used to fetch the matching documents.
+                  This hint helps the clustering algorithm avoid trivial clusters that would be created around 
+                  those frequent query terms. Typically the value of this parameter is identical to what the user 
+                  typed in the search box. If possible, it should be pruned
                   from any boolean or search-engine specific operators which could affect the clustering process. The query
                   hint is obligatory but may be an empty string.</p>
                 </dd>
@@ -258,15 +264,15 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                 <dt><code>field_mapping</code></dt>
                 <dd><p><span class="badge badge-info">required</span>
                   Defines how to map actual fields of the documents matching the <code>search_request</code> to
-                  logical fields of the documents to be clustered. The value should be a hash where keys indicate logical
+                  logical fields of the documents to be clustered. The value should be an object where keys indicate logical
                   document fields and values are arrays with field source specifications (content of fields
                   defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
 
                 <pre class="linenums prettyprint">{
   "url":      [_source.urlSource],
-  "title":    [fields.subject],
+  "title":    [_source.subject],
   "content":  [_source.abstract, highlight.main],
-  "language": [fields.lang]
+  "language": [_source.lang]
 }</pre>
 
                   <p>Any of the following logical document field names are valid:</p>
@@ -287,35 +293,41 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                     </p></dd>
                   </dl>
 
-                  <p>A field source specification defines where the value is taken from: the search hit's fields, stored document's content,
+                  <p>The field source specification defines where the value is taken from: the search hit's fields, stored document's content,
                     or from the highlighter's output. The syntax of field source specification is as follows:</p>
 
                   <dl class="dl-horizontal">
-                    <dt><code>fields.{fieldname}</code></dt>
-                    <dd>Defines a search hit's field (stored field or field reparsed from source document but requested and
-                      returned in the search request).</dd>
+                    <dt><code>_source.{fieldname}</code></dt>
+                    <dd>Defines a source document's field (top-level property of the json document). This will
+                      reparse the source document and fetch the appropriate value from there. Please see
+                      <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-source-filtering.html">ES documentation</a> for options to filter just specific fields from source.
+                    </dd>
 
                     <dt><code>highlight.{fieldname}</code></dt>
                     <dd>Defines a search hit's highlighted field. The highlighter output must also be configured
                       properly in the search request (see <a href="#field-mapping">field mapping example</a>).</dd>
 
-                    <dt><code>_source.{fieldname}</code></dt>
-                    <dd>Defines a source document's field (top-level property of the json document). This will
-                      reparse the source document and fetch the appropriate value from there.</dd>
+                    <dt><code>fields.{fieldname}</code></dt>
+                    <dd>Defines a stored field. <span class="badge blue">!</span> This syntax is deprecated and requires stored fields. See 
+                    <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-stored-fields.html">ES documentation</a> for details
+                    and preferably use <code>_source</code> syntax.
+                    </dd>                      
                   </dl>
                 </dd>
+                
 
                 <dt><code>algorithm</code></dt>
                 <dd><p><span class="badge">optional</span>
                   Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
                   algorithms are logged at startup and are also returned
-                  from the <a href="#list-algorithms">list algorithms</a> request. If not present, the default algorithm is used.</p>
+                  from the <a href="#list-algorithms">list algorithms</a> request. The default algorithm is used, if value is empty or 
+                  not provided.</p>
                 </dd>
 
                 <dt><code>include_hits</code></dt>
                 <dd><p><span class="badge">optional</span>
-                  If set to <code>false</code>, the clustering response will not contain search hits, only cluster labels
-                  and document references. This option may be useful to decrease the size of clustering response in case
+                  If set to <code>false</code>, the clustering response will filter out search hits (documents) and only
+                  include cluster labels and document references. This option may be useful to decrease the size of clustering response in case
                   only cluster labels are needed.</p>
                 </dd>
 
@@ -334,9 +346,9 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
 
                 <dt><code>attributes</code></dt>
                 <dd><p><span class="badge">optional</span>
-                  A map of key-value attributes overriding the default algorithm settings per-query (runtime attributes
-                  in Carrot<sup>2</sup> parlance). Typically the default settings are overridden using init-time XML configuration
-                  files.</p>
+                  A map of key-value attributes overriding the default algorithm settings (per-query or runtime attributes
+                  in Carrot<sup>2</sup> parlance). The default permanent settings can be set using initialization-time 
+                  XML configuration files.</p>
                 </dd>
               </dl>
 
@@ -344,9 +356,9 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                 <p><strong>Very important</strong></p>
                 <p>Clustering requires at least a few dozen documents (hits) in order to make
                   sense. The clustering plugin clusters search results <strong>only</strong> (it does not look in the index, it does not
-                  fetch additional documents). Make sure to specify the <a href="http://www.elasticsearch.org/guide/reference/api/search/from-size/"><code>size</code></a> of the
-                  fetch window to be at least 100 documents. If the response does not need so many hits 
-                  (document references), the hits can be trimmed by using <code>max_hits</code> parameter on
+                  fetch additional documents). Make sure to specify the <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-from-size.html"><code>size</code></a> of the
+                  fetch window to be at least 100 documents. If your application does not need so many hits 
+                  (document references), the response size can be trimmed by using <code>max_hits</code> parameter on
                   the clustering request.  
               </div>
             </div>
@@ -356,8 +368,8 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
             <div class="span12">
               <h5>Request (HTTP GET)</h5>
 
-              <p>A HTTP GET clustering request supports a superset of HTTP URI parameters defined by ElasticSearch's
-                <a href="http://www.elasticsearch.org/guide/reference/api/search/uri-request/">URI search request</a>.
+              <p>A HTTP GET clustering request supports a superset of HTTP URI parameters defined by Elasticsearch's
+                <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html">URI search request</a>.
                 All additional parameters correspond to those typically defined in the body of a clustering
                 request sent via HTTP POST. Namely, the following parameters are supported by HTTP GET:</p>
 
@@ -425,7 +437,7 @@ $.get(getUrl,
               <h5>Response</h5>
 
               <p>The response format is identical to a
-                <a href="http://www.elasticsearch.org/guide/reference/api/search/request-body/">plain search request response</a>,
+                <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html">plain search request response</a>,
                 with extra properties presented in the schematic output below.</p>
 
               <pre class="linenums prettyprint">{
@@ -603,21 +615,18 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
               <li><p>The <code>_source.*</code> mapping takes data directly from the source document, if <code>_source</code>
                 is available as part of the search hit. The content pointed to by this mapping is not returned as
                 part of the request, it is only used internally for clustering.</p>
-
-                <p><span class="badge badge-warning">Warning!</span>
-                  The <code>_source</code> may not
-                  be published by ElasticSearch's internal search infrastructure, in particular, when only selected
-                  <code>fields</code> are filtered, the source will not be available. This issue should be addressed
-                  in the future (ES API constraint).</p>
+                
+                <p><span class="badge badge-warning">Important!</span>
+                  Partial <code>_source</code> can be configured using
+                  <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-source-filtering.html">
+                  search request filtering</a> attributes.</p>
               </li>
 
-              <li><p>The <code>fields.*</code> mapping must be accompanied by appropriate
-                <a href="http://www.elasticsearch.org/guide/reference/api/search/fields/"><code>fields</code></a>
-                declaration in the search request. The content of those fields is returned back with the
-                request and thus can be used for display purposes (for example to show each document's title).</p></li>
+              <li><p>The <code>fields.*</code> mapping requires stored fields in the schema. It is superseded by 
+              <code>_source.*</code> filtering since ES 5.x release.</p></li>
 
               <li><p>The <code>highlight.*</code> mapping also must be accompanied by appropriate
-                <a href="http://www.elasticsearch.org/guide/reference/api/search/highlighting/"><code>highlight</code></a>
+                <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-highlighting.html"><code>highlight</code></a>
                 declaration in the search request. The highlighting request specification can be used to tune the
                 amount of content passed to the clustering engine (the number of fragments, their width, boundary, etc.). This
                 is of particular importance when the documents are long (full content is stored): it is typical that
@@ -626,7 +635,10 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
                 Any highlighted content will also be returned as part of the request.</p></li>
             </ul>
 
-            <p>Compare the output for the following requests and note the differences outlined above.</p>
+            <p>Compare the clustering output for the following two requests. One is clustering on full
+            content of the <code>content</code> fields, the other just on highlighted snippets
+            around the <code>mining</code> term from the query (highlights come from the 
+            same <code>content</code> field).</p>
           </div>
         </div>
         <div class="row">
@@ -635,11 +647,16 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
 var request = {
   "search_request": {
     "_source": ["url", "title", "content"],
-    "query": {"match" : { "_all": "computer" }},
+    "query": {
+      "query_string" : { 
+        "default_field": "content",
+        "query": "mining"
+      }
+    }, 
     "size": 100
   },
 
-  "query_hint": "computer",
+  "query_hint": "mining",
   "field_mapping": {
     "url":     ["_source.url"],
     "title":   ["_source.title"],
@@ -649,6 +666,7 @@ var request = {
 
 $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
   $("#fields-request").text(JSON.stringify(response, false, "  "));
+  $("#fields-request-clusters").text(dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
           </div>
@@ -658,18 +676,23 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
 var request = {
   "search_request": {
     "_source": ["url", "title"],
-    "query": {"match" : { "_all": "computer" }},
+    "query": {
+      "query_string" : { 
+        "default_field": "content",
+        "query": "mining"
+      }
+    }, 
     "size": 100,
     "highlight" : {
       "pre_tags" :  ["", ""],
       "post_tags" : ["", ""],
       "fields" : {
-        "content" : { "fragment_size" : 100, "number_of_fragments" : 2 }
+        "content" : { "fragment_size" : 50, "number_of_fragments" : 2 }
       }
     },
   },
 
-  "query_hint": "computer",
+  "query_hint": "mining",
   "field_mapping": {
     "url":     ["_source.url"],
     "title":   ["_source.title"],
@@ -679,6 +702,7 @@ var request = {
 
 $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
   $("#highlight-request").text(JSON.stringify(response, false, "  "));
+  $("#highlight-request-clusters").text(dumpClusters([], response.clusters).join("\n"));
 });
             </pre>
           </div>
@@ -694,6 +718,17 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="result" id="highlight-request"></pre>
           </div>
         </div>
+        
+        <div class="row">
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="fields-request-clusters"></pre>
+          </div>
+          <div class="span6">
+            <p class="text-center"><i class="icon-arrow-down"></i></p>
+            <pre class="result" id="highlight-request-clusters"></pre>
+          </div>
+        </div>        
       </section>
 
 
@@ -937,13 +972,12 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
                   <dd>Clustering requests are executed on the search threadpool inside ES. It may be
                     necessary to tune the settings of this threadpool to limit the number of concurrent
                     clustering requests to the number of computational cores on the node (clustering
-                    is CPU-intense). See <a href="http://www.elasticsearch.org/guide/reference/modules/threadpool/">
+                    is CPU-intense). See <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-threadpool.html">
                     the relevant threadpool</a> documentation section in ES.
                   </dd>
                 </dl>
               </dd>
             </dl>
-
             <p>The following configuration files and properties can be found inside the 
             plugin's ZIP file (<code>config/</code> folder) or 
             under <code>{es.home}/config/elasticsearch-carrot2/</code> after 
@@ -973,7 +1007,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
 
                   <dt><code>controller.pool-size</code></dt>
                   <dd><p>Size of the internal pool of algorithm instances. This pool is sized automatically depending on
-                  the configuration of the search threadpool in ElasticSearch. If too many resources are consumed, the pool
+                  the configuration of the search threadpool in Elasticsearch. If too many resources are consumed, the pool
                   can be set to a fixed size using this option.</p></dd>                  
                 </dl>
               </dd>
@@ -985,8 +1019,8 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <dl>
               <dt><code>{es.home}/config/license.xml</code>,<br/>
                   <code>{es.home}/config/.license.xml</code>,<br/>
-                  <code>{plugin-zip}/config/license.xml</code>,<br/>
-                  <code>{plugin-zip}/config/.license.xml</code></dt>
+                  <code>{plugin.zip}/config/license.xml</code>,<br/>
+                  <code>{plugin.zip}/config/.license.xml</code></dt>
               <dd></dd>
             </dl>            
             

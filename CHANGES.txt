@@ -16,6 +16,8 @@ Other changes
   https://www.elastic.co/guide/en/elasticsearch/reference/5.1/search-request-stored-fields.html
   https://www.elastic.co/guide/en/elasticsearch/reference/5.1/search-request-source-filtering.html
 
+* Updated documentation links and content.
+
 * Removed the demo _site part of the plugin. ES 5.1.1 onwards there is no 
   support for site plugins.
 
