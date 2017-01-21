@@ -79,51 +79,55 @@ signing {
     sign configurations.archives
 }
 
-uploadArchives {
-  repositories {
-    mavenDeployer {
-      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+project.gradle.taskGraph.whenReady { taskGraph ->
+  if (taskGraph.allTasks.any { it.name == 'uploadArchives' }) {
+    uploadArchives {
+      repositories {
+        mavenDeployer {
+          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-        authentication(userName: nexusUsername, password: nexusPassword)
-      }
+          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+            authentication(userName: nexusUsername, password: nexusPassword)
+          }
 
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: nexusUsername, password: nexusPassword)
-      }
+          snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+            authentication(userName: nexusUsername, password: nexusPassword)
+          }
 
-      pom.project {
-        name 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
-        packaging 'zip'
-        artifactId 'elasticsearch-carrot2'
-        description 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
-        url 'https://github.com/carrot2/elasticsearch-carrot2'
+          pom.project {
+            name 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
+            packaging 'zip'
+            artifactId 'elasticsearch-carrot2'
+            description 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
+            url 'https://github.com/carrot2/elasticsearch-carrot2'
 
-        scm {
-          connection 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
-          developerConnection 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-          url 'https://github.com/carrot2/elasticsearch-carrot2'
-        }
+            scm {
+              connection 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
+              developerConnection 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
+              url 'https://github.com/carrot2/elasticsearch-carrot2'
+            }
 
-        licenses {
-          license {
-            name 'The Apache License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            licenses {
+              license {
+                name 'The Apache License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+              }
+            }
+
+            developers {
+              developer {
+                id 'dawid.weiss'
+                name 'Dawid Weiss'
+                email 'dawid.weiss@carrotsearch.com'
+              }
+              developer {
+                id 'stanislaw.osinski'
+                name 'Stanisław Osiński'
+                email 'stanislaw.osinski@carrotsearch.com'
+              }
+            }        
           }
         }
-
-        developers {
-          developer {
-            id 'dawid.weiss'
-            name 'Dawid Weiss'
-            email 'dawid.weiss@carrotsearch.com'
-          }
-          developer {
-            id 'stanislaw.osinski'
-            name 'Stanisław Osiński'
-            email 'stanislaw.osinski@carrotsearch.com'
-          }
-        }        
       }
     }
   }
