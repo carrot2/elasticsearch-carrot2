@@ -75,12 +75,12 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-signing {
-    sign configurations.archives
-}
-
 project.gradle.taskGraph.whenReady { taskGraph ->
   if (taskGraph.allTasks.any { it.name == 'uploadArchives' }) {
+    signing {
+        sign configurations.archives
+    }
+
     uploadArchives {
       repositories {
         mavenDeployer {
