@@ -43,9 +43,11 @@ To play with the examples in the documentation, you'll have to allow
 CORS requests from null (if opened directly) or localhost (if served 
 by some local HTTP server). Add the following to ES/config/elasticsearch.yml:
 
+```
 # Allow localhost cross-origin requests.
 http.cors.enabled: true
 http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)/
+```
 
 More information about security implications of enabling CORS are here:
 https://www.elastic.co/guide/en/elasticsearch/reference/5.0/modules-http.html
