@@ -14,7 +14,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/plugin install org.carrot2/elasticsearch-carrot2/5.1.1
+    bin/elasticsearch-plugin install org.carrot2:elasticsearch-carrot2:5.1.1
 
 To install from sources (master branch), run (if you have Gradle
 installed alreadty):
@@ -28,13 +28,15 @@ or use the provided bootstrap script:
 then install with:
 
     Linux:
-    bin/plugin install file:/.../(plugin)/build/distributions/*.zip
+    bin/elasticsearch-plugin install file:/.../(plugin)/build/distributions/*.zip
 
     Windows:
-    bin/plugin install file:///c:/.../(plugin)/build/distributions/*.zip
+    bin/elasticsearch-plugin install file:///c:/.../(plugin)/build/distributions/*.zip
 
 Starting with ES 2.2.0, the installer will request confirmation 
-concerning extended security permissions. You have to accept it.
+concerning extended security permissions. You have to accept this prompt for
+permissions.
+
 
 Usage
 -----
@@ -57,10 +59,18 @@ Finally, start ES and open up the documentation in your browser
   
 (plugin sources)/doc/index.html
 
-Alternatively, you can allow CORS headers from cdn.rawgit.com and open 
-the documentation directly from there:
+Alternatively, you can allow CORS headers from cdn.rawgit.com:
 
-https://cdn.rawgit.com/carrot2/elasticsearch-carrot2/master/doc/index.html
+```
+# Allow localhost cross-origin requests.
+http.cors.enabled: true
+http.cors.allow-origin: /(null)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
+```
+
+and then open the documentation directly from there (use HTTPS if ES is accessed via
+HTTPS):
+
+http://cdn.rawgit.com/carrot2/elasticsearch-carrot2/master/doc/index.html
 
 CURL request examples are available here:
 
