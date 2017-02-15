@@ -1,10 +1,10 @@
 package org.carrot2.elasticsearch;
 
-import java.io.IOException;
-
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
+
+import java.io.IOException;
 
 class FieldMappingSpec implements Streamable {
     String field;

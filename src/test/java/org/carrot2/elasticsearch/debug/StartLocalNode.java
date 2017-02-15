@@ -1,14 +1,14 @@
 package org.carrot2.elasticsearch.debug;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.CountDownLatch;
-
 import org.carrot2.elasticsearch.ClusteringPlugin;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.MockNode;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.plugins.Plugin;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Starts a node locally and serves _site data (Eclipse, for debugging).

@@ -1,5 +1,5 @@
 group = 'org.carrot2'
-version = '5.1.1'
+version = '5.2.0'
 
 // https://github.com/elastic/elasticsearch/pull/18955
 if (GradleVersion.current() != GradleVersion.version('2.13')) {
@@ -40,7 +40,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:5.1.1"
+        classpath "org.elasticsearch.gradle:build-tools:5.2.0"
     }
 }
 
@@ -59,16 +59,16 @@ dependencies {
     compile "org.simpleframework:simple-xml:2.7.1"
     compile "org.carrot2.shaded:carrot2-guava:18.0"
     compile "commons-lang:commons-lang:2.6"
-    compile "com.fasterxml.jackson.core:jackson-core:2.8.1"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.8.1"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.8.1"
+    compile "com.fasterxml.jackson.core:jackson-core:2.8.6"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.8.6"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
     compile "org.slf4j:slf4j-api:1.7.13"
     compile "org.carrot2:morfologik-stemming:2.1.0"
     compile "org.carrot2:morfologik-fsa:2.1.0"
 
     testCompile "org.assertj:assertj-core:2.1.0"
     testCompile "org.json:json:20140107"
-    testCompile "org.elasticsearch.client:transport:5.1.1"
+    testCompile "org.elasticsearch.client:transport:5.2.0"
 }
 
 artifacts {

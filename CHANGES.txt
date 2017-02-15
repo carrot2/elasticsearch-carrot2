@@ -3,6 +3,12 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 5.2.0 ====================
+
+Other changes
+
+* Updates to API changes in ES 5.2.0.
+
 ================ ElasticSearch-Carrot2 5.1.1 ====================
 
 Other changes

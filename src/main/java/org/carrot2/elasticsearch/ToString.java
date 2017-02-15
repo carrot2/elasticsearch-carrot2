@@ -1,10 +1,10 @@
 package org.carrot2.elasticsearch;
 
-import java.io.IOException;
-
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+
+import java.io.IOException;
 
 /**
  * Reusable stuff related to {@link Object#toString()} implementations.

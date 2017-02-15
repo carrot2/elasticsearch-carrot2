@@ -1,16 +1,5 @@
 package org.carrot2.elasticsearch;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
@@ -25,6 +14,7 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.common.network.NetworkModule;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -37,6 +27,17 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.junit.Before;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Perform tests on sample data. 
@@ -165,7 +166,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         builder.endObject();
         String json = builder.string();
 
-        try (XContentParser parser = JsonXContent.jsonXContent.createParser(json)) {
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY, json)) {
             Map<String, Object> mapAndClose = parser.map();
             Assertions.assertThat(mapAndClose)
                 .as("json-result")
@@ -177,7 +178,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         byte [] bytes = resource(resourceName);
 
         XContent xcontent = XContentFactory.xContent(bytes);
-        XContentParser parser = xcontent.createParser(bytes);
+        XContentParser parser = xcontent.createParser(NamedXContentRegistry.EMPTY, bytes);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XContentBuilder builder = XContentFactory.contentBuilder(type, baos).copyCurrentStructure(parser);
@@ -214,7 +215,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             .describedAs(responseDescription)
             .isEqualTo(HttpStatus.SC_OK);
     
-        try (XContentParser parser = JsonXContent.jsonXContent.createParser(responseString)) {
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY, responseString)) {
             Map<String, Object> map = parser.map();
             Assertions.assertThat(map)
                 .describedAs(responseDescription)
@@ -237,7 +238,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             .isEqualTo(expectedStatus);
 
         XContent xcontent = XContentFactory.xContent(responseBytes);
-        try (XContentParser parser = xcontent.createParser(responseBytes)) {
+        try (XContentParser parser = xcontent.createParser(NamedXContentRegistry.EMPTY, responseBytes)) {
             Map<String, Object> responseJson = parser.mapOrdered();
             
             Assertions.assertThat(responseJson)

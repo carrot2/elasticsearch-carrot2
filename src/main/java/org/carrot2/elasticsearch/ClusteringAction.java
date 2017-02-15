@@ -31,6 +31,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -255,12 +256,12 @@ public class ClusteringAction
          * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request.
          */
         @SuppressWarnings("unchecked")
-        public void source(BytesReference source, SearchRequestParsers searchRequestParsers) {
+        public void source(BytesReference source, SearchRequestParsers searchRequestParsers, NamedXContentRegistry xContentRegistry) {
             if (source == null || source.length() == 0) {
                 return;
             }
 
-            try (XContentParser parser = XContentFactory.xContent(source).createParser(source)) {
+            try (XContentParser parser = XContentFactory.xContent(source).createParser(xContentRegistry, source)) {
                 // TODO: we should avoid reparsing search_request here 
                 // but it's terribly difficult to slice the underlying byte 
                 // buffer to get just the search request.
@@ -293,14 +294,15 @@ public class ClusteringAction
                     }
 
                     XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
-                    XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON).createParser(builder.bytes());
-                    QueryParseContext parseContext = new QueryParseContext(searchRequestParsers.queryParsers,
-                                                                           searchXParser,
+                    XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON)
+                            .createParser(xContentRegistry, builder.bytes());
+                    QueryParseContext parseContext = new QueryParseContext(searchXParser,
                                                                            ParseFieldMatcher.STRICT);
-                    SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.fromXContent(parseContext,
-                                                                                               searchRequestParsers.aggParsers,
-                                                                                               searchRequestParsers.suggesters,
-                                                                                               searchRequestParsers.searchExtParsers);
+                    SearchSourceBuilder searchSourceBuilder =
+                            SearchSourceBuilder.fromXContent(parseContext,
+                                                             searchRequestParsers.aggParsers,
+                                                             searchRequestParsers.suggesters,
+                                                             searchRequestParsers.searchExtParsers);
                     searchRequest.source(searchSourceBuilder);
                 }
 
@@ -517,8 +519,10 @@ public class ClusteringAction
             return this;
         }
 
-        public ClusteringActionRequestBuilder setSource(BytesReference content, SearchRequestParsers searchRequestParsers) {
-            super.request.source(content, searchRequestParsers);
+        public ClusteringActionRequestBuilder setSource(BytesReference content,
+                                                        SearchRequestParsers searchRequestParsers,
+                                                        NamedXContentRegistry xContentRegistry) {
+            super.request.source(content, searchRequestParsers, xContentRegistry);
             return this;
         }
 
@@ -736,6 +740,7 @@ public class ClusteringAction
 
         private final TransportSearchAction searchAction;
         private final ControllerSingleton controllerSingleton;
+        private final NamedXContentRegistry xContentRegistry;
 
         @Inject
         public TransportClusteringAction(Settings settings,
@@ -744,7 +749,8 @@ public class ClusteringAction
                                          TransportSearchAction searchAction,
                                          ControllerSingleton controllerSingleton,
                                          ActionFilters actionFilters,
-                                         IndexNameExpressionResolver indexNameExpressionResolver) {
+                                         IndexNameExpressionResolver indexNameExpressionResolver,
+                                         NamedXContentRegistry xContentRegistry) {
             super(settings,
                   ClusteringAction.NAME,
                   threadPool,
@@ -754,6 +760,7 @@ public class ClusteringAction
 
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
+            this.xContentRegistry = xContentRegistry;
             transportService.registerRequestHandler(
                     ClusteringAction.NAME,
                     ClusteringActionRequest::new,
@@ -1205,7 +1212,7 @@ public class ClusteringAction
                     searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
                     searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
                     actionBuilder.setSearchRequest(searchRequest);
-                    actionBuilder.setSource(request.content(), searchRequestParsers);
+                    actionBuilder.setSource(request.content(), searchRequestParsers, request.getXContentRegistry());
                     break;
 
                 case GET:
