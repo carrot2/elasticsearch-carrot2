@@ -1,1 +1,0 @@
-- check if docs can be served directly from github? [given cors header]
