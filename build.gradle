@@ -1,9 +1,28 @@
+
 group = 'org.carrot2'
-version = '5.2.0'
 
 // https://github.com/elastic/elasticsearch/pull/18955
 if (GradleVersion.current() != GradleVersion.version('2.13')) {
     throw new GradleException('Gradle 2.13 is required to build elasticsearch')
+}
+
+buildscript {
+    ext {
+        // ES version we depend upon/ compile against.
+        version_es = '5.2.0'
+        // This plugin's version.
+        version = '5.2.0'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.elasticsearch.gradle:build-tools:" + version_es
+    }
 }
 
 apply plugin: 'elasticsearch.esplugin'
@@ -14,10 +33,6 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
-ext {
-    version_lingo3g = '1.15.0'
-}
-
 esplugin {
     name 'elasticsearch-carrot2'
     description 'Search results clustering plugin for ElasticSearch (Carrot2-based)'
@@ -27,22 +42,9 @@ esplugin {
 // We don't have unit tests, only integration tests.
 test.enabled = false
 
-// TODO: Do we need any of these?
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
-
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        jcenter()
-    }
-
-    dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:5.2.0"
-    }
-}
 
 repositories {
     mavenLocal()
@@ -68,7 +70,7 @@ dependencies {
 
     testCompile "org.assertj:assertj-core:2.1.0"
     testCompile "org.json:json:20140107"
-    testCompile "org.elasticsearch.client:transport:5.2.0"
+    testCompile "org.elasticsearch.client:transport:" + version_es
 }
 
 artifacts {
