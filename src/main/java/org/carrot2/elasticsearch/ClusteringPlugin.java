@@ -1,22 +1,28 @@
 package org.carrot2.elasticsearch;
 
-import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
+import org.elasticsearch.cluster.node.DiscoveryNodes;
 import org.elasticsearch.common.component.LifecycleComponent;
 import org.elasticsearch.common.inject.Module;
+import org.elasticsearch.common.settings.ClusterSettings;
+import org.elasticsearch.common.settings.IndexScopedSettings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.SettingsFilter;
 import org.elasticsearch.plugins.ActionPlugin;
 import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestHandler;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 /** */
 public class ClusteringPlugin extends Plugin implements ActionPlugin {
@@ -71,13 +77,14 @@ public class ClusteringPlugin extends Plugin implements ActionPlugin {
     }
 
     @Override
-    public List<Class<? extends RestHandler>> getRestHandlers() {
-        if (pluginEnabled) {
-            return Arrays.asList(RestClusteringAction.class, ListAlgorithmsAction.RestListAlgorithmsAction.class);
-        }
-        return Collections.emptyList();
+    public List<RestHandler> getRestHandlers(Settings settings, RestController restController,
+      ClusterSettings clusterSettings, IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
+      IndexNameExpressionResolver indexNameExpressionResolver, Supplier<DiscoveryNodes> nodesInCluster) {
+    return Arrays.asList(
+        new ClusteringAction.RestClusteringAction(settings, restController),
+        new ListAlgorithmsAction.RestListAlgorithmsAction(settings, restController));
     }
-
+    
     @Override
     public Collection<Module> createGuiceModules() {
         if (pluginEnabled && !transportClient) {

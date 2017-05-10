@@ -16,3 +16,7 @@ build/
 
 # l3g license for tests.
 src/main/config/license.xml
+
+# eclipse
+bin/
+out/

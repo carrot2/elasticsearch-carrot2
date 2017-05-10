@@ -210,7 +210,6 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
         /* Action name suffix. */
         public static String NAME = "_algorithms";
 
-        @Inject
         public RestListAlgorithmsAction(
                 Settings settings,
                 RestController controller) {

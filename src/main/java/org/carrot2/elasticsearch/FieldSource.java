@@ -17,7 +17,7 @@ enum FieldSource {
         final FieldSource source;
         final String fieldName;
         
-        public ParsedFieldSource(FieldSource source, String fieldName) {
+        ParsedFieldSource(FieldSource source, String fieldName) {
             this.source = source;
             this.fieldName = fieldName;
         }
@@ -40,7 +40,7 @@ enum FieldSource {
         return cachedByOrdinal[ordinal];
     }
 
-    private FieldSource(String fieldSpecPrefix) {
+    FieldSource(String fieldSpecPrefix) {
         this.fieldSpecPrefix = fieldSpecPrefix; 
     }
 }

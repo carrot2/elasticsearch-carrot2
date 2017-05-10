@@ -9,6 +9,7 @@ import java.io.IOException;
 /**
  * Generic exception implementing {@link org.elasticsearch.ElasticsearchWrapperException}
  */
+@SuppressWarnings("serial")
 public class ClusteringException extends ElasticsearchException implements ElasticsearchWrapperException {
 
     public ClusteringException(Throwable cause) {

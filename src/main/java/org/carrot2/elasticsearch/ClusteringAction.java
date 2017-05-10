@@ -23,7 +23,7 @@ import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
-import org.elasticsearch.common.ParseFieldMatcher;
+
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.inject.Inject;
@@ -47,7 +47,7 @@ import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.SearchRequestParsers;
+
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.InternalAggregation;
 import org.elasticsearch.search.aggregations.InternalAggregations;
@@ -256,7 +256,7 @@ public class ClusteringAction
          * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request.
          */
         @SuppressWarnings("unchecked")
-        public void source(BytesReference source, SearchRequestParsers searchRequestParsers, NamedXContentRegistry xContentRegistry) {
+        public void source(BytesReference source, NamedXContentRegistry xContentRegistry) {
             if (source == null || source.length() == 0) {
                 return;
             }
@@ -296,13 +296,9 @@ public class ClusteringAction
                     XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
                     XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON)
                             .createParser(xContentRegistry, builder.bytes());
-                    QueryParseContext parseContext = new QueryParseContext(searchXParser,
-                                                                           ParseFieldMatcher.STRICT);
+                    QueryParseContext parseContext = new QueryParseContext(searchXParser);
                     SearchSourceBuilder searchSourceBuilder =
-                            SearchSourceBuilder.fromXContent(parseContext,
-                                                             searchRequestParsers.aggParsers,
-                                                             searchRequestParsers.suggesters,
-                                                             searchRequestParsers.searchExtParsers);
+                            SearchSourceBuilder.fromXContent(parseContext);
                     searchRequest.source(searchSourceBuilder);
                 }
 
@@ -319,7 +315,7 @@ public class ClusteringAction
             } catch (Exception e) {
                 String sSource = "_na_";
                 try {
-                    sSource = XContentHelper.convertToJson(source, false);
+                    sSource = XContentHelper.convertToJson(source, false, false, XContentFactory.xContentType(source));
                 } catch (Throwable e1) {
                     // ignore
                 }
@@ -520,9 +516,8 @@ public class ClusteringAction
         }
 
         public ClusteringActionRequestBuilder setSource(BytesReference content,
-                                                        SearchRequestParsers searchRequestParsers,
                                                         NamedXContentRegistry xContentRegistry) {
-            super.request.source(content, searchRequestParsers, xContentRegistry);
+            super.request.source(content, xContentRegistry);
             return this;
         }
 
@@ -659,7 +654,7 @@ public class ClusteringAction
         public XContentBuilder toXContent(XContentBuilder builder, Params params)
                 throws IOException {
             if (searchResponse != null) {
-                searchResponse.toXContent(builder, ToXContent.EMPTY_PARAMS);
+                searchResponse.innerToXContent(builder, ToXContent.EMPTY_PARAMS);
             }
 
             builder.startArray(Fields.CLUSTERS);
@@ -740,7 +735,6 @@ public class ClusteringAction
 
         private final TransportSearchAction searchAction;
         private final ControllerSingleton controllerSingleton;
-        private final NamedXContentRegistry xContentRegistry;
 
         @Inject
         public TransportClusteringAction(Settings settings,
@@ -760,7 +754,6 @@ public class ClusteringAction
 
             this.searchAction = searchAction;
             this.controllerSingleton = controllerSingleton;
-            this.xContentRegistry = xContentRegistry;
             transportService.registerRequestHandler(
                     ClusteringAction.NAME,
                     ClusteringActionRequest::new,
@@ -1165,16 +1158,10 @@ public class ClusteringAction
          */
         public static String NAME = "_search_with_clusters";
 
-        private final SearchRequestParsers searchRequestParsers;
-
-        @Inject
         public RestClusteringAction(
                 Settings settings,
-                SearchRequestParsers searchRequestParsers,
                 RestController controller) {
             super(settings);
-
-            this.searchRequestParsers = searchRequestParsers;
 
             controller.registerHandler(POST, "/" + NAME, this);
             controller.registerHandler(POST, "/{index}/" + NAME, this);
@@ -1212,11 +1199,11 @@ public class ClusteringAction
                     searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
                     searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
                     actionBuilder.setSearchRequest(searchRequest);
-                    actionBuilder.setSource(request.content(), searchRequestParsers, request.getXContentRegistry());
+                    actionBuilder.setSource(request.content(), request.getXContentRegistry());
                     break;
 
                 case GET:
-                    RestSearchAction.parseSearchRequest(searchRequest, request, searchRequestParsers, parseFieldMatcher, null);
+                    RestSearchAction.parseSearchRequest(searchRequest, request, null);
                     actionBuilder.setSearchRequest(searchRequest);
                     fillFromGetRequest(actionBuilder, request);
                     break;
