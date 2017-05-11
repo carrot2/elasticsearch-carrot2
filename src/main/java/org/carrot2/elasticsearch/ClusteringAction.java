@@ -1,5 +1,26 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
+import static org.elasticsearch.action.ValidateActions.addValidationError;
+import static org.elasticsearch.rest.RestRequest.Method.POST;
+import static org.elasticsearch.rest.RestRequest.Method.GET;
+
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
@@ -23,7 +44,6 @@ import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
-
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.inject.Inject;
@@ -47,41 +67,17 @@ import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
-
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.InternalAggregation;
 import org.elasticsearch.search.aggregations.InternalAggregations;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
-import org.elasticsearch.search.internal.InternalSearchHit;
-import org.elasticsearch.search.internal.InternalSearchHits;
 import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.search.profile.SearchProfileShardResults;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
-
-import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
-
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
-import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.GET;
-import static org.elasticsearch.rest.RestRequest.Method.POST;
 
 /**
  * Perform clustering of search results.
@@ -891,19 +887,19 @@ public class ClusteringAction
             // We will use internal APIs here for efficiency. The plugin has restricted explicit ES compatibility
             // anyway. Alternatively, we could serialize/ filter/ deserialize JSON, but this seems simpler.
             SearchHits allHits = response.getHits();
-            InternalSearchHit[] trimmedHits = new InternalSearchHit[Math.min(maxHits, allHits.hits().length)];
-            System.arraycopy(allHits.hits(), 0, trimmedHits, 0, trimmedHits.length);
+            SearchHit[] trimmedHits = new SearchHit[Math.min(maxHits, allHits.getHits().length)];
+            System.arraycopy(allHits.getHits(), 0, trimmedHits, 0, trimmedHits.length);
 
             InternalAggregations _internalAggregations = null;
             if (response.getAggregations() != null) {
                 _internalAggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
             }
 
-            InternalSearchHits _searchHits =
-                    new InternalSearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore());
+            SearchHits _searchHits =
+                    new SearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore());
 
             SearchProfileShardResults _searchProfileShardResults = new SearchProfileShardResults(response.getProfileResults());
-
+           
             InternalSearchResponse _searchResponse =
                     new InternalSearchResponse(
                             _searchHits,
@@ -911,7 +907,8 @@ public class ClusteringAction
                             response.getSuggest(),
                             _searchProfileShardResults,
                             response.isTimedOut(),
-                            response.isTerminatedEarly());
+                            response.isTerminatedEarly(),
+                            response.getNumReducePhases());
 
             return new SearchResponse(
                     _searchResponse,
@@ -969,7 +966,7 @@ public class ClusteringAction
         private List<Document> prepareDocumentsForClustering(
                 final ClusteringActionRequest request,
                 SearchResponse response) {
-            SearchHit[] hits = response.getHits().hits();
+            SearchHit[] hits = response.getHits().getHits();
             List<Document> documents = new ArrayList<>(hits.length);
             List<FieldMappingSpec> fieldMapping = request.getFieldMapping();
             StringBuilder title = new StringBuilder();
@@ -1103,7 +1100,7 @@ public class ClusteringAction
                         content.toString(),
                         url.toString(),
                         langCode,
-                        hit.id());
+                        hit.getId());
 
                 documents.add(doc);
             }

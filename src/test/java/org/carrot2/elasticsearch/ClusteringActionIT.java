@@ -305,7 +305,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         checkValid(limitedHits);
         checkJsonSerialization(limitedHits);
 
-        Assertions.assertThat(limitedHits.getSearchResponse().getHits().hits())
+        Assertions.assertThat(limitedHits.getSearchResponse().getHits().getHits())
             .hasSize(2);
 
         // get JSON output
