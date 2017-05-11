@@ -10,7 +10,6 @@ import java.io.IOException;
  * Reusable stuff related to {@link Object#toString()} implementations.
  */
 final class ToString {
-    /* */
     public static String objectToJson(ToXContent xcontentObject) {
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();

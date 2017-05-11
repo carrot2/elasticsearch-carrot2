@@ -3,7 +3,7 @@
         "_source" : ["url", "title", "content", "rndlang"],
         "query" : {
             "match" : {
-              "_all" : "data mining" 
+              "content" : "data mining"
             }
         },
         "size": 300

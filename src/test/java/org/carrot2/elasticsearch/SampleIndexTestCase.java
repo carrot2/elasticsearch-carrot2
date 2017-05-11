@@ -1,33 +1,5 @@
 package org.carrot2.elasticsearch;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.assertj.core.api.Assertions;
-import org.carrot2.core.LanguageCode;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
-import org.carrot2.shaded.guava.common.base.Charsets;
-import org.carrot2.shaded.guava.common.io.ByteStreams;
-import org.carrot2.shaded.guava.common.io.Resources;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.network.NetworkAddress;
-import org.elasticsearch.common.network.NetworkModule;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.common.xcontent.json.JsonXContent;
-import org.elasticsearch.plugins.Plugin;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.test.ESIntegTestCase;
-import org.junit.Before;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,6 +10,37 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.assertj.core.api.Assertions;
+import org.carrot2.core.LanguageCode;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
+import org.carrot2.shaded.guava.common.base.Charsets;
+import org.carrot2.shaded.guava.common.io.ByteStreams;
+import org.carrot2.shaded.guava.common.io.Resources;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.bytes.BytesArray;
+import org.elasticsearch.common.network.NetworkAddress;
+import org.elasticsearch.common.network.NetworkModule;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.test.ESIntegTestCase;
+import org.junit.Before;
 
 /**
  * Perform tests on sample data. 
@@ -69,13 +72,48 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     @Before
     public void createTestIndex() throws Exception {
         // Delete any previously indexed content.
-        if (!client().admin().indices().prepareExists(INDEX_NAME).get().isExists()) {
+        client = client();
+        if (!client.admin().indices().prepareExists(INDEX_NAME).get().isExists()) {
+            String testTemplate = 
+                  "{" +
+                  "  \"test\": {" +
+                  "    \"properties\": {" +
+                  "      \"url\": { \"type\": \"text\" }," +
+                  "      \"title\": { \"type\": \"text\" }," +
+                  "      \"content\": { \"type\": \"text\" }," +
+                  "      \"lang\": { \"type\": \"text\" }," +
+                  "      \"rndlang\": { \"type\": \"text\" }" +
+                  "    }" +
+                  "  }" +
+                  "}";
+
+            String emptyTemplate = 
+                "{" +
+                "  \"empty\": {" +
+                "    \"properties\": {" +
+                "      \"url\": { \"type\": \"text\" }," +
+                "      \"title\": { \"type\": \"text\" }," +
+                "      \"content\": { \"type\": \"text\" }," +
+                "      \"lang\": { \"type\": \"text\" }," +
+                "      \"rndlang\": { \"type\": \"text\" }" +
+                "    }" +
+                "  }" +
+                "}";
+
+            CreateIndexResponse response = client.admin().indices()
+              .prepareCreate(INDEX_NAME)
+              .setSettings("index.mapping.single_type", false)
+              .addMapping("test", testTemplate, XContentType.JSON)
+              .addMapping("empty", emptyTemplate, XContentType.JSON)
+              .get();
+
+            Assertions.assertThat(response.isAcknowledged()).isTrue();
+
             // Create content at random in the test index.
             Random rnd = random();
             LanguageCode [] languages = LanguageCode.values();
             Collections.shuffle(Arrays.asList(languages), rnd);
 
-            this.client = client();
             BulkRequestBuilder bulk = client.prepareBulk();
             for (String[] data : SampleDocumentData.SAMPLE_DATA) {
                 bulk.add(client.prepareIndex()
@@ -174,17 +212,16 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         }
     }
 
-    protected byte[] resourceAs(String resourceName, XContentType type) throws IOException {
+    protected byte[] jsonResourceAs(String resourceName, XContentType toType) throws IOException {
         byte [] bytes = resource(resourceName);
-
-        XContent xcontent = XContentFactory.xContent(bytes);
-        XContentParser parser = xcontent.createParser(NamedXContentRegistry.EMPTY, bytes);
+        XContentParser parser = XContentFactory.xContent(XContentType.JSON)
+            .createParser(NamedXContentRegistry.EMPTY, bytes);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        XContentBuilder builder = XContentFactory.contentBuilder(type, baos).copyCurrentStructure(parser);
+        XContentBuilder builder = XContentFactory.contentBuilder(toType, baos).copyCurrentStructure(parser);
         builder.close();
 
-        return bytes;
+        return baos.toByteArray();
     }
 
     protected byte[] resource(String resourceName) throws IOException {
@@ -203,10 +240,9 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     }
 
     protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
-        String responseString = new String(
-                ByteStreams.toByteArray(response.getEntity().getContent()),
-                Charsets.UTF_8);
-    
+        byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
+        String responseString = new String(responseBytes, Charsets.UTF_8);
+
         String responseDescription = 
                 "HTTP response status: " + response.getStatusLine().toString() + ", " + 
                 "HTTP body: " + responseString;
@@ -214,8 +250,10 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         Assertions.assertThat(response.getStatusLine().getStatusCode())
             .describedAs(responseDescription)
             .isEqualTo(HttpStatus.SC_OK);
-    
-        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY, responseString)) {
+
+        try (XContentParser parser = XContentHelper.createParser(
+            NamedXContentRegistry.EMPTY, new BytesArray(responseBytes), 
+            XContentType.fromMediaTypeOrFormat(response.getFirstHeader(HttpHeaders.CONTENT_TYPE).getValue()))) {
             Map<String, Object> map = parser.map();
             Assertions.assertThat(map)
                 .describedAs(responseDescription)
@@ -237,8 +275,10 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             .describedAs(responseDescription)
             .isEqualTo(expectedStatus);
 
-        XContent xcontent = XContentFactory.xContent(responseBytes);
-        try (XContentParser parser = xcontent.createParser(NamedXContentRegistry.EMPTY, responseBytes)) {
+        XContentType xContentType = XContentType.fromMediaTypeOrFormat(
+            response.getFirstHeader(HttpHeaders.CONTENT_TYPE).getValue());
+        try (XContentParser parser = XContentHelper.createParser(
+            NamedXContentRegistry.EMPTY, new BytesArray(responseBytes), xContentType)) {
             Map<String, Object> responseJson = parser.mapOrdered();
             
             Assertions.assertThat(responseJson)

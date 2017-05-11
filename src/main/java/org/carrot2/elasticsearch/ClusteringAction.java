@@ -2,10 +2,11 @@ package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.POST;
 import static org.elasticsearch.rest.RestRequest.Method.GET;
+import static org.elasticsearch.rest.RestRequest.Method.POST;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -252,12 +253,12 @@ public class ClusteringAction
          * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request.
          */
         @SuppressWarnings("unchecked")
-        public void source(BytesReference source, NamedXContentRegistry xContentRegistry) {
+        public void source(BytesReference source, XContentType xContentType, NamedXContentRegistry xContentRegistry) {
             if (source == null || source.length() == 0) {
                 return;
             }
 
-            try (XContentParser parser = XContentFactory.xContent(source).createParser(xContentRegistry, source)) {
+            try (XContentParser parser = XContentHelper.createParser(xContentRegistry, source, xContentType)) {
                 // TODO: we should avoid reparsing search_request here 
                 // but it's terribly difficult to slice the underlying byte 
                 // buffer to get just the search request.
@@ -311,7 +312,7 @@ public class ClusteringAction
             } catch (Exception e) {
                 String sSource = "_na_";
                 try {
-                    sSource = XContentHelper.convertToJson(source, false, false, XContentFactory.xContentType(source));
+                    sSource = XContentHelper.convertToJson(source, false, false, xContentType);
                 } catch (Throwable e1) {
                     // ignore
                 }
@@ -512,8 +513,9 @@ public class ClusteringAction
         }
 
         public ClusteringActionRequestBuilder setSource(BytesReference content,
+                                                        XContentType xContentType,
                                                         NamedXContentRegistry xContentRegistry) {
-            super.request.source(content, xContentRegistry);
+            super.request.source(content, xContentType, xContentRegistry);
             return this;
         }
 
@@ -927,7 +929,6 @@ public class ClusteringAction
             return t;
         }
 
-        /* */
         protected DocumentGroup[] adapt(List<Cluster> clusters) {
             DocumentGroup[] groups = new DocumentGroup[clusters.size()];
             for (int i = 0; i < groups.length; i++) {
@@ -936,7 +937,6 @@ public class ClusteringAction
             return groups;
         }
 
-        /* */
         private DocumentGroup adapt(Cluster cluster) {
             DocumentGroup group = new DocumentGroup();
             group.setId(cluster.getId());
@@ -1015,7 +1015,7 @@ public class ClusteringAction
                                                     spec.field);
                                     }
                                 } else {
-                                    sourceAsMap = hit.getSource();
+                                    sourceAsMap = hit.getSourceAsMap();
                                 }
                             }
 
@@ -1196,7 +1196,7 @@ public class ClusteringAction
                     searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
                     searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
                     actionBuilder.setSearchRequest(searchRequest);
-                    actionBuilder.setSource(request.content(), request.getXContentRegistry());
+                    actionBuilder.setSource(request.content(), request.getXContentType(), request.getXContentRegistry());
                     break;
 
                 case GET:

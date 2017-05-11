@@ -1,6 +1,5 @@
 package org.carrot2.elasticsearch;
 
-/* */
 final class Preconditions {
     /**
      * Mark unreachable code path. Expected use scenario:

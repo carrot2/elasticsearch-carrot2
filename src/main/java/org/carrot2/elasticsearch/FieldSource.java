@@ -23,7 +23,6 @@ enum FieldSource {
         }
     }
 
-    /* */
     static ParsedFieldSource parseSpec(String fieldSourceSpec) {
         if (fieldSourceSpec != null) {
             for (FieldSource fs : cachedByOrdinal) {
