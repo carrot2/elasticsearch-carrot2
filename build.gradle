@@ -40,6 +40,10 @@ test {
   enabled = false
 }
 
+integTestRunner {
+  systemProperty 'tests.security.manager', 'false'
+}
+
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
