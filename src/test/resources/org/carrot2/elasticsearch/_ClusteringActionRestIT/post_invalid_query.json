@@ -3,7 +3,7 @@
         "_source" : ["url", "title", "content"],
         "query" : {
             "match" : {
-              "content" : "data mining"
+              "content" : "data mining",
               "operator": "_foo_" 
             }
         },
