@@ -820,7 +820,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
 
             <p>For example to override the default attributes
               for all requests to the <code>lingo</code> algorithm, one would tweak 
-              <code>{plugin.zip}/config/algorithms/lingo-attributes.xml</code>
+              <code>{plugin.zip}/elasticsearch/config/lingo-attributes.xml</code>
               and place any overridden attributes in there, as in:</p>
 
             <pre class="linenums prettyprint">
@@ -979,7 +979,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
               </dd>
             </dl>
             <p>The following configuration files and properties can be found inside the 
-            plugin's ZIP file (<code>config/</code> folder) or 
+            plugin's ZIP file (<code>elasticsearch/config/</code> folder) or 
             under <code>{es.home}/config/elasticsearch-carrot2/</code> after 
             plugin installation).</p>
 
@@ -1019,8 +1019,8 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <dl>
               <dt><code>{es.home}/config/license.xml</code>,<br/>
                   <code>{es.home}/config/.license.xml</code>,<br/>
-                  <code>{plugin.zip}/config/license.xml</code>,<br/>
-                  <code>{plugin.zip}/config/.license.xml</code></dt>
+                  <code>{plugin.zip}/elasticsearch/config/license.xml</code>,<br/>
+                  <code>{plugin.zip}/elasticsearch/config/.license.xml</code></dt>
               <dd></dd>
             </dl>            
             
