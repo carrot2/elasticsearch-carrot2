@@ -48,7 +48,7 @@ by some local HTTP server). Add the following to ES/config/elasticsearch.yml:
 ```
 # Allow localhost cross-origin requests.
 http.cors.enabled: true
-http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)/
+http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/</pre>
 ```
 
 More information about security implications of enabling CORS are here:
@@ -64,7 +64,7 @@ Alternatively, you can allow CORS headers from cdn.rawgit.com:
 ```
 # Allow localhost cross-origin requests.
 http.cors.enabled: true
-http.cors.allow-origin: /(null)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
+http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
 ```
 
 and then open the documentation directly from there (use HTTPS if ES is accessed via
