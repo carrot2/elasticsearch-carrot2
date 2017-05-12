@@ -1,17 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '5.3.0'
+version = '5.4.0'
 group = 'org.carrot2'
-
-// https://github.com/elastic/elasticsearch/pull/18955
-if (GradleVersion.current() != GradleVersion.version('2.13')) {
-    throw new GradleException('Gradle 2.13 is required to build elasticsearch')
-}
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '5.3.0'
+        version_es = '5.4.0'
     }
 
     repositories {
