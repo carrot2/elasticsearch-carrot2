@@ -9,6 +9,12 @@ Other changes
 
 * Updates to API changes in ES 5.3.0.
 
+* Documentation fixes (location of resources).
+
+* Added slf4j-log4j12 logging redirector as a default dependency.
+
+* Updated FoamTree and Circles to their newest versions.
+
 ================ ElasticSearch-Carrot2 5.2.0 ====================
 
 Other changes

@@ -65,6 +65,7 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-annotations:2.8.6"
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.6"
     compile "org.slf4j:slf4j-api:1.7.13"
+    compile "org.slf4j:slf4j-log4j12:1.7.13"
     compile "org.carrot2:morfologik-stemming:2.1.1"
     compile "org.carrot2:morfologik-fsa:2.1.1"
 
