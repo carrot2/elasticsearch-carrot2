@@ -15,6 +15,9 @@ Other changes
 
 * Updated FoamTree and Circles to their newest versions.
 
+* Added logging configuration to silence permission denied exceptions and
+  other non-critical information from C2.
+
 ================ ElasticSearch-Carrot2 5.2.0 ====================
 
 Other changes
