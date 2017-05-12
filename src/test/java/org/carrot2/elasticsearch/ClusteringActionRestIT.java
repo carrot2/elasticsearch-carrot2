@@ -5,13 +5,12 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.logging.log4j.Logger;
 import org.assertj.core.api.Assertions;
 import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import java.util.HashSet;
@@ -24,9 +23,8 @@ import java.util.Set;
  */
 public class ClusteringActionRestIT extends SampleIndexTestCase {
 
-    Logger LOGGER = Loggers.getLogger(ClusteringActionRestIT.class);
-
-    XContentType type = randomFrom(XContentType.values());
+    private XContentType xtype = randomFrom(XContentType.values());
+    private ContentType contentType = ContentType.create(xtype.mediaType());
 
     public void testPostClusterByUrl() throws Exception {
         post("post_cluster_by_url.json");
@@ -72,7 +70,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
         
         List<Map<String, ?>> subclusters = (List<Map<String, ?>>) cluster.get("clusters");
 
-        LOGGER.debug(stringBuilder + "> " + label + " (score=" + score
+        logger.debug(stringBuilder + "> " + label + " (score=" + score
             + ", documents=" + (documents == null ? 0 : documents.size()) 
             + ", subclusters=" + (subclusters == null ? 0 : subclusters.size()));
 
@@ -86,7 +84,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
 
-            post.setEntity(new ByteArrayEntity(resourceAs(queryJsonResource, type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs(queryJsonResource, xtype), contentType));
             HttpResponse response = httpClient.execute(post);
 
             Map<?,?> map = checkHttpResponseContainsClusters(response);
@@ -136,7 +134,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
                     + "/" + INDEX_NAME 
                     + "/empty/" 
                     + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_with_fields.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_with_fields.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -150,22 +148,22 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testRestApiRuntimeAttributes() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_runtime_attributes.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_runtime_attributes.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             List<?> clusterList = (List<?>) map.get("clusters");
             Assertions.assertThat(clusterList)
                 .isNotNull();
-            Assertions.assertThat(clusterList)
-                .hasSize(/* max. cluster size cap */ 5 + /* other topics */ 1);
+            Assertions.assertThat(clusterList.size())
+                .isBetween(1, /* max. cluster size cap */ 5 + /* other topics */ 1);
         }
     }
     
     public void testLanguageField() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_language_field.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_language_field.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -191,7 +189,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testNonexistentFields() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_fields.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_nonexistent_fields.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
@@ -203,7 +201,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testNonexistentAlgorithmId() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_nonexistent_algorithmId.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_nonexistent_algorithmId.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             expectErrorResponseWithMessage(
                     response,
@@ -215,7 +213,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testInvalidSearchQuery() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_query.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_invalid_query.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             expectErrorResponseWithMessage(
                     response, 
@@ -227,7 +225,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testPropagatingAlgorithmException() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
-            post.setEntity(new ByteArrayEntity(resourceAs("post_invalid_attribute_value.json", type)));
+            post.setEntity(new ByteArrayEntity(jsonResourceAs("post_invalid_attribute_value.json", xtype), contentType));
             HttpResponse response = httpClient.execute(post);
             expectErrorResponseWithMessage(
                     response, 

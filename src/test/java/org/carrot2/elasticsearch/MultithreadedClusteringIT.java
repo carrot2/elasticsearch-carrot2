@@ -1,14 +1,5 @@
 package org.carrot2.elasticsearch;
 
-import org.apache.logging.log4j.Logger;
-import org.assertj.core.api.Assertions;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.logging.Loggers;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -16,12 +7,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.assertj.core.api.Assertions;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+
 /**
  * Java API tests.
  */
 public class MultithreadedClusteringIT extends SampleIndexTestCase {
-
-    private static final Logger LOGGER = Loggers.getLogger(MultithreadedClusteringIT.class);
 
     public void testRequestFlood() throws Exception {
         final Client client = client();
@@ -31,10 +27,10 @@ public class MultithreadedClusteringIT extends SampleIndexTestCase {
         final int requests = 100;
         final int threads = 10;
 
-        LOGGER.debug("Stress testing: " + client.getClass().getSimpleName() + "| ");
+        logger.debug("Stress testing: " + client.getClass().getSimpleName() + "| ");
         for (int i = 0; i < requests; i++) {
             tasks.add(() -> {
-                LOGGER.debug(">");
+                logger.debug(">");
 
                 ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
                     .setQueryHint("data mining")
@@ -45,12 +41,12 @@ public class MultithreadedClusteringIT extends SampleIndexTestCase {
                             .setIndices(INDEX_NAME)
                             .setTypes("test")
                             .setSize(100)
-                            .setQuery(QueryBuilders.termQuery("_all", "data"))
+                            .setQuery(QueryBuilders.termQuery("content", "data"))
                             .highlighter(new HighlightBuilder().preTags("").postTags("").field("content"))
                             .storedFields("title"))
                     .execute().actionGet();
 
-                LOGGER.debug("<");
+                logger.debug("<");
                 checkValid(result);
                 checkJsonSerialization(result);
                 return result;
@@ -66,7 +62,7 @@ public class MultithreadedClusteringIT extends SampleIndexTestCase {
             }
         } finally {
             executor.shutdown();
-            LOGGER.debug("Done.");
+            logger.debug("Done.");
         }
     }
 }

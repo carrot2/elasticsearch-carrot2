@@ -7,7 +7,7 @@
         ],
         "query" : {
             "match" : {
-              "_all" : "data mining" 
+              "content" : "data mining"
             }
         },
         "size": 100

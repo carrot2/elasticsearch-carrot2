@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '5.4.0'
+version = '6.0.0-alpha1'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '5.4.0'
+        version_es = '6.0.0-alpha1'
     }
 
     repositories {
@@ -36,7 +36,13 @@ esplugin {
 }
 
 // We don't have unit tests, only integration tests.
-test.enabled = false
+test {
+  enabled = false
+}
+
+integTestRunner {
+  systemProperty 'tests.security.manager', 'false'
+}
 
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false

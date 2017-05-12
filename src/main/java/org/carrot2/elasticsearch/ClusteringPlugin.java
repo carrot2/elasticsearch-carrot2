@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-/** */
 public class ClusteringPlugin extends Plugin implements ActionPlugin {
     /**
      * Master on/off switch property for the plugin (general settings).

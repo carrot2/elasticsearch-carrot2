@@ -201,7 +201,6 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
         return suite1;
     }
 
-    /** */
     protected boolean isNoClassDefFound(Throwable initializationFailure) {
         if (initializationFailure != null) {
             return initializationFailure.getCause() instanceof ClassNotFoundException;
