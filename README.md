@@ -48,7 +48,7 @@ by some local HTTP server). Add the following to ES/config/elasticsearch.yml:
 ```
 # Allow localhost cross-origin requests.
 http.cors.enabled: true
-http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/</pre>
+http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
 ```
 
 More information about security implications of enabling CORS are here:
@@ -59,15 +59,8 @@ Finally, start ES and open up the documentation in your browser
   
 (plugin sources)/doc/index.html
 
-Alternatively, you can allow CORS headers from cdn.rawgit.com:
-
-```
-# Allow localhost cross-origin requests.
-http.cors.enabled: true
-http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
-```
-
-and then open the documentation directly from there (use HTTPS if ES is accessed via
+The above regular expression enables CORS headers from cdn.rawgit.com, so you can open 
+the documentation directly from there (use HTTPS if ES is accessed via
 HTTPS):
 
 http://cdn.rawgit.com/carrot2/elasticsearch-carrot2/master/doc/index.html
@@ -100,6 +93,7 @@ given ES version.
     | Clustering Plugin, ES (matching versions)  | Carrot2 | Lingo3G |
     ------------------------------------------------------------------
     | (master, unreleased)                       | 3.15.1  | 1.15.1  |
+    | 5.5.2                                      | 3.15.1  | 1.15.1  |
     | 5.4.0                                      | 3.15.1  | 1.15.1  |
     | 5.3.0                                      | 3.15.1  | 1.15.1  |
     | 5.2.0                                      | 3.15.1  | 1.15.1  |

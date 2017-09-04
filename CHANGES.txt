@@ -3,13 +3,17 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
-================ ElasticSearch-Carrot2 6.0.0 ====================
-
 Other changes
 
 * Updates to API changes in ES 6.0.0.
 
 * REST tests cleanups and updates.
+
+================ ElasticSearch-Carrot2 5.5.2 ====================
+
+Other changes
+
+* Updates to API changes in ES 5.5.2.
 
 ================ ElasticSearch-Carrot2 5.4.0 ====================
 
