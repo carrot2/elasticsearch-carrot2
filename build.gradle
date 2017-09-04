@@ -6,7 +6,7 @@ group = 'org.carrot2'
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '5.4.0'
+        version_es = '5.5.2'
     }
 
     repositories {
