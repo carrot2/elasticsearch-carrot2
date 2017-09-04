@@ -1,6 +1,6 @@
 
 // This plugin's version (typically must match that of ES).
-version = '5.4.0'
+version = '5.5.2'
 group = 'org.carrot2'
 
 buildscript {
