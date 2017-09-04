@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '6.0.0-alpha1'
+version = '6.0.0-beta1'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '6.0.0-alpha1'
+        version_es = '6.0.0-beta1'
     }
 
     repositories {
@@ -73,6 +73,9 @@ dependencies {
     testCompile "org.assertj:assertj-core:2.1.0"
     testCompile "org.json:json:20140107"
     testCompile "org.elasticsearch.client:transport:" + version_es
+
+    testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
+    testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
 }
 
 artifacts {

@@ -220,6 +220,11 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
         }
 
         @Override
+        public String getName() {
+            return NAME;
+        }
+
+        @Override
         public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) {
             if (request.hasContent()) {
                 return channel -> emitErrorResponse(channel, logger,

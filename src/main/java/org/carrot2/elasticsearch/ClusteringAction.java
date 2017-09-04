@@ -46,6 +46,7 @@ import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -58,14 +59,12 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.QueryParseContext;
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHitField;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.InternalAggregation;
@@ -292,9 +291,8 @@ public class ClusteringAction
                     XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
                     XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON)
                             .createParser(xContentRegistry, builder.bytes());
-                    QueryParseContext parseContext = new QueryParseContext(searchXParser);
                     SearchSourceBuilder searchSourceBuilder =
-                            SearchSourceBuilder.fromXContent(parseContext);
+                            SearchSourceBuilder.fromXContent(searchXParser);
                     searchRequest.source(searchSourceBuilder);
                 }
 
@@ -916,7 +914,8 @@ public class ClusteringAction
                     response.getScrollId(),
                     response.getTotalShards(),
                     response.getSuccessfulShards(),
-                    response.getTookInMillis(),
+                    response.getSkippedShards(),
+                    response.getTook().getMillis(),
                     response.getShardFailures());
         }
 
@@ -981,7 +980,7 @@ public class ClusteringAction
                 url.setLength(0);
                 language.setLength(0);
 
-                Map<String, SearchHitField> fields = hit.getFields();
+                Map<String, DocumentField> fields = hit.getFields();
                 Map<String, HighlightField> highlightFields = hit.getHighlightFields();
 
                 Map<String, Object> sourceAsMap = null;
@@ -991,9 +990,9 @@ public class ClusteringAction
                     outer:
                     switch (spec.source) {
                         case FIELD:
-                            SearchHitField searchHitField = fields.get(spec.field);
-                            if (searchHitField != null) {
-                                appendContent = searchHitField.getValue();
+                            DocumentField hitField = fields.get(spec.field);
+                            if (hitField != null) {
+                                appendContent = hitField.getValue();
                             }
                             break;
 
@@ -1166,6 +1165,11 @@ public class ClusteringAction
             controller.registerHandler(GET, "/" + NAME, this);
             controller.registerHandler(GET, "/{index}/" + NAME, this);
             controller.registerHandler(GET, "/{index}/{type}/" + NAME, this);
+        }
+
+        @Override
+        public String getName() {
+            return NAME;
         }
 
         @Override

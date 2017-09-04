@@ -21,6 +21,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Field
 import org.carrot2.shaded.guava.common.base.Charsets;
 import org.carrot2.shaded.guava.common.io.ByteStreams;
 import org.carrot2.shaded.guava.common.io.Resources;
+import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
@@ -102,7 +103,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
 
             CreateIndexResponse response = client.admin().indices()
               .prepareCreate(INDEX_NAME)
-              .setSettings("index.mapping.single_type", false)
+                // index.mapping.single_type
+              .setSettings("index.version.created", Version.V_5_6_0.id)
               .addMapping("test", testTemplate, XContentType.JSON)
               .addMapping("empty", emptyTemplate, XContentType.JSON)
               .get();
