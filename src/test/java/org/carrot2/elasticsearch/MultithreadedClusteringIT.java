@@ -38,7 +38,7 @@ public class MultithreadedClusteringIT extends SampleIndexTestCase {
                     .addHighlightedFieldMapping("content", LogicalField.CONTENT)
                     .setSearchRequest(
                       client.prepareSearch()
-                            .setIndices(INDEX_NAME)
+                            .setIndices(INDEX_TEST)
                             .setTypes("test")
                             .setSize(100)
                             .setQuery(QueryBuilders.termQuery("content", "data"))

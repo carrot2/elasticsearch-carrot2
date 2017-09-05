@@ -30,8 +30,6 @@ import org.json.JSONObject;
  * API tests for {@link ClusteringAction}.
  */
 public class ClusteringActionIT extends SampleIndexTestCase {
-
-
     public void testComplexQuery() throws IOException {
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
@@ -39,7 +37,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)
             .setSearchRequest(
               client.prepareSearch()
-                    .setIndices(INDEX_NAME)
+                    .setIndices(INDEX_TEST)
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -64,7 +62,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .addAttributes(attrs)
             .setSearchRequest(
               client.prepareSearch()
-                    .setIndices(INDEX_NAME)
+                    .setIndices(INDEX_TEST)
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.matchAllQuery())
@@ -95,7 +93,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .addAttributes(attrs)
             .setSearchRequest(
               client.prepareSearch()
-                    .setIndices(INDEX_NAME)
+                    .setIndices(INDEX_TEST)
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -140,7 +138,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .addSourceFieldMapping("_nonexistent_", LogicalField.CONTENT)
             .setSearchRequest(
               client.prepareSearch()
-                    .setIndices(INDEX_NAME)
+                    .setIndices(INDEX_TEST)
                     .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -169,7 +167,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                 .setAlgorithm("_nonexistent_")
                 .setSearchRequest(
                   client.prepareSearch()
-                        .setIndices(INDEX_NAME)
+                        .setIndices(INDEX_TEST)
                         .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -198,7 +196,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                 .addAttributes(attrs)
                 .setSearchRequest(
                   client.prepareSearch()
-                        .setIndices(INDEX_NAME)
+                        .setIndices(INDEX_TEST)
                         .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -215,7 +213,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     public void testIncludeHits() throws IOException {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
-                .setIndices(INDEX_NAME)
+                .setIndices(INDEX_TEST)
                 .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("content", "data"))
@@ -285,7 +283,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     public void testMaxHits() throws IOException {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
-                .setIndices(INDEX_NAME)
+                .setIndices(INDEX_TEST)
                 .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("content", "data"))

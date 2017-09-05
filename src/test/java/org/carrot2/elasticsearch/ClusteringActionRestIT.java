@@ -131,7 +131,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     public void testRestApiPathParams() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl 
-                    + "/" + INDEX_NAME 
+                    + "/" + INDEX_EMPTY
                     + "/empty/" 
                     + RestClusteringAction.NAME + "?pretty=true");
             post.setEntity(new ByteArrayEntity(jsonResourceAs("post_with_fields.json", xtype), contentType));

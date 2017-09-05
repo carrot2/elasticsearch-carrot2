@@ -25,6 +25,7 @@ import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.common.network.NetworkModule;
@@ -68,13 +69,14 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
       return nodePlugins();
     }
 
-    protected static final String INDEX_NAME = "test";
+    protected static final String INDEX_TEST = "test";
+    protected static final String INDEX_EMPTY = "empty";
 
     @Before
     public void createTestIndex() throws Exception {
         // Delete any previously indexed content.
         client = client();
-        if (!client.admin().indices().prepareExists(INDEX_NAME).get().isExists()) {
+        if (!client.admin().indices().prepareExists(INDEX_TEST).get().isExists()) {
             String testTemplate = 
                   "{" +
                   "  \"test\": {" +
@@ -102,13 +104,15 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                 "}";
 
             CreateIndexResponse response = client.admin().indices()
-              .prepareCreate(INDEX_NAME)
-                // index.mapping.single_type
-              .setSettings("index.version.created", Version.V_5_6_0.id)
+              .prepareCreate(INDEX_TEST)
               .addMapping("test", testTemplate, XContentType.JSON)
-              .addMapping("empty", emptyTemplate, XContentType.JSON)
               .get();
+            Assertions.assertThat(response.isAcknowledged()).isTrue();
 
+            response = client.admin().indices()
+                .prepareCreate(INDEX_EMPTY)
+                .addMapping("empty", emptyTemplate, XContentType.JSON)
+                .get();
             Assertions.assertThat(response.isAcknowledged()).isTrue();
 
             // Create content at random in the test index.
@@ -119,7 +123,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             BulkRequestBuilder bulk = client.prepareBulk();
             for (String[] data : SampleDocumentData.SAMPLE_DATA) {
                 bulk.add(client.prepareIndex()
-                    .setIndex(INDEX_NAME)
+                    .setIndex(INDEX_TEST)
                     .setType("test")
                     .setSource(XContentFactory.jsonBuilder()
                             .startObject()
@@ -132,7 +136,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             }
 
             bulk.add(client.prepareIndex()
-                .setIndex(INDEX_NAME)
+                .setIndex(INDEX_EMPTY)
                 .setType("empty")
                 .setSource(XContentFactory.jsonBuilder()
                         .startObject()
@@ -142,9 +146,11 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                         .endObject()));
 
             bulk.execute().actionGet();
-            flushAndRefresh(INDEX_NAME);
+            flushAndRefresh(INDEX_TEST);
+            flushAndRefresh(INDEX_EMPTY);
         }
-        ensureGreen(INDEX_NAME);
+        ensureGreen(INDEX_TEST);
+        ensureGreen(INDEX_EMPTY);
 
         InetSocketAddress endpoint = randomFrom(cluster().httpAddresses());
         this.restBaseUrl = "http://" + NetworkAddress.format(endpoint);
