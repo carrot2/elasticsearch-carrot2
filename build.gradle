@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '6.0.0-beta1'
+version = '6.0.0-beta2'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '6.0.0-beta1'
+        version_es = '6.0.0-beta2'
     }
 
     repositories {
@@ -33,6 +33,9 @@ esplugin {
     name 'elasticsearch-carrot2'
     description 'Search results clustering plugin for ElasticSearch (Carrot2-based)'
     classname 'org.carrot2.elasticsearch.ClusteringPlugin'
+
+    licenseFile rootProject.file('LICENSE.txt')
+    noticeFile rootProject.file('NOTICE.txt')
 }
 
 // We don't have unit tests, only integration tests.

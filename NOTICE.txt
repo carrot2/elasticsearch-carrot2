@@ -1,0 +1,5 @@
+Elasticsearch-Carrot2
+Copyright 2013-2017 Carrot Search s.c.
+
+This product includes software developed by The Apache Software
+Foundation (http://www.apache.org/).
