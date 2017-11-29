@@ -16,7 +16,7 @@
 # fields. In this example only fetched fields are used.
 #
 
-curl -XPOST 'http://localhost:9200/test/test/_search_with_clusters?pretty=true' -d '
+curl -XPOST -H "Content-Type: application/json" 'http://localhost:9200/test/test/_search_with_clusters?pretty=true' -d '
 {
     "search_request": {
         "_source" : [
@@ -26,7 +26,7 @@ curl -XPOST 'http://localhost:9200/test/test/_search_with_clusters?pretty=true' 
         ],
         "query" : {
             "match" : {
-              "_all" : "data mining" 
+              "content" : "data mining" 
             }
         },
         "size": 100

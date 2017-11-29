@@ -152,7 +152,7 @@ http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn
               "search_request": {
                 "_source": [ "url", "title", "content" ],
                 "query": {
-                  "match": { "_all": query }
+                  "match": { "content": query }
                 },
                 "size": 100
               },
@@ -257,6 +257,10 @@ http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn
           });
 
           // Check if we have the ES available at all.
+          $.ajaxSetup({
+            contentType: "application/json; charset=UTF-8"
+          });
+
           $.ajax({
             url: window.ES_URL + "/_stats?pretty=true",
             error: function() {

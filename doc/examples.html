@@ -496,7 +496,7 @@ window.dumpClusters = function(arr, clusters, indent) {
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -536,7 +536,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -573,7 +573,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
 var request = {
   "search_request": {
     "_source": [ "title", "content" ],
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -754,7 +754,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -776,7 +776,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="executable example">
 var request = {
   "search_request": {
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -858,7 +858,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="executable example" data-runbefore="defineDumpClusters">
 var request = {
   "search_request": {
-    "query": {"match" : { "_all": "data mining" }},
+    "query": {"match" : { "content": "data mining" }},
     "size": 100
   },
 
@@ -1078,6 +1078,10 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         }
 
         // Check if we have the document index. If not, index first.
+        $.ajaxSetup({
+          contentType: "application/json; charset=UTF-8"
+        });
+        
         $.ajax({
           url: window.ES_URL + "/_stats?pretty=true",
           success: function(response) {
