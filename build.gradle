@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '6.0.0-beta2'
+version = '6.0.0'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '6.0.0-beta2'
+        version_es = '6.0.0'
     }
 
     repositories {

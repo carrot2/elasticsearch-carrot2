@@ -1203,7 +1203,10 @@ public class ClusteringAction
                     break;
 
                 case GET:
-                    RestSearchAction.parseSearchRequest(searchRequest, request, null);
+
+                    RestSearchAction.parseSearchRequest(searchRequest, request, null, (size) -> {
+                        searchRequest.source().size(size);
+                    });
                     actionBuilder.setSearchRequest(searchRequest);
                     fillFromGetRequest(actionBuilder, request);
                     break;
