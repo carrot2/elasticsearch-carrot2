@@ -21,11 +21,9 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Field
 import org.carrot2.shaded.guava.common.base.Charsets;
 import org.carrot2.shaded.guava.common.io.ByteStreams;
 import org.carrot2.shaded.guava.common.io.Resources;
-import org.elasticsearch.Version;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.common.network.NetworkModule;
@@ -55,7 +53,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     protected Settings nodeSettings(int nodeOrdinal) {
         return Settings.builder()
                 .put(super.nodeSettings(nodeOrdinal))
-                .put(NetworkModule.HTTP_ENABLED, true)
+                .put(NetworkModule.HTTP_ENABLED.getKey(), true)
                 .build();
     }
     

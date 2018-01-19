@@ -46,9 +46,9 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
     private Logger logger;
 
     @Inject
-    public ControllerSingleton(Settings settings) {
+    public ControllerSingleton(Settings settings, Environment environment) {
         super(settings);
-        this.environment = new Environment(settings);
+        this.environment = environment;
         this.logger = Loggers.getLogger("plugin.carrot2");
     }
 
@@ -125,8 +125,8 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
             Map<String, Object> c2SettingsAsMap = new HashMap<>();
             DefaultLexicalDataFactoryDescriptor.attributeBuilder(c2SettingsAsMap)
                 .resourceLookup(resourceLookup);
-            c2SettingsAsMap.putAll(c2Settings.getAsMap());
-
+            c2Settings.keySet().forEach(k -> c2SettingsAsMap.put(k, c2Settings.get(k)));
+            
             // Set up the license for Lingo3G, if it's available.
             Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
             if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
