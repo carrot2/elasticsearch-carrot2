@@ -50,6 +50,13 @@ integTestRunner {
   systemProperty 'tests.security.manager', 'false'
 }
 
+integTestCluster {
+	// extraConfigFile doesn't allow directories, only files, so we need to add each individually
+	fileTree(dir: 'src/main/config').each {File file -> 
+		extraConfigFile 'elasticsearch-carrot2/' + file.name, file
+	}
+}
+
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
