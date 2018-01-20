@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Locale;
 
 import org.assertj.core.api.Assertions;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
@@ -107,12 +108,12 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         DocumentGroup[] documentGroups = result.getDocumentGroups();
         Set<String> allLanguages = new HashSet<>();
         for (LanguageCode code : LanguageCode.values()) {
-            allLanguages.add(code.toString());
+            allLanguages.add(code.name().toLowerCase(Locale.ROOT));
         }
 
         for (DocumentGroup group : documentGroups) {
             if (!group.isOtherTopics()) {
-                allLanguages.remove(group.getLabel());
+                allLanguages.remove(group.getLabel().toLowerCase(Locale.ROOT));
             }
         }
 
