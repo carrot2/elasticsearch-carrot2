@@ -916,7 +916,8 @@ public class ClusteringAction
                     response.getSuccessfulShards(),
                     response.getSkippedShards(),
                     response.getTook().getMillis(),
-                    response.getShardFailures());
+                    response.getShardFailures(),
+                    response.getClusters());
         }
 
         private List<InternalAggregation> toInternal(List<Aggregation> list) {
