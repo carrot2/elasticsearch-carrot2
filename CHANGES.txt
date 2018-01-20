@@ -5,6 +5,8 @@ ElasticSearch-Carrot2 Change Log
 
 Other changes
 
+* Updates to API changes in ES 6.1.1. (PR #74, thanks Tom Chambers!).
+
 * Updates to API changes in ES 6.0.0.
 
 * REST tests cleanups and updates.
