@@ -7,5 +7,14 @@ package -DskipTests -> assemble
 package  -> build
 install -DskipTests -> publishToMavenLocal
 
+# Remember to set up ~/.gradle/gradle.properties:
+
+nexusUsername=
+nexusPassword=
+signing.keyId=
+signing.password=
+signing.secretKeyRingFile=.../secring.gpg
+
+# then:
 deploy -> clean uploadArchives
 
