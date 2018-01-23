@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '5.5.2'
+version = '5.6.2'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '5.5.2'
+        version_es = '5.6.2'
     }
 
     repositories {
@@ -29,6 +29,12 @@ apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
 
+ext {
+  projectSubstitutions = [:]
+  licenseFile = rootProject.file('LICENSE.txt')
+  noticeFile = rootProject.file('NOTICE.txt')
+} 
+
 esplugin {
     name 'elasticsearch-carrot2'
     description 'Search results clustering plugin for ElasticSearch (Carrot2-based)'
@@ -36,7 +42,9 @@ esplugin {
 }
 
 // We don't have unit tests, only integration tests.
-test.enabled = false
+test {
+  enabled = false
+}
 
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false

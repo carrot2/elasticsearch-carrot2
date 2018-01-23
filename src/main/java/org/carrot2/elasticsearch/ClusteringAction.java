@@ -915,7 +915,8 @@ public class ClusteringAction
                     response.getScrollId(),
                     response.getTotalShards(),
                     response.getSuccessfulShards(),
-                    response.getTookInMillis(),
+                    response.getSkippedShards(),
+                    response.getTook().getMillis(),
                     response.getShardFailures());
         }
 
