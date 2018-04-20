@@ -1164,6 +1164,7 @@ public class ClusteringAction
         }
 
         @Override
+        @SuppressWarnings("try")
         public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) throws IOException {
             // A POST request must have a body.
             if (request.method() == POST && !request.hasContent()) {
@@ -1219,7 +1220,6 @@ public class ClusteringAction
             // Dispatch clustering request.
             return channel -> {
                 try (ThreadContext.StoredContext ignored = client.threadPool().getThreadContext().stashContext()) {
-                    ignored.hashCode();
                     client.threadPool().getThreadContext().copyHeaders(securityHeaders.entrySet());
                     client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
                         new ActionListener<ClusteringActionResponse>() {
