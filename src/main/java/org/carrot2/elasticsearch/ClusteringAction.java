@@ -8,18 +8,10 @@ import static org.elasticsearch.rest.RestRequest.Method.GET;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
@@ -52,6 +44,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -59,10 +52,7 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.rest.BaseRestHandler;
-import org.elasticsearch.rest.BytesRestResponse;
-import org.elasticsearch.rest.RestController;
-import org.elasticsearch.rest.RestRequest;
+import org.elasticsearch.rest.*;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -1216,31 +1206,47 @@ public class ClusteringAction
                     throw org.carrot2.elasticsearch.Preconditions.unreachable();
             }
 
-            // Dispatch clustering request.
-            return channel -> client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
-                    new ActionListener<ClusteringActionResponse>() {
-                        @Override
-                        public void onResponse(ClusteringActionResponse response) {
-                            try {
-                                XContentBuilder builder = channel.newBuilder();
-                                builder.startObject();
-                                response.toXContent(builder, request);
-                                builder.endObject();
-                                channel.sendResponse(
-                                        new BytesRestResponse(
-                                                response.getSearchResponse().status(),
-                                                builder));
-                            } catch (Exception e) {
-                                logger.debug("Failed to emit response.", e);
-                                onFailure(e);
-                            }
-                        }
+            Set<String> passSecurityHeaders = new HashSet<>(Arrays.asList("es-security-runas-user", "_xpack_security_authentication"));
 
-                        @Override
-                        public void onFailure(Exception e) {
-                            emitErrorResponse(channel, logger, e);
-                        }
-                    });
+            Map<String, String> securityHeaders =
+                client.threadPool().getThreadContext().getHeaders()
+                    .entrySet().stream()
+                    .filter(e -> passSecurityHeaders.contains(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            System.out.println("> " + securityHeaders);
+
+            // Dispatch clustering request.
+            return channel -> {
+                try (ThreadContext.StoredContext ignored = client.threadPool().getThreadContext().stashContext()) {
+                    ignored.hashCode();
+                    client.threadPool().getThreadContext().copyHeaders(securityHeaders.entrySet());
+                    client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
+                        new ActionListener<ClusteringActionResponse>() {
+                            @Override
+                            public void onResponse(ClusteringActionResponse response) {
+                                try {
+                                    XContentBuilder builder = channel.newBuilder();
+                                    builder.startObject();
+                                    response.toXContent(builder, request);
+                                    builder.endObject();
+                                    channel.sendResponse(
+                                        new BytesRestResponse(
+                                            response.getSearchResponse().status(),
+                                            builder));
+                                } catch (Exception e) {
+                                    logger.debug("Failed to emit response.", e);
+                                    onFailure(e);
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Exception e) {
+                                emitErrorResponse(channel, logger, e);
+                            }
+                        });
+                }
+            };
         }
 
         private static final EnumMap<LogicalField, String> GET_REQUEST_FIELDMAPPERS;
