@@ -5,7 +5,9 @@ ElasticSearch-Carrot2 Change Log
 
 Other changes
 
-* Build updates to ES 6.2.3.
+* Upgrade dependency to Carrot2 3.16.0 (and Lingo3G 1.16.0).
+
+* Build updates to ES 6.2.4.
 
 ================ ElasticSearch-Carrot2 6.1.1 ====================
 
