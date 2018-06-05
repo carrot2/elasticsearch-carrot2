@@ -8,7 +8,17 @@ import static org.elasticsearch.rest.RestRequest.Method.GET;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -1214,8 +1224,6 @@ public class ClusteringAction
                     .entrySet().stream()
                     .filter(e -> passSecurityHeaders.contains(e.getKey()))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            System.out.println("> " + securityHeaders);
 
             // Dispatch clustering request.
             return channel -> {
