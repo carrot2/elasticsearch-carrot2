@@ -5,6 +5,9 @@ ElasticSearch-Carrot2 Change Log
 
 Other changes
 
+* ES security (x-pack) fixes to make it possible to run clustering in secured
+  ES instances.
+
 * Upgrade dependency to Carrot2 3.16.0 (and Lingo3G 1.16.0).
 
 * Build updates to ES 6.2.4.

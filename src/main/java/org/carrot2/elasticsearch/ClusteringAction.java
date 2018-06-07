@@ -8,18 +8,10 @@ import static org.elasticsearch.rest.RestRequest.Method.GET;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
@@ -35,11 +27,13 @@ import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.ActionFilters;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
@@ -52,6 +46,7 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -86,7 +81,7 @@ public class ClusteringAction
         ClusteringAction.ClusteringActionResponse,
         ClusteringAction.ClusteringActionRequestBuilder> {
     /* Action name. */
-    public static final String NAME = "clustering/cluster";
+    public static final String NAME = "indices:data/read/cluster";
 
     /* Reusable singleton. */
     public static final ClusteringAction INSTANCE = new ClusteringAction();
@@ -108,7 +103,7 @@ public class ClusteringAction
     /**
      * An {@link ActionRequest} for {@link ClusteringAction}.
      */
-    public static class ClusteringActionRequest extends ActionRequest {
+    public static class ClusteringActionRequest extends ActionRequest implements IndicesRequest.Replaceable {
         private SearchRequest searchRequest;
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = new ArrayList<>();
@@ -471,6 +466,21 @@ public class ClusteringAction
             if (hasAttributes) {
                 attributes = in.readMap();
             }
+        }
+
+        @Override
+        public IndicesRequest indices(String... strings) {
+            return searchRequest.indices(strings);
+        }
+
+        @Override
+        public String[] indices() {
+            return searchRequest.indices();
+        }
+
+        @Override
+        public IndicesOptions indicesOptions() {
+            return searchRequest.indicesOptions();
         }
     }
 
@@ -1174,6 +1184,7 @@ public class ClusteringAction
         }
 
         @Override
+        @SuppressWarnings("try")
         public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) throws IOException {
             // A POST request must have a body.
             if (request.method() == POST && !request.hasContent()) {
@@ -1216,8 +1227,19 @@ public class ClusteringAction
                     throw org.carrot2.elasticsearch.Preconditions.unreachable();
             }
 
+            Set<String> passSecurityHeaders = new HashSet<>(Arrays.asList("es-security-runas-user", "_xpack_security_authentication"));
+
+            Map<String, String> securityHeaders =
+                client.threadPool().getThreadContext().getHeaders()
+                    .entrySet().stream()
+                    .filter(e -> passSecurityHeaders.contains(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
             // Dispatch clustering request.
-            return channel -> client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
+            return channel -> {
+                try (ThreadContext.StoredContext ignored = client.threadPool().getThreadContext().stashContext()) {
+                    client.threadPool().getThreadContext().copyHeaders(securityHeaders.entrySet());
+                    client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
                     new ActionListener<ClusteringActionResponse>() {
                         @Override
                         public void onResponse(ClusteringActionResponse response) {
@@ -1241,6 +1263,8 @@ public class ClusteringAction
                             emitErrorResponse(channel, logger, e);
                         }
                     });
+        }
+            };
         }
 
         private static final EnumMap<LogicalField, String> GET_REQUEST_FIELDMAPPERS;
