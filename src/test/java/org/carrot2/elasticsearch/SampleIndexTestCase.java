@@ -24,10 +24,12 @@ import org.carrot2.shaded.guava.common.io.Resources;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.common.network.NetworkModule;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -208,9 +210,10 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         builder.startObject();
         result.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        String json = builder.string();
+        String json = Strings.toString(builder);
 
-        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY, json)) {
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY,
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION, json)) {
             Map<String, Object> mapAndClose = parser.map();
             Assertions.assertThat(mapAndClose)
                 .as("json-result")
@@ -221,7 +224,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     protected byte[] jsonResourceAs(String resourceName, XContentType toType) throws IOException {
         byte [] bytes = resource(resourceName);
         XContentParser parser = XContentFactory.xContent(XContentType.JSON)
-            .createParser(NamedXContentRegistry.EMPTY, bytes);
+            .createParser(NamedXContentRegistry.EMPTY,
+                DeprecationHandler.THROW_UNSUPPORTED_OPERATION, bytes);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         XContentBuilder builder = XContentFactory.contentBuilder(toType, baos).copyCurrentStructure(parser);
@@ -258,7 +262,9 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             .isEqualTo(HttpStatus.SC_OK);
 
         try (XContentParser parser = XContentHelper.createParser(
-            NamedXContentRegistry.EMPTY, new BytesArray(responseBytes), 
+            NamedXContentRegistry.EMPTY,
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
+            new BytesArray(responseBytes),
             XContentType.fromMediaTypeOrFormat(response.getFirstHeader(HttpHeaders.CONTENT_TYPE).getValue()))) {
             Map<String, Object> map = parser.map();
             Assertions.assertThat(map)
@@ -284,7 +290,9 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
         XContentType xContentType = XContentType.fromMediaTypeOrFormat(
             response.getFirstHeader(HttpHeaders.CONTENT_TYPE).getValue());
         try (XContentParser parser = XContentHelper.createParser(
-            NamedXContentRegistry.EMPTY, new BytesArray(responseBytes), xContentType)) {
+            NamedXContentRegistry.EMPTY,
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
+            new BytesArray(responseBytes), xContentType)) {
             Map<String, Object> responseJson = parser.mapOrdered();
             
             Assertions.assertThat(responseJson)

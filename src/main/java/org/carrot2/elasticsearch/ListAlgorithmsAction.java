@@ -42,7 +42,7 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
         ListAlgorithmsAction.ListAlgorithmsActionResponse,
         ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder> {
     /* Action name. */
-    public static final String NAME = "clustering/list";
+    public static final String NAME = "cluster:monitor/carrot2/algorithms";
 
     /* Reusable singleton. */
     public static final ListAlgorithmsAction INSTANCE = new ListAlgorithmsAction();

@@ -37,11 +37,13 @@ import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.TransportSearchAction;
 import org.elasticsearch.action.support.ActionFilters;
+import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
@@ -55,6 +57,7 @@ import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -62,7 +65,10 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.rest.*;
+import org.elasticsearch.rest.BaseRestHandler;
+import org.elasticsearch.rest.BytesRestResponse;
+import org.elasticsearch.rest.RestController;
+import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -86,7 +92,7 @@ public class ClusteringAction
         ClusteringAction.ClusteringActionResponse,
         ClusteringAction.ClusteringActionRequestBuilder> {
     /* Action name. */
-    public static final String NAME = "clustering/cluster";
+    public static final String NAME = "indices:data/read/cluster";
 
     /* Reusable singleton. */
     public static final ClusteringAction INSTANCE = new ClusteringAction();
@@ -108,7 +114,7 @@ public class ClusteringAction
     /**
      * An {@link ActionRequest} for {@link ClusteringAction}.
      */
-    public static class ClusteringActionRequest extends ActionRequest {
+    public static class ClusteringActionRequest extends ActionRequest implements IndicesRequest.Replaceable {
         private SearchRequest searchRequest;
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = new ArrayList<>();
@@ -256,7 +262,8 @@ public class ClusteringAction
                 return;
             }
 
-            try (XContentParser parser = XContentHelper.createParser(xContentRegistry, source, xContentType)) {
+            try (XContentParser parser = XContentHelper.createParser(xContentRegistry,
+                DeprecationHandler.THROW_UNSUPPORTED_OPERATION, source, xContentType)) {
                 // TODO: we should avoid reparsing search_request here 
                 // but it's terribly difficult to slice the underlying byte 
                 // buffer to get just the search request.
@@ -290,7 +297,8 @@ public class ClusteringAction
 
                     XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
                     XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON)
-                            .createParser(xContentRegistry, builder.bytes());
+                            .createParser(xContentRegistry, DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
+                                BytesReference.toBytes(BytesReference.bytes(builder)));
                     SearchSourceBuilder searchSourceBuilder =
                             SearchSourceBuilder.fromXContent(searchXParser);
                     searchRequest.source(searchSourceBuilder);
@@ -471,6 +479,21 @@ public class ClusteringAction
             if (hasAttributes) {
                 attributes = in.readMap();
             }
+        }
+
+        @Override
+        public IndicesRequest indices(String... strings) {
+            return searchRequest.indices(strings);
+        }
+
+        @Override
+        public String[] indices() {
+            return searchRequest.indices();
+        }
+
+        @Override
+        public IndicesOptions indicesOptions() {
+            return searchRequest.indicesOptions();
         }
     }
 
