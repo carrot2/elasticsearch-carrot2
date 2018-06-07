@@ -1253,15 +1253,15 @@ public class ClusteringAction
                 try (ThreadContext.StoredContext ignored = client.threadPool().getThreadContext().stashContext()) {
                     client.threadPool().getThreadContext().copyHeaders(securityHeaders.entrySet());
                     client.execute(ClusteringAction.INSTANCE, actionBuilder.request(),
-                        new ActionListener<ClusteringActionResponse>() {
-                            @Override
-                            public void onResponse(ClusteringActionResponse response) {
-                                try {
-                                    XContentBuilder builder = channel.newBuilder();
-                                    builder.startObject();
-                                    response.toXContent(builder, request);
-                                    builder.endObject();
-                                    channel.sendResponse(
+                    new ActionListener<ClusteringActionResponse>() {
+                        @Override
+                        public void onResponse(ClusteringActionResponse response) {
+                            try {
+                                XContentBuilder builder = channel.newBuilder();
+                                builder.startObject();
+                                response.toXContent(builder, request);
+                                builder.endObject();
+                                channel.sendResponse(
                                         new BytesRestResponse(
                                             response.getSearchResponse().status(),
                                             builder));
@@ -1277,6 +1277,8 @@ public class ClusteringAction
                             }
                         });
                 }
+            };
+        }
             };
         }
 
