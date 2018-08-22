@@ -3,7 +3,7 @@ package org.carrot2.elasticsearch;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
-
+import org.elasticsearch.common.Strings;
 import java.io.IOException;
 
 /**
@@ -16,7 +16,7 @@ final class ToString {
             builder.startObject();
             xcontentObject.toXContent(builder, ToXContent.EMPTY_PARAMS);
             builder.endObject();
-            return builder.string();
+            return Strings.toString(builder);
         } catch (IOException e) {
             try {
                 XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
@@ -24,7 +24,7 @@ final class ToString {
                 builder.field("error", e.getMessage());
                 builder.field("class", e.getClass().getName());
                 builder.endObject();
-                return builder.string();
+                return Strings.toString(builder);
             } catch (IOException e2) {
                 return "{ \"error\": \"Could not serialize the underlying error.\"}";
             }

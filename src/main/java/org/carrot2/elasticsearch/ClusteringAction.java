@@ -62,6 +62,7 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.BaseRestHandler;
@@ -261,7 +262,8 @@ public class ClusteringAction
                 return;
             }
 
-            try (XContentParser parser = XContentHelper.createParser(xContentRegistry, source, xContentType)) {
+            try (XContentParser parser = XContentHelper.createParser(xContentRegistry,
+                    DeprecationHandler.THROW_UNSUPPORTED_OPERATION, source, xContentType)) {
                 // TODO: we should avoid reparsing search_request here 
                 // but it's terribly difficult to slice the underlying byte 
                 // buffer to get just the search request.
@@ -295,7 +297,7 @@ public class ClusteringAction
 
                     XContentBuilder builder = XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
                     XContentParser searchXParser = XContentFactory.xContent(XContentType.JSON)
-                            .createParser(xContentRegistry, builder.bytes());
+                            .createParser(xContentRegistry, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, Strings.toString(builder));
                     SearchSourceBuilder searchSourceBuilder =
                             SearchSourceBuilder.fromXContent(searchXParser);
                     searchRequest.source(searchSourceBuilder);
