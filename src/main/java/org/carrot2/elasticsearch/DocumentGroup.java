@@ -1,6 +1,7 @@
 package org.carrot2.elasticsearch;
 
 import org.carrot2.core.Cluster;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
@@ -148,7 +149,7 @@ public class DocumentGroup implements ToXContent, Streamable {
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
             toXContent(builder, EMPTY_PARAMS);
-            return builder.string();
+            return Strings.toString(builder);
         } catch (IOException e) {
             return "{ \"error\" : \"" + e.getMessage() + "\"}";
         }

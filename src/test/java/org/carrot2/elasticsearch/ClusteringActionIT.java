@@ -20,6 +20,7 @@ import org.carrot2.text.clustering.MultilingualClustering.LanguageAggregationStr
 import org.carrot2.text.clustering.MultilingualClusteringDescriptor;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -234,7 +235,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         resultWithHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject jsonWithHits = new JSONObject(builder.string());
+        JSONObject jsonWithHits = new JSONObject(Strings.toString(builder));
         Assertions.assertThat(jsonWithHits.has("hits")).isTrue();
 
         // without hits
@@ -253,7 +254,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         resultWithoutHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject jsonWithoutHits = new JSONObject(builder.string());
+        JSONObject jsonWithoutHits = new JSONObject(Strings.toString(builder));
         Assertions.assertThat(
                 jsonWithoutHits
                     .getJSONObject("hits")
@@ -309,7 +310,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         limitedHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject json = new JSONObject(builder.string());
+        JSONObject json = new JSONObject(Strings.toString(builder));
         Assertions.assertThat(json
                     .getJSONObject("hits")
                     .getJSONArray("hits").length()).isEqualTo(2);
