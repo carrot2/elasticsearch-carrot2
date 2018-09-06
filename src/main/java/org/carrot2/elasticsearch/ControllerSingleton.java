@@ -1,10 +1,8 @@
 package org.carrot2.elasticsearch;
 
 import org.apache.logging.log4j.Logger;
-import org.carrot2.core.Controller;
-import org.carrot2.core.ControllerFactory;
-import org.carrot2.core.ProcessingComponentDescriptor;
-import org.carrot2.core.ProcessingComponentSuite;
+import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
+import org.carrot2.core.*;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
@@ -22,14 +20,11 @@ import org.elasticsearch.node.Node;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
@@ -40,6 +35,8 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_
  * the {@link Node}'s lifecycle.
  */
 public class ControllerSingleton extends AbstractLifecycleComponent {
+    public static final String ATTR_RESOURCE_LOOKUP = "esplugin.resources";
+
     private final Environment environment;
     private Controller controller;
     private List<String> algorithms;
@@ -142,7 +139,25 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
             } else {
                 controller = ControllerFactory.createPooling();
             }
-            controller.init(c2SettingsAsMap, suite.getComponentConfigurations());
+
+            ProcessingComponentConfiguration[] configs = suite.getComponentConfigurations();
+            for (int i = 0; i < configs.length; i++) {
+                // Instantiate resource lookup strategy.
+                if (configs[i].attributes.containsKey(ATTR_RESOURCE_LOOKUP)) {
+                    Map<String, Object> attrs = new LinkedHashMap<>(configs[i].attributes);
+                    Path lookupPath = Paths.get((String) attrs.remove(ATTR_RESOURCE_LOOKUP));
+
+                    logger.info("Custom resource lookup location for '" + configs[i].componentId + "': " + lookupPath);
+
+                    attrs.put(DefaultLexicalDataFactoryDescriptor.Keys.RESOURCE_LOOKUP, new ResourceLookup(
+                        new DirLocator(resourcesPath.resolve(lookupPath))));
+                    configs[i] = new ProcessingComponentConfiguration(
+                        configs[i].componentClass,
+                        configs[i].componentId,
+                        attrs);
+                }
+            }
+            controller.init(c2SettingsAsMap, configs);
         } catch (Exception e) {
             throw new ElasticsearchException(
                     "Could not start Carrot2 controller.", e);
