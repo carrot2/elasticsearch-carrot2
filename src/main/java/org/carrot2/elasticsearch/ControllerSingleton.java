@@ -1,8 +1,11 @@
 package org.carrot2.elasticsearch;
 
 import org.apache.logging.log4j.Logger;
-import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
-import org.carrot2.core.*;
+import org.carrot2.core.Controller;
+import org.carrot2.core.ControllerFactory;
+import org.carrot2.core.ProcessingComponentConfiguration;
+import org.carrot2.core.ProcessingComponentDescriptor;
+import org.carrot2.core.ProcessingComponentSuite;
 import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
 import org.carrot2.util.resource.ClassLoaderLocator;
 import org.carrot2.util.resource.DirLocator;
@@ -24,7 +27,12 @@ import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
