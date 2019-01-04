@@ -5,6 +5,12 @@ ElasticSearch-Carrot2 Change Log
 
 Other changes
 
+================ ElasticSearch-Carrot2 6.5.4 ====================
+
+Other changes
+
+* Build updates to ES 6.5.4.
+
 ================ ElasticSearch-Carrot2 6.4.3 ====================
 
 Other changes
