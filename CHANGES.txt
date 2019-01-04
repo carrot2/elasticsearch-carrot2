@@ -5,6 +5,12 @@ ElasticSearch-Carrot2 Change Log
 
 Other changes
 
+================ ElasticSearch-Carrot2 6.4.3 ====================
+
+Other changes
+
+* Build updates to ES 6.4.3.
+
 * Permit custom resource lookup location for each algorithm. This can be accomplished
   by declaring a 'esplugin.resources' attribute inside a given component's configuration
   attributes. For example, changing lingo-attributes.xml in the following way:
