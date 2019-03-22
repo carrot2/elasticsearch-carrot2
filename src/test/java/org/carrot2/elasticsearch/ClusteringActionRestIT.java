@@ -168,21 +168,21 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
             // Check top level clusters labels.
-            Set<String> allLanguages = new HashSet<>();
+            Set<String> remainingLanguages = new HashSet<>();
             for (LanguageCode code : LanguageCode.values()) {
-                allLanguages.add(code.toString());
+                remainingLanguages.add(code.toString());
             }
 
             List<?> clusterList = (List<?>) map.get("clusters");
             for (Object o : clusterList) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> cluster = (Map<String, Object>) o; 
-                allLanguages.remove(cluster.get("label"));
+                remainingLanguages.remove(cluster.get("label"));
             }
             
-            Assertions.assertThat(allLanguages.size())
-                .describedAs("Expected a lot of languages to appear in top groups.")
-                .isLessThan(LanguageCode.values().length / 2);            
+            Assertions.assertThat(remainingLanguages.size())
+                .describedAs("Expected a lot of languages to appear in top groups: " + remainingLanguages)
+                .isLessThan(LanguageCode.values().length / 2);
         }
     }
     

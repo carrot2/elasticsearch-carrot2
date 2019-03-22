@@ -26,7 +26,7 @@ then install with:
     bin/elasticsearch-plugin install file:/.../(plugin)/build/distributions/*.zip
 
     Windows:
-    bin/elasticsearch-plugin install file:///c:/.../(plugin)/build/distributions/*.zip
+    bin\elasticsearch-plugin install file:///c:/.../(plugin)/build/distributions/*.zip
 
 Starting with ES 2.2.0, the installer will request confirmation 
 concerning extended security permissions. You have to accept this prompt for
