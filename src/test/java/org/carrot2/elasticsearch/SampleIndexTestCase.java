@@ -55,10 +55,14 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     protected Settings nodeSettings(int nodeOrdinal) {
         return Settings.builder()
                 .put(super.nodeSettings(nodeOrdinal))
-                .put(NetworkModule.HTTP_ENABLED.getKey(), true)
                 .build();
     }
-    
+
+    @Override
+    protected boolean addMockHttpTransport() {
+        return false;
+    }
+
     @Override
     protected Collection<Class<? extends Plugin>> nodePlugins() {
       return Collections.singletonList(ClusteringPlugin.class);

@@ -10,7 +10,6 @@ import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -23,6 +22,7 @@ import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.tasks.Task;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
@@ -38,9 +38,7 @@ import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 /**
  * List all available clustering algorithms.
  */
-public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgorithmsActionRequest,
-        ListAlgorithmsAction.ListAlgorithmsActionResponse,
-        ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder> {
+public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgorithmsActionResponse> {
     /* Action name. */
     public static final String NAME = "cluster:monitor/carrot2/algorithms";
 
@@ -54,11 +52,6 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
     @Override
     public ListAlgorithmsActionResponse newResponse() {
         return new ListAlgorithmsActionResponse();
-    }
-
-    @Override
-    public ListAlgorithmsActionRequestBuilder newRequestBuilder(ElasticsearchClient client) {
-        return new ListAlgorithmsActionRequestBuilder(client);
     }
 
     /**
@@ -77,8 +70,7 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
      */
     public static class ListAlgorithmsActionRequestBuilder
             extends ActionRequestBuilder<ListAlgorithmsActionRequest,
-            ListAlgorithmsActionResponse,
-            ListAlgorithmsActionRequestBuilder> {
+            ListAlgorithmsActionResponse> {
         public ListAlgorithmsActionRequestBuilder(ElasticsearchClient client) {
             super(client, ListAlgorithmsAction.INSTANCE, new ListAlgorithmsActionRequest());
         }
@@ -144,22 +136,16 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
      * {@link ListAlgorithmsActionResponse}.
      */
     public static class TransportListAlgorithmsAction
-            extends TransportAction<ListAlgorithmsActionRequest,
-            ListAlgorithmsActionResponse> {
+            extends TransportAction<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
 
         private final ControllerSingleton controllerSingleton;
 
         @Inject
-        public TransportListAlgorithmsAction(Settings settings, ThreadPool threadPool,
-                                             TransportService transportService,
+        public TransportListAlgorithmsAction(TransportService transportService,
                                              ControllerSingleton controllerSingleton,
-                                             ActionFilters actionFilters,
-                                             IndexNameExpressionResolver indexNameExpressionResolver) {
-            super(settings,
-                  ListAlgorithmsAction.NAME,
-                  threadPool,
+                                             ActionFilters actionFilters) {
+            super(ListAlgorithmsAction.NAME,
                   actionFilters,
-                  indexNameExpressionResolver,
                   transportService.getTaskManager());
             this.controllerSingleton = controllerSingleton;
             transportService.registerRequestHandler(
@@ -170,7 +156,8 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
         }
 
         @Override
-        protected void doExecute(ListAlgorithmsActionRequest request,
+        protected void doExecute(Task task,
+                                 ListAlgorithmsActionRequest request,
                                  ActionListener<ListAlgorithmsActionResponse> listener) {
             listener.onResponse(new ListAlgorithmsActionResponse(controllerSingleton.getAlgorithms()));
         }
@@ -178,7 +165,8 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
         private final class TransportHandler implements TransportRequestHandler<ListAlgorithmsActionRequest> {
             @Override
             public void messageReceived(final ListAlgorithmsActionRequest request,
-                                        final TransportChannel channel) throws Exception {
+                                        final TransportChannel channel,
+                                        Task task) throws Exception {
                 execute(request, new ActionListener<ListAlgorithmsActionResponse>() {
                     @Override
                     public void onResponse(ListAlgorithmsActionResponse response) {

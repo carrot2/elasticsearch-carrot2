@@ -51,8 +51,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
     private Logger logger;
 
     @Inject
-    public ControllerSingleton(Settings settings, Environment environment) {
-        super(settings);
+    public ControllerSingleton(Environment environment) {
         this.environment = environment;
         this.logger = LogManager.getLogger("plugin.carrot2");
     }

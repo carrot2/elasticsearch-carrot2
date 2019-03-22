@@ -79,6 +79,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.internal.InternalSearchResponse;
 import org.elasticsearch.search.profile.SearchProfileShardResults;
+import org.elasticsearch.tasks.Task;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
@@ -88,9 +89,7 @@ import org.elasticsearch.transport.TransportService;
  * Perform clustering of search results.
  */
 public class ClusteringAction
-        extends Action<ClusteringAction.ClusteringActionRequest,
-        ClusteringAction.ClusteringActionResponse,
-        ClusteringAction.ClusteringActionRequestBuilder> {
+        extends Action<ClusteringAction.ClusteringActionResponse> {
     /* Action name. */
     public static final String NAME = "indices:data/read/cluster";
 
@@ -104,11 +103,6 @@ public class ClusteringAction
     @Override
     public ClusteringActionResponse newResponse() {
         return new ClusteringActionResponse();
-    }
-
-    @Override
-    public ClusteringActionRequestBuilder newRequestBuilder(ElasticsearchClient client) {
-        return new ClusteringActionRequestBuilder(client);
     }
 
     /**
@@ -500,9 +494,7 @@ public class ClusteringAction
      * An {@link ActionRequestBuilder} for {@link ClusteringAction}.
      */
     public static class ClusteringActionRequestBuilder
-            extends ActionRequestBuilder<ClusteringActionRequest,
-            ClusteringActionResponse,
-            ClusteringActionRequestBuilder> {
+            extends ActionRequestBuilder<ClusteringActionRequest, ClusteringActionResponse> {
 
         public ClusteringActionRequestBuilder(ElasticsearchClient client) {
             super(client, ClusteringAction.INSTANCE, new ClusteringActionRequest());
@@ -746,27 +738,20 @@ public class ClusteringAction
      * A {@link TransportAction} for {@link ClusteringAction}.
      */
     public static class TransportClusteringAction
-            extends TransportAction<ClusteringAction.ClusteringActionRequest,
-            ClusteringAction.ClusteringActionResponse> {
+            extends TransportAction<ClusteringAction.ClusteringActionRequest, ClusteringAction.ClusteringActionResponse> {
         private final Set<String> langCodeWarnings = new CopyOnWriteArraySet<>();
 
         private final TransportSearchAction searchAction;
         private final ControllerSingleton controllerSingleton;
 
         @Inject
-        public TransportClusteringAction(Settings settings,
-                                         ThreadPool threadPool,
-                                         TransportService transportService,
+        public TransportClusteringAction(TransportService transportService,
                                          TransportSearchAction searchAction,
                                          ControllerSingleton controllerSingleton,
                                          ActionFilters actionFilters,
-                                         IndexNameExpressionResolver indexNameExpressionResolver,
-                                         NamedXContentRegistry xContentRegistry) {
-            super(settings,
-                  ClusteringAction.NAME,
-                  threadPool,
+                                         IndexNameExpressionResolver indexNameExpressionResolver) {
+            super(ClusteringAction.NAME,
                   actionFilters,
-                  indexNameExpressionResolver,
                   transportService.getTaskManager());
 
             this.searchAction = searchAction;
@@ -779,7 +764,8 @@ public class ClusteringAction
         }
 
         @Override
-        protected void doExecute(final ClusteringActionRequest clusteringRequest,
+        protected void doExecute(Task task,
+                                 final ClusteringActionRequest clusteringRequest,
                                  final ActionListener<ClusteringActionResponse> listener) {
             final long tsSearchStart = System.nanoTime();
             searchAction.execute(clusteringRequest.getSearchRequest(), new ActionListener<SearchResponse>() {
@@ -1142,7 +1128,7 @@ public class ClusteringAction
 
         private final class TransportHandler implements TransportRequestHandler<ClusteringActionRequest> {
             @Override
-            public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel) throws Exception {
+            public void messageReceived(final ClusteringActionRequest request, final TransportChannel channel, Task task) throws Exception {
                 execute(request, new ActionListener<ClusteringActionResponse>() {
                     @Override
                     public void onResponse(ClusteringActionResponse response) {
