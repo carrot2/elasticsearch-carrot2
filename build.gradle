@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '6.5.4'
+version = '6.6.2'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '6.5.4'
+        version_es = '6.6.2'
     }
 
     repositories {
@@ -28,6 +28,9 @@ apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'maven'
 apply plugin: 'signing'
 apply plugin: 'maven-publish'
+
+apply plugin: 'nebula.maven-base-publish'
+apply plugin: 'nebula.maven-scm'
 
 ext {
   projectSubstitutions = [:]
