@@ -23,6 +23,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
@@ -54,7 +55,6 @@ import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
@@ -305,7 +305,7 @@ public class ClusteringAction
 
                 Object includeHits = asMap.get("include_hits");
                 if (includeHits != null) {
-                    Loggers.getLogger(getClass()).warn("Request used deprecated 'include_hits' parameter.");
+                    LogManager.getLogger(getClass()).warn("Request used deprecated 'include_hits' parameter.");
                     setIncludeHits(Boolean.parseBoolean(includeHits.toString()));
                 }
 

@@ -1,5 +1,6 @@
 package org.carrot2.elasticsearch;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.carrot2.core.Controller;
 import org.carrot2.core.ControllerFactory;
@@ -16,7 +17,6 @@ import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.inject.Inject;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
@@ -54,7 +54,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
     public ControllerSingleton(Settings settings, Environment environment) {
         super(settings);
         this.environment = environment;
-        this.logger = Loggers.getLogger("plugin.carrot2");
+        this.logger = LogManager.getLogger("plugin.carrot2");
     }
 
     @SuppressForbidden(reason = "C2 integration (File API)")

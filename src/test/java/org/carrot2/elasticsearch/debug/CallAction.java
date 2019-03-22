@@ -3,13 +3,13 @@ package org.carrot2.elasticsearch.debug;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.carrot2.elasticsearch.ClusteringPlugin;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.elasticsearch.action.admin.cluster.node.info.NodesInfoResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -20,7 +20,7 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
  */
 public class CallAction {
 
-    private static final Logger LOGGER = Loggers.getLogger(CallAction.class);
+    private static final Logger LOGGER = LogManager.getLogger(CallAction.class);
 
     public static void main(String[] args) throws Exception {
         Settings settings = Settings.builder().put("client.transport.sniff", true).build();
