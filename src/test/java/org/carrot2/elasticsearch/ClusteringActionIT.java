@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Locale;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithmDescriptor;
 import org.carrot2.clustering.stc.STCClusteringAlgorithmDescriptor;
@@ -26,7 +29,6 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.json.JSONObject;
 
 /**
  * API tests for {@link ClusteringAction}.
@@ -235,7 +237,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         resultWithHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject jsonWithHits = new JSONObject(Strings.toString(builder));
+
+        ObjectNode jsonWithHits = (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
         Assertions.assertThat(jsonWithHits.has("hits")).isTrue();
 
         // without hits
@@ -254,15 +257,13 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         resultWithoutHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject jsonWithoutHits = new JSONObject(Strings.toString(builder));
-        Assertions.assertThat(
-                jsonWithoutHits
-                    .getJSONObject("hits")
-                    .getJSONArray("hits").length()).isEqualTo(0);
+        ObjectNode jsonWithoutHits = (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
+
+        ObjectWriter ow = new ObjectMapper().writerWithDefaultPrettyPrinter();
+        Assertions.assertThat(jsonWithoutHits.get("hits").get("hits").size()).isEqualTo(0);
 
         // insert hits into jsonWithoutHits
-        JSONObject jsonHits = (JSONObject)jsonWithHits.get("hits");
-        jsonWithoutHits.put("hits", jsonHits);
+        jsonWithoutHits.set("hits", jsonWithHits.get("hits"));
 
         // took can vary, so ignore it
         jsonWithoutHits.remove("took");
@@ -277,11 +278,13 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         jsonWithHits.remove("profile");
 
         // now they should match
-        logger.debug("--> with:\n" + jsonWithHits.toString());
-        logger.debug("--> without:\n" + jsonWithoutHits.toString());
-        Assertions.assertThat(jsonWithHits.toString()).isEqualTo(jsonWithoutHits.toString());
+        String json1 = ow.writeValueAsString(jsonWithHits);
+        logger.debug("--> with:\n" + json1);
+        String json2 = ow.writeValueAsString(jsonWithoutHits);
+        logger.debug("--> without:\n" + json2);
+        Assertions.assertThat(json1).isEqualTo(json2);
     }
-    
+
     public void testMaxHits() throws IOException {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
@@ -310,9 +313,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         builder.startObject();
         limitedHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
         builder.endObject();
-        JSONObject json = new JSONObject(Strings.toString(builder));
+        ObjectNode json = (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
         Assertions.assertThat(json
-                    .getJSONObject("hits")
-                    .getJSONArray("hits").length()).isEqualTo(2);
+                    .get("hits")
+                    .get("hits").size()).isEqualTo(2);
     }        
 }
