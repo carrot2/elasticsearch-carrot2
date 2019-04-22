@@ -49,7 +49,7 @@ unitTest {
   enabled = false
 }
 testingConventions {
-  enabled = false
+  enabled = true
 }
 
 integTestRunner {
