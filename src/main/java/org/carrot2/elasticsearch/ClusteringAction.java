@@ -453,8 +453,7 @@ public class ClusteringAction
 
         @Override
         public void readFrom(StreamInput in) throws IOException {
-            SearchRequest searchRequest = new SearchRequest();
-            searchRequest.readFrom(in);
+            SearchRequest searchRequest = new SearchRequest(in);
 
             this.searchRequest = searchRequest;
             this.queryHint = in.readOptionalString();

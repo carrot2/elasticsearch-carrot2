@@ -24,7 +24,7 @@ import java.util.Set;
 public class ClusteringActionRestIT extends SampleIndexTestCase {
 
     private XContentType xtype = randomFrom(XContentType.values());
-    private ContentType contentType = ContentType.create(xtype.mediaType());
+    private ContentType contentType = ContentType.parse(xtype.mediaType());
 
     public void testPostClusterByUrl() throws Exception {
         post("post_cluster_by_url.json");
