@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.0.0-beta1'
+version = '7.0.0'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '7.0.0-beta1'
+        version_es = '7.0.0'
     }
 
     repositories {
@@ -45,8 +45,11 @@ esplugin {
 }
 
 // We don't have unit tests, only integration tests.
-test {
+unitTest {
   enabled = false
+}
+testingConventions {
+  enabled = true
 }
 
 integTestRunner {
