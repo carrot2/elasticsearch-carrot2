@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.carrot2.core.Cluster;
 import org.carrot2.core.Controller;
 import org.carrot2.core.Document;
@@ -55,6 +56,7 @@ import org.elasticsearch.common.document.DocumentField;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.io.stream.Writeable;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
@@ -102,7 +104,16 @@ public class ClusteringAction
 
     @Override
     public ClusteringActionResponse newResponse() {
-        return new ClusteringActionResponse();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Writeable.Reader<ClusteringActionResponse> getResponseReader() {
+        return in -> {
+            ClusteringActionResponse response = new ClusteringActionResponse();
+            response.readFrom(in);
+            return response;
+        };
     }
 
     /**
@@ -738,6 +749,8 @@ public class ClusteringAction
      */
     public static class TransportClusteringAction
             extends TransportAction<ClusteringAction.ClusteringActionRequest, ClusteringAction.ClusteringActionResponse> {
+        protected Logger logger = LogManager.getLogger(getClass());
+
         private final Set<String> langCodeWarnings = new CopyOnWriteArraySet<>();
 
         private final TransportSearchAction searchAction;
@@ -1156,6 +1169,8 @@ public class ClusteringAction
      * An {@link BaseRestHandler} for {@link ClusteringAction}.
      */
     public static class RestClusteringAction extends BaseRestHandler {
+        protected Logger logger = LogManager.getLogger(getClass());
+
         /**
          * Action name suffix.
          */

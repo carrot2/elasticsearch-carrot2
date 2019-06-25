@@ -1,5 +1,7 @@
 package org.carrot2.elasticsearch;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
@@ -13,6 +15,7 @@ import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.io.stream.Writeable;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -51,7 +54,16 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
 
     @Override
     public ListAlgorithmsActionResponse newResponse() {
-        return new ListAlgorithmsActionResponse();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Writeable.Reader<ListAlgorithmsActionResponse> getResponseReader() {
+        return in -> {
+            ListAlgorithmsActionResponse response = new ListAlgorithmsActionResponse();
+            response.readFrom(in);
+            return response;
+        };
     }
 
     /**
@@ -138,6 +150,7 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
     public static class TransportListAlgorithmsAction
             extends TransportAction<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
 
+        protected Logger logger = LogManager.getLogger(getClass());
         private final ControllerSingleton controllerSingleton;
 
         @Inject
@@ -197,6 +210,8 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
     public static class RestListAlgorithmsAction extends BaseRestHandler {
         /* Action name suffix. */
         public static String NAME = "_algorithms";
+
+        protected Logger logger = LogManager.getLogger(getClass());
 
         public RestListAlgorithmsAction(
                 Settings settings,

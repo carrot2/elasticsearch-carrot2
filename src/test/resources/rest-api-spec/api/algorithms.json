@@ -1,6 +1,7 @@
 {
   "algorithms": {
-    "documentation": "https://www.elastic.co/guide/en/elasticsearch/plugins/2.0/plugins-delete-by-query.html",
+    "documentation": "",
+    "stability" : "stable", 
     "methods": ["GET", "POST"],
     "url": {
       "path": "/_algorithms",
