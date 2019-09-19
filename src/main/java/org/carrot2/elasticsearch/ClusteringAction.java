@@ -33,12 +33,12 @@ import org.carrot2.core.ProcessingException;
 import org.carrot2.core.ProcessingResult;
 import org.carrot2.core.attribute.CommonAttributesDescriptor;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ActionType;
 import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -91,7 +91,7 @@ import org.elasticsearch.transport.TransportService;
  * Perform clustering of search results.
  */
 public class ClusteringAction
-        extends Action<ClusteringAction.ClusteringActionResponse> {
+        extends ActionType<ClusteringAction.ClusteringActionResponse> {
     /* Action name. */
     public static final String NAME = "indices:data/read/cluster";
 
@@ -100,11 +100,6 @@ public class ClusteringAction
 
     private ClusteringAction() {
         super(NAME);
-    }
-
-    @Override
-    public ClusteringActionResponse newResponse() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -719,8 +714,7 @@ public class ClusteringAction
 
             boolean hasSearchResponse = in.readBoolean();
             if (hasSearchResponse) {
-                this.searchResponse = new SearchResponse();
-                this.searchResponse.readFrom(in);
+                this.searchResponse = new SearchResponse(in);
             }
 
             int documentGroupsCount = in.readVInt();

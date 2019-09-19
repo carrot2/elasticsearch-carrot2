@@ -2,12 +2,12 @@ package org.carrot2.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.elasticsearch.action.Action;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.ActionResponse;
+import org.elasticsearch.action.ActionType;
 import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
@@ -41,7 +41,7 @@ import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
 /**
  * List all available clustering algorithms.
  */
-public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgorithmsActionResponse> {
+public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAlgorithmsActionResponse> {
     /* Action name. */
     public static final String NAME = "cluster:monitor/carrot2/algorithms";
 
@@ -50,11 +50,6 @@ public class ListAlgorithmsAction extends Action<ListAlgorithmsAction.ListAlgori
 
     private ListAlgorithmsAction() {
         super(NAME);
-    }
-
-    @Override
-    public ListAlgorithmsActionResponse newResponse() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
