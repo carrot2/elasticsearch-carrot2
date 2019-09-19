@@ -23,6 +23,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
+apply plugin: 'elasticsearch.testclusters'
 apply plugin: 'elasticsearch.esplugin'
 
 apply plugin: 'maven'
@@ -51,11 +52,13 @@ testingConventions {
   enabled = true
 }
 
-integTestRunner {
-  systemProperty 'tests.security.manager', 'false'
+integTest {
+  runner {
+    systemProperty 'tests.security.manager', 'false'
+  }
 }
 
-integTestCluster {
+testClusters.integTest {
   // extraConfigFile doesn't allow directories, only files, so we need to add each individually
   fileTree(dir: 'src/main/config').each { File file -> 
     extraConfigFile 'elasticsearch-carrot2/' + file.name, file
@@ -84,7 +87,7 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
     compile "com.fasterxml.jackson.core:jackson-databind:2.8.11"
     compile "org.slf4j:slf4j-api:1.7.13"
-    compile "org.slf4j:slf4j-log4j12:1.7.13"
+    compile "org.apache.logging.log4j:log4j-slf4j-impl:2.11.1"
     compile "org.carrot2:morfologik-stemming:2.1.5"
     compile "org.carrot2:morfologik-fsa:2.1.5"
 
