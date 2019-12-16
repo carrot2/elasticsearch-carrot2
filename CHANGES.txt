@@ -3,6 +3,12 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 6.8.5 ====================
+
+Other changes
+
+* Build updates to ES 6.8.5.
+
 ================ ElasticSearch-Carrot2 6.7.2 ====================
 
 Other changes

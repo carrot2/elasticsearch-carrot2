@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '6.7.2'
+version = '6.8.5'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '6.7.2'
+        version_es = '6.8.5'
     }
 
     repositories {
@@ -71,6 +71,8 @@ repositories {
     mavenLocal()
     mavenCentral()
 }
+
+// compileJava.options.compilerArgs << "-Xlint:deprecation"
 
 // esplugin forces transitive:false on all dependencies
 // so list all transitive dependencies individually
