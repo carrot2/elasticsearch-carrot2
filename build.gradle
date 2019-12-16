@@ -1,12 +1,12 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.3.2'
+version = '7.5.0'
 group = 'org.carrot2'
 
 buildscript {
     ext {
         // ES version we depend upon/ compile against.
-        version_es = '7.3.2'
+        version_es = '7.5.0'
     }
 
     repositories {
@@ -19,6 +19,10 @@ buildscript {
         classpath "org.elasticsearch.gradle:build-tools:" + version_es
     }
 }
+
+ext {
+  isInternal = false
+} 
 
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -37,7 +41,7 @@ ext {
   projectSubstitutions = [:]
   licenseFile = rootProject.file('LICENSE.txt')
   noticeFile = rootProject.file('NOTICE.txt')
-} 
+}
 
 esplugin {
     name 'elasticsearch-carrot2'
