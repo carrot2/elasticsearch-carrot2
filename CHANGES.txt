@@ -34,6 +34,18 @@ Other changes
 
 * Build updates to ES 7.0.0.
 
+================ ElasticSearch-Carrot2 6.8.5 ====================
+
+Other changes
+
+* Build updates to ES 6.8.5.
+
+================ ElasticSearch-Carrot2 6.7.2 ====================
+
+Other changes
+
+* Build updates to ES 6.7.2.
+
 ================ ElasticSearch-Carrot2 6.7.1 ====================
 
 Other changes
