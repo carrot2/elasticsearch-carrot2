@@ -1,44 +1,49 @@
-
-import org.elasticsearch.gradle.testclusters.TestClustersRegistry
-import org.elasticsearch.gradle.testclusters.TestClustersPlugin
-
 // This plugin's version (typically must match that of ES).
 version = '7.5.0'
 group = 'org.carrot2'
 
 buildscript {
-    ext {
-        // ES version we depend upon/ compile against.
-        version_es = '7.5.0'
-    }
+  ext {
+    version_es = '7.5.0'
+  }
 
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        jcenter()
-    }
+  repositories {
+    mavenCentral()
+    jcenter()
+  }
 
-    dependencies {
-        classpath "org.elasticsearch.gradle:build-tools:" + version_es
-    }
+  dependencies {
+    classpath "org.elasticsearch.gradle:build-tools:" + version_es
+  }
 }
 
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'eclipse'
 apply plugin: 'elasticsearch.esplugin'
-
-apply plugin: 'maven'
-apply plugin: 'signing'
-apply plugin: 'maven-publish'
-
 apply plugin: 'nebula.maven-base-publish'
-apply plugin: 'nebula.maven-scm'
+
+// >>> Build HACK for 7.5.0
+
+import org.elasticsearch.gradle.testclusters.TestClustersRegistry
+import org.elasticsearch.gradle.testclusters.TestClustersPlugin
 
 configurations.whenObjectAdded { c ->
   if (c.name == 'elasticsearch_7.5.0_integ_test_zip_null') {
-    project.dependencies.add('elasticsearch_7.5.0_integ_test_zip_null', 'org.elasticsearch.distribution.integ-test-zip:elasticsearch:7.5.0@zip')
+    project.dependencies.add(c.name, 'org.elasticsearch.distribution.integ-test-zip:elasticsearch:7.5.0@zip')
   }
+}
+
+configure(rootProject) {
+  TestClustersRegistry registry = rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
+  TestClustersPlugin.configureClaimClustersHook(project.gradle, registry)
+  TestClustersPlugin.configureStartClustersHook(project.gradle, registry)
+  TestClustersPlugin.configureStopClustersHook(project.gradle, registry)
+}
+
+// <<< Build HACK for 7.5.0
+
+repositories {
+  mavenCentral()
 }
 
 ext {
@@ -48,14 +53,44 @@ ext {
 }
 
 esplugin {
-    name 'elasticsearch-carrot2'
-    description 'Search results clustering plugin for ElasticSearch (Carrot2-based)'
-    classname 'org.carrot2.elasticsearch.ClusteringPlugin'
+  name 'elasticsearch-carrot2'
+  description 'Search results clustering plugin for Elasticsearch (Carrot2)'
+  classname 'org.carrot2.elasticsearch.ClusteringPlugin'
+}
+
+// esplugin forces transitive:false on all dependencies
+// so list all transitive dependencies individually
+dependencies {
+  compile "org.carrot2:carrot2-mini:3.16.1"
+  compile "com.carrotsearch.thirdparty:simple-xml-safe:2.7.1"
+  compile "com.carrotsearch:hppc:0.8.1"
+  compile "org.carrot2.attributes:attributes-binder:1.3.3"
+  compile "org.carrot2.shaded:carrot2-guava:18.0"
+  compile "org.apache.commons:commons-lang3:3.5"
+  compile "com.fasterxml.jackson.core:jackson-core:2.8.11"
+  compile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
+  compile "com.fasterxml.jackson.core:jackson-databind:2.8.11"
+  compile "org.slf4j:slf4j-api:1.7.13"
+  compile "org.apache.logging.log4j:log4j-slf4j-impl:2.11.1"
+  compile "org.carrot2:morfologik-stemming:2.1.5"
+  compile "org.carrot2:morfologik-fsa:2.1.5"
+
+  testCompile "org.assertj:assertj-core:3.12.0"
+  testCompile "org.elasticsearch.client:transport:" + version_es
+
+  testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
+  testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
 }
 
 // We don't have unit tests, only integration tests.
 test.enabled = false
 
+// Audits
+licenseHeaders.enabled = false
+dependencyLicenses.enabled = false
+thirdPartyAudit.enabled = false
+
+// Disable some stuff we don't need
 testingConventions {
   enabled = true
 }
@@ -68,108 +103,84 @@ integTest {
 
 testClusters.integTest {
   // extraConfigFile doesn't allow directories, only files, so we need to add each individually
-  fileTree(dir: 'src/main/config').each { File file -> 
+  fileTree(dir: 'src/main/config').each { file ->
     extraConfigFile 'elasticsearch-carrot2/' + file.name, file
   }
 }
 
-licenseHeaders.enabled = false
-dependencyLicenses.enabled = false
-thirdPartyAudit.enabled = false
+// Configure publishing.
+configure(rootProject) {
+  apply plugin: 'maven-publish'
+  apply plugin: 'signing'
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
-// esplugin forces transitive:false on all dependencies
-// so list all transitive dependencies individually
-dependencies {
-    compile "org.carrot2:carrot2-mini:3.16.1"
-    compile "com.carrotsearch.thirdparty:simple-xml-safe:2.7.1"
-    compile "com.carrotsearch:hppc:0.8.1"
-    compile "org.carrot2.attributes:attributes-binder:1.3.3"
-    compile "org.carrot2.shaded:carrot2-guava:18.0"
-    compile "org.apache.commons:commons-lang3:3.5"
-    compile "com.fasterxml.jackson.core:jackson-core:2.8.11"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.8.11"
-    compile "org.slf4j:slf4j-api:1.7.13"
-    compile "org.apache.logging.log4j:log4j-slf4j-impl:2.11.1"
-    compile "org.carrot2:morfologik-stemming:2.1.5"
-    compile "org.carrot2:morfologik-fsa:2.1.5"
-
-    testCompile "org.assertj:assertj-core:3.12.0"
-    testCompile "org.elasticsearch.client:transport:" + version_es
-
-    testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
-    testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-signing {
-    required { gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
-project.gradle.taskGraph.whenReady { taskGraph ->
-  if (taskGraph.allTasks.any { it.name == 'uploadArchives' }) {
-    uploadArchives {
-      repositories {
-        mavenDeployer {
-          beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-          repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-            authentication(userName: nexusUsername, password: nexusPassword)
+  publishing {
+    repositories {
+      maven {
+        name = 'sonatype'
+        url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+        credentials {
+          if (project.hasProperty('nexusUsername')) {
+            username project.nexusUsername
           }
-
-          snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-            authentication(userName: nexusUsername, password: nexusPassword)
+          if (project.hasProperty('nexusPassword')) {
+            password project.nexusPassword
           }
+        }
+      }
+    }
 
-          pom.project {
-            name 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
-            packaging 'zip'
-            artifactId 'elasticsearch-carrot2'
-            description 'Search results clustering plugin for Elasticsearch (Carrot2-based)'
-            url 'https://github.com/carrot2/elasticsearch-carrot2'
+    publications {
+      maven(MavenPublication) {
+        from components.java
+        group = project.group
+        artifactId = project.archivesBaseName
 
-            scm {
-              connection 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
-              developerConnection 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-              url 'https://github.com/carrot2/elasticsearch-carrot2'
+        artifact sourcesJar
+        artifact javadocJar
+
+        pom {
+          name = esplugin.name
+          description = esplugin.description
+          url = 'https://github.com/carrot2/elasticsearch-carrot2'
+          inceptionYear = "2013"
+          artifactId 'elasticsearch-carrot2'
+          licenses {
+            license {
+              name = 'The Apache License, Version 2.0'
+              url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
             }
-
-            licenses {
-              license {
-                name 'The Apache License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-              }
+          }
+          organization {
+            name = "Carrot Search s.c."
+            url = "https://www.carrotsearch.com"
+          }
+          developers {
+            developer {
+              id = 'stanislaw.osinski'
+              name = 'Stanisław Osiński'
+              email = 'stanislaw.osinski@carrotsearch.com'
             }
-
-            developers {
-              developer {
-                id 'dawid.weiss'
-                name 'Dawid Weiss'
-                email 'dawid.weiss@carrotsearch.com'
-              }
-              developer {
-                id 'stanislaw.osinski'
-                name 'Stanisław Osiński'
-                email 'stanislaw.osinski@carrotsearch.com'
-              }
-            }        
+            developer {
+              id = 'dawid.weiss'
+              name = 'Dawid Weiss'
+              email = 'dawid.weiss@carrotsearch.com'
+            }
+          }
+          scm {
+            connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
+            developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
+            url = 'https://github.com/carrot2/elasticsearch-carrot2'
           }
         }
       }
     }
   }
-}
 
-TestClustersRegistry registry = project.rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
-TestClustersPlugin.configureClaimClustersHook(project.gradle, registry)
-TestClustersPlugin.configureStartClustersHook(project.gradle, registry)
-TestClustersPlugin.configureStopClustersHook(project.gradle, registry)
+  signing {
+    sign publishing.publications.maven
+  }
+
+  task publishToSonatype() {
+    dependsOn publishMavenPublicationToSonatypeRepository
+  }
+}
