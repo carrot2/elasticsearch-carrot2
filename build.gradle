@@ -1,4 +1,7 @@
 
+import org.elasticsearch.gradle.testclusters.TestClustersRegistry
+import org.elasticsearch.gradle.testclusters.TestClustersPlugin
+
 // This plugin's version (typically must match that of ES).
 version = '7.5.0'
 group = 'org.carrot2'
@@ -31,6 +34,12 @@ apply plugin: 'maven-publish'
 
 apply plugin: 'nebula.maven-base-publish'
 apply plugin: 'nebula.maven-scm'
+
+configurations.whenObjectAdded { c ->
+  if (c.name == 'elasticsearch_7.5.0_integ_test_zip_null') {
+    project.dependencies.add('elasticsearch_7.5.0_integ_test_zip_null', 'org.elasticsearch.distribution.integ-test-zip:elasticsearch:7.5.0@zip')
+  }
+}
 
 ext {
   projectSubstitutions = [:]
@@ -159,3 +168,8 @@ project.gradle.taskGraph.whenReady { taskGraph ->
     }
   }
 }
+
+TestClustersRegistry registry = project.rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
+TestClustersPlugin.configureClaimClustersHook(project.gradle, registry)
+TestClustersPlugin.configureStartClustersHook(project.gradle, registry)
+TestClustersPlugin.configureStopClustersHook(project.gradle, registry)

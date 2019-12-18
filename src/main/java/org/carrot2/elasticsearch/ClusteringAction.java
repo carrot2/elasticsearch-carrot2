@@ -49,7 +49,6 @@ import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.action.support.TransportAction;
 import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.node.NodeClient;
-import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.document.DocumentField;
@@ -57,7 +56,6 @@ import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -99,16 +97,12 @@ public class ClusteringAction
     public static final ClusteringAction INSTANCE = new ClusteringAction();
 
     private ClusteringAction() {
-        super(NAME);
+        super(NAME, ClusteringActionResponse::new);
     }
 
     @Override
     public Writeable.Reader<ClusteringActionResponse> getResponseReader() {
-        return in -> {
-            ClusteringActionResponse response = new ClusteringActionResponse();
-            response.readFrom(in);
-            return response;
-        };
+        return ClusteringActionResponse::new;
     }
 
     /**
@@ -139,6 +133,29 @@ public class ClusteringAction
          */
         public ClusteringActionRequest setSearchRequest(SearchRequestBuilder builder) {
             return setSearchRequest(builder.request());
+        }
+
+        ClusteringActionRequest() {
+        }
+
+        public ClusteringActionRequest(StreamInput in) throws IOException {
+            SearchRequest searchRequest = new SearchRequest(in);
+
+            this.searchRequest = searchRequest;
+            this.queryHint = in.readOptionalString();
+            this.algorithm = in.readOptionalString();
+            this.maxHits = in.readInt();
+
+            int count = in.readVInt();
+            while (count-- > 0) {
+                FieldMappingSpec spec = new FieldMappingSpec(in);
+                fieldMapping.add(spec);
+            }
+
+            boolean hasAttributes = in.readBoolean();
+            if (hasAttributes) {
+                attributes = in.readMap();
+            }
         }
 
         public SearchRequest getSearchRequest() {
@@ -458,28 +475,6 @@ public class ClusteringAction
         }
 
         @Override
-        public void readFrom(StreamInput in) throws IOException {
-            SearchRequest searchRequest = new SearchRequest(in);
-
-            this.searchRequest = searchRequest;
-            this.queryHint = in.readOptionalString();
-            this.algorithm = in.readOptionalString();
-            this.maxHits = in.readInt();
-
-            int count = in.readVInt();
-            while (count-- > 0) {
-                FieldMappingSpec spec = new FieldMappingSpec();
-                spec.readFrom(in);
-                fieldMapping.add(spec);
-            }
-
-            boolean hasAttributes = in.readBoolean();
-            if (hasAttributes) {
-                attributes = in.readMap();
-            }
-        }
-
-        @Override
         public IndicesRequest indices(String... strings) {
             return searchRequest.indices(strings);
         }
@@ -640,7 +635,24 @@ public class ClusteringAction
         private DocumentGroup[] topGroups;
         private Map<String, String> info;
 
-        ClusteringActionResponse() {
+        ClusteringActionResponse(StreamInput in) throws IOException {
+            boolean hasSearchResponse = in.readBoolean();
+            if (hasSearchResponse) {
+                this.searchResponse = new SearchResponse(in);
+            }
+
+            int documentGroupsCount = in.readVInt();
+            topGroups = new DocumentGroup[documentGroupsCount];
+            for (int i = 0; i < documentGroupsCount; i++) {
+                DocumentGroup group = new DocumentGroup(in);
+                topGroups[i] = group;
+            }
+
+            int entries = in.readVInt();
+            info = new LinkedHashMap<>();
+            for (int i = 0; i < entries; i++) {
+                info.put(in.readOptionalString(), in.readOptionalString());
+            }
         }
 
         public ClusteringActionResponse(
@@ -684,8 +696,6 @@ public class ClusteringAction
 
         @Override
         public void writeTo(StreamOutput out) throws IOException {
-            super.writeTo(out);
-
             boolean hasSearchResponse = searchResponse != null;
             out.writeBoolean(hasSearchResponse);
             if (hasSearchResponse) {
@@ -705,30 +715,6 @@ public class ClusteringAction
                     out.writeOptionalString(e.getKey());
                     out.writeOptionalString(e.getValue());
                 }
-            }
-        }
-
-        @Override
-        public void readFrom(StreamInput in) throws IOException {
-            super.readFrom(in);
-
-            boolean hasSearchResponse = in.readBoolean();
-            if (hasSearchResponse) {
-                this.searchResponse = new SearchResponse(in);
-            }
-
-            int documentGroupsCount = in.readVInt();
-            topGroups = new DocumentGroup[documentGroupsCount];
-            for (int i = 0; i < documentGroupsCount; i++) {
-                DocumentGroup group = new DocumentGroup();
-                group.readFrom(in);
-                topGroups[i] = group;
-            }
-
-            int entries = in.readVInt();
-            info = new LinkedHashMap<>();
-            for (int i = 0; i < entries; i++) {
-                info.put(in.readOptionalString(), in.readOptionalString());
             }
         }
 
@@ -754,8 +740,7 @@ public class ClusteringAction
         public TransportClusteringAction(TransportService transportService,
                                          TransportSearchAction searchAction,
                                          ControllerSingleton controllerSingleton,
-                                         ActionFilters actionFilters,
-                                         IndexNameExpressionResolver indexNameExpressionResolver) {
+                                         ActionFilters actionFilters) {
             super(ClusteringAction.NAME,
                   actionFilters,
                   transportService.getTaskManager());
@@ -764,8 +749,8 @@ public class ClusteringAction
             this.controllerSingleton = controllerSingleton;
             transportService.registerRequestHandler(
                     ClusteringAction.NAME,
-                    ClusteringActionRequest::new,
                     ThreadPool.Names.SAME,
+                    ClusteringActionRequest::new,
                     new TransportHandler());
         }
 
@@ -1170,11 +1155,7 @@ public class ClusteringAction
          */
         public static String NAME = "_search_with_clusters";
 
-        public RestClusteringAction(
-                Settings settings,
-                RestController controller) {
-            super(settings);
-
+        public RestClusteringAction(RestController controller) {
             controller.registerHandler(POST, "/" + NAME, this);
             controller.registerHandler(POST, "/{index}/" + NAME, this);
             controller.registerHandler(POST, "/{index}/{type}/" + NAME, this);

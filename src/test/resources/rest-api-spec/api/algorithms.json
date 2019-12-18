@@ -2,12 +2,14 @@
   "algorithms": {
     "documentation": "",
     "stability" : "stable", 
-    "methods": ["GET", "POST"],
     "url": {
-      "path": "/_algorithms",
-      "paths": ["/_algorithms"],
-      "parts": {},
-      "params": {}
+      "paths": [
+        {
+          "path": "_algorithms",
+          "methods": ["GET", "POST"],
+          "parts": {}
+        }
+      ]
     }
   }
 }

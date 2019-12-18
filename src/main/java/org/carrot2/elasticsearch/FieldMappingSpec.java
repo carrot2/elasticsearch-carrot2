@@ -2,11 +2,11 @@ package org.carrot2.elasticsearch;
 
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.io.stream.Streamable;
+import org.elasticsearch.common.io.stream.Writeable;
 
 import java.io.IOException;
 
-class FieldMappingSpec implements Streamable {
+class FieldMappingSpec implements Writeable {
     String field;
     LogicalField logicalField;
     FieldSource source;
@@ -17,10 +17,7 @@ class FieldMappingSpec implements Streamable {
         this.source = source;
     }
     
-    FieldMappingSpec() {}
-
-    @Override
-    public void readFrom(StreamInput in) throws IOException {
+    FieldMappingSpec(StreamInput in) throws IOException {
         field = in.readString();
         logicalField = LogicalField.fromOrdinal(in.readVInt());
         source = FieldSource.fromOrdinal(in.readVInt());

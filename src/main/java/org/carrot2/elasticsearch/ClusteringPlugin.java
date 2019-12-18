@@ -80,8 +80,8 @@ public class ClusteringPlugin extends Plugin implements ActionPlugin {
       ClusterSettings clusterSettings, IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
       IndexNameExpressionResolver indexNameExpressionResolver, Supplier<DiscoveryNodes> nodesInCluster) {
     return Arrays.asList(
-        new ClusteringAction.RestClusteringAction(settings, restController),
-        new ListAlgorithmsAction.RestListAlgorithmsAction(settings, restController));
+        new ClusteringAction.RestClusteringAction(restController),
+        new ListAlgorithmsAction.RestListAlgorithmsAction(restController));
     }
     
     @Override

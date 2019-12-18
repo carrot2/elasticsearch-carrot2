@@ -16,7 +16,6 @@ import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.rest.BaseRestHandler;
@@ -49,16 +48,12 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
     public static final ListAlgorithmsAction INSTANCE = new ListAlgorithmsAction();
 
     private ListAlgorithmsAction() {
-        super(NAME);
+        super(NAME, ListAlgorithmsActionResponse::new);
     }
 
     @Override
     public Writeable.Reader<ListAlgorithmsActionResponse> getResponseReader() {
-        return in -> {
-            ListAlgorithmsActionResponse response = new ListAlgorithmsActionResponse();
-            response.readFrom(in);
-            return response;
-        };
+        return ListAlgorithmsActionResponse::new;
     }
 
     /**
@@ -66,6 +61,13 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
      */
     public static class ListAlgorithmsActionRequest
             extends ActionRequest {
+
+        ListAlgorithmsActionRequest() {}
+
+        ListAlgorithmsActionRequest(StreamInput in) throws IOException {
+            super(in);
+        }
+
         @Override
         public ActionRequestValidationException validate() {
             return /* Nothing to validate. */ null;
@@ -88,7 +90,7 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
      */
     public static class ListAlgorithmsActionResponse extends ActionResponse implements ToXContent {
         private static final String[] EMPTY_LIST = {};
-        private String[] algorithms;
+        private String [] algorithms;
 
         /**
          * Clustering-related response fields.
@@ -97,16 +99,13 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
             static final String ALGORITHMS = "algorithms";
         }
 
-        private ListAlgorithmsActionResponse(String[] algorithms) {
-            this.algorithms = algorithms;
-        }
-
-        public ListAlgorithmsActionResponse() {
-            this(EMPTY_LIST);
+        public ListAlgorithmsActionResponse(StreamInput in) throws IOException {
+            super(in);
+            algorithms = in.readStringArray();
         }
 
         public ListAlgorithmsActionResponse(List<String> algorithms) {
-            this(algorithms.toArray(new String[algorithms.size()]));
+            this.algorithms = algorithms.toArray(new String[0]);
         }
 
         public List<String> getAlgorithms() {
@@ -121,14 +120,7 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
 
         @Override
         public void writeTo(StreamOutput out) throws IOException {
-            super.writeTo(out);
             out.writeStringArray(algorithms);
-        }
-
-        @Override
-        public void readFrom(StreamInput in) throws IOException {
-            super.readFrom(in);
-            algorithms = in.readStringArray();
         }
 
         @Override
@@ -158,8 +150,8 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
             this.controllerSingleton = controllerSingleton;
             transportService.registerRequestHandler(
                     ListAlgorithmsAction.NAME,
-                    ListAlgorithmsActionRequest::new,
                     ThreadPool.Names.SAME,
+                    ListAlgorithmsActionRequest::new,
                     new TransportHandler());
         }
 
@@ -209,9 +201,7 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
         protected Logger logger = LogManager.getLogger(getClass());
 
         public RestListAlgorithmsAction(
-                Settings settings,
                 RestController controller) {
-            super(settings);
 
             controller.registerHandler(Method.POST, "/" + NAME, this);
             controller.registerHandler(Method.GET, "/" + NAME, this);
