@@ -3,6 +3,7 @@ package org.carrot2.elasticsearch;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,16 +12,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Resources;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.assertj.core.api.Assertions;
-import org.carrot2.core.LanguageCode;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
-import org.carrot2.shaded.guava.common.base.Charsets;
-import org.carrot2.shaded.guava.common.io.ByteStreams;
-import org.carrot2.shaded.guava.common.io.Resources;
+import org.carrot2.language.LanguageComponents;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
@@ -120,7 +120,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
 
             // Create content at random in the test index.
             Random rnd = random();
-            LanguageCode [] languages = LanguageCode.values();
+            String [] languages = LanguageComponents.languages().toArray(new String[0]);
             Collections.shuffle(Arrays.asList(languages), rnd);
 
             BulkRequestBuilder bulk = client.prepareBulk();
@@ -133,8 +133,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                                 .field("url",     data[0])
                                 .field("title",   data[1])
                                 .field("content", data[2])
-                                .field("lang", LanguageCode.ENGLISH.getIsoCode())
-                                .field("rndlang", languages[rnd.nextInt(languages.length)].getIsoCode()) 
+                                .field("lang", "English")
+                                .field("rndlang", languages[rnd.nextInt(languages.length)])
                             .endObject()));
             }
 
@@ -253,7 +253,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
 
     protected static Map<String, Object> checkHttpResponse(HttpResponse response) throws IOException {
         byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
-        String responseString = new String(responseBytes, Charsets.UTF_8);
+        String responseString = new String(responseBytes, StandardCharsets.UTF_8);
 
         String responseDescription = 
                 "HTTP response status: " + response.getStatusLine().toString() + ", " + 
@@ -279,7 +279,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                                                          int expectedStatus,
                                                          String messageSubstring) throws IOException {
         byte[] responseBytes = ByteStreams.toByteArray(response.getEntity().getContent());
-        String responseString = new String(responseBytes, Charsets.UTF_8); 
+        String responseString = new String(responseBytes, StandardCharsets.UTF_8);
             String responseDescription = 
                 "HTTP response status: " + response.getStatusLine().toString() + ", " + 
                 "HTTP body: " + responseString;

@@ -1,6 +1,6 @@
 package org.carrot2.elasticsearch;
 
-import org.carrot2.core.Cluster;
+import org.carrot2.clustering.Cluster;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -25,6 +25,7 @@ public class DocumentGroup implements ToXContent, Writeable {
     private double score;
     private String[] documentReferences = EMPTY_STRING_ARRAY;
     private DocumentGroup[] subgroups = EMPTY_DOC_GROUP;
+    // TODO: remove other topics.
     private boolean otherTopics;
 
     public DocumentGroup() {

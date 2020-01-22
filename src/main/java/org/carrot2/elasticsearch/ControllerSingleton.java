@@ -2,17 +2,7 @@ package org.carrot2.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.carrot2.core.Controller;
-import org.carrot2.core.ControllerFactory;
-import org.carrot2.core.ProcessingComponentConfiguration;
-import org.carrot2.core.ProcessingComponentDescriptor;
-import org.carrot2.core.ProcessingComponentSuite;
-import org.carrot2.text.linguistic.DefaultLexicalDataFactoryDescriptor;
-import org.carrot2.util.resource.ClassLoaderLocator;
-import org.carrot2.util.resource.DirLocator;
-import org.carrot2.util.resource.FileResource;
-import org.carrot2.util.resource.IResource;
-import org.carrot2.util.resource.ResourceLookup;
+import org.carrot2.clustering.ClusteringAlgorithmProvider;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
@@ -23,31 +13,22 @@ import org.elasticsearch.node.Node;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.ServiceLoader;
 
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_COMPONENT_SIZE_PROPERTY_NAME;
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_SUITE_PROPERTY_NAME;
 
 /**
- * Holds the {@link Controller} singleton initialized and ready throughout
+ * Holds the language components initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
 public class ControllerSingleton extends AbstractLifecycleComponent {
     public static final String ATTR_RESOURCE_LOOKUP = "esplugin.resources";
 
     private final Environment environment;
-    private Controller controller;
-    private List<String> algorithms;
+    private LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders;
     private Logger logger;
 
     @Inject
@@ -86,91 +67,46 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
             }
             Settings c2Settings = builder.build();
 
-            // Parse suite descriptors with loggers turned off (shut them up a bit).
-            final Path suitePath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
-            if (!Files.isRegularFile(suitePath)) {
-                throw new ElasticsearchException(
-                        "Could not find algorithm suite: " + suitePath.toAbsolutePath().normalize());
-            }
+           algorithmProviders = new LinkedHashMap<>();
+           ServiceLoader.load(ClusteringAlgorithmProvider.class).forEach((prov) -> {
+              algorithmProviders.put(prov.name(), prov);
+           });
 
-            final ResourceLookup suiteLookup = new ResourceLookup(new DirLocator(suitePath.getParent()));
-            final IResource suiteResource =
-                    suiteLookup.getFirst(suitePath.getFileName().toString());
-
-            final List<String> failed = new ArrayList<>();
-            final ProcessingComponentSuite suite = AccessController.doPrivileged(
-                    (PrivilegedExceptionAction<ProcessingComponentSuite>) () ->
-                            getProcessingComponentSuite(suiteResource, suiteLookup, failed));
-
-            algorithms = new ArrayList<>();
-            for (ProcessingComponentDescriptor descriptor : suite.getAlgorithms()) {
-                algorithms.add(descriptor.getId());
-            }
-            algorithms = Collections.unmodifiableList(algorithms);
-
-            if (!algorithms.isEmpty()) {
-                logger.info("Available clustering components: {}", String.join(", ", algorithms));
-            }
-            if (!failed.isEmpty()) {
-                logger.info("Unavailable clustering components: {}", String.join(", ", failed));
-            }
+            // TODO: warn about obsolete option. c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
+            // TODO: filter out unavailable algorithms.
+           //  logger.info("Available clustering components: {}", String.join(", ", algorithms));
 
             final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
                 .toAbsolutePath()
                 .normalize();
-
+/*
             logger.info("Lexical resources dir: {}", resourcesPath);
 
             final ResourceLookup resourceLookup = new ResourceLookup(
                     new DirLocator(resourcesPath),
                     new ClassLoaderLocator(ControllerSingleton.class.getClassLoader()));
 
-            // Change the default resource lookup to include the configured location.
-            Map<String, Object> c2SettingsAsMap = new HashMap<>();
-            DefaultLexicalDataFactoryDescriptor.attributeBuilder(c2SettingsAsMap)
-                .resourceLookup(resourceLookup);
-            c2Settings.keySet().forEach(k -> c2SettingsAsMap.put(k, c2Settings.get(k)));
-            
-            // Set up the license for Lingo3G, if it's available.
+ */
+            // TODO: Set up the license for Lingo3G, if it's available.
+/*
             Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
             if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
               c2SettingsAsMap.put("license", new FileResource(lingo3gLicense));
             } else if (algorithms.contains("lingo3g")) {
               logger.warn("Lingo3G is on classpath, but no licenses have been found. Check out the documentation.");
             }
+*/
 
             // Create component pool.
-            Integer poolSize = c2Settings.getAsInt(DEFAULT_COMPONENT_SIZE_PROPERTY_NAME, 0);
-            if (poolSize > 0) {
-                controller = ControllerFactory.createPooling(poolSize);
-            } else {
-                controller = ControllerFactory.createPooling();
-            }
+            // TODO: warn about obsolete option. eger poolSize = c2Settings.getAsInt(DEFAULT_COMPONENT_SIZE_PROPERTY_NAME, 0);
 
-            ProcessingComponentConfiguration[] configs = suite.getComponentConfigurations();
-            for (int i = 0; i < configs.length; i++) {
-                // Instantiate resource lookup strategy.
-                if (configs[i].attributes.containsKey(ATTR_RESOURCE_LOOKUP)) {
-                    Map<String, Object> attrs = new LinkedHashMap<>(configs[i].attributes);
-                    Path lookupPath = Paths.get((String) attrs.remove(ATTR_RESOURCE_LOOKUP));
-
-                    logger.info("Custom resource lookup location for '" + configs[i].componentId + "': " + lookupPath);
-
-                    attrs.put(DefaultLexicalDataFactoryDescriptor.Keys.RESOURCE_LOOKUP, new ResourceLookup(
-                        new DirLocator(resourcesPath.resolve(lookupPath))));
-                    configs[i] = new ProcessingComponentConfiguration(
-                        configs[i].componentClass,
-                        configs[i].componentId,
-                        attrs);
-                }
-            }
-            controller.init(c2SettingsAsMap, configs);
+            // TODO: custom preconfigured templates?
         } catch (Exception e) {
             throw new ElasticsearchException(
                     "Could not start Carrot2 controller.", e);
         }
 
-        if (algorithms == null || algorithms.isEmpty()) {
+        if (algorithmProviders == null || algorithmProviders.isEmpty()) {
             throw new ElasticsearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
         }
     }
@@ -207,22 +143,6 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
       }
     }
 
-    private ProcessingComponentSuite getProcessingComponentSuite(IResource suiteResource,
-                                                                 ResourceLookup suiteLookup,
-                                                                 List<String> failedComponents) throws Exception {
-        ProcessingComponentSuite suite1 = ProcessingComponentSuite.deserialize(suiteResource, suiteLookup);
-        for (ProcessingComponentDescriptor desc : suite1.removeUnavailableComponents()) {
-            failedComponents.add(desc.getId());
-            if (isNoClassDefFound(desc.getInitializationFailure())) {
-                logger.debug("Algorithm not available on classpath: " + desc.getId());
-            } else {
-                logger.warn("Algorithm initialization failed: " + desc.getId(),
-                            desc.getInitializationFailure());
-            }
-        }
-        return suite1;
-    }
-
     protected boolean isNoClassDefFound(Throwable initializationFailure) {
         if (initializationFailure != null) {
             return initializationFailure.getCause() instanceof ClassNotFoundException;
@@ -230,28 +150,16 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
         return false;
     }
 
-    public Controller getController() {
-        return controller;
-    }
-
     /**
      * Return a list of available algorithm component identifiers.
      */
-    public List<String> getAlgorithms() {
-        return algorithms;
+    public LinkedHashMap<String, ClusteringAlgorithmProvider> getAlgorithms() {
+        return algorithmProviders;
     }
 
     @Override
     protected void doStop() throws ElasticsearchException {
-        final Controller c = controller;
-        controller = null;
-
-        if (c != null) {
-          AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
-              c.close();
-              return null;
-          });
-        }
+        // Noop.
     }
 
     @Override

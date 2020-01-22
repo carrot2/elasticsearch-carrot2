@@ -31,6 +31,7 @@ import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -159,7 +160,8 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
         protected void doExecute(Task task,
                                  ListAlgorithmsActionRequest request,
                                  ActionListener<ListAlgorithmsActionResponse> listener) {
-            listener.onResponse(new ListAlgorithmsActionResponse(controllerSingleton.getAlgorithms()));
+            listener.onResponse(new ListAlgorithmsActionResponse(
+                new ArrayList<>(controllerSingleton.getAlgorithms().keySet())));
         }
 
         private final class TransportHandler implements TransportRequestHandler<ListAlgorithmsActionRequest> {

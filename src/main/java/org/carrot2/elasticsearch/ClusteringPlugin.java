@@ -37,25 +37,11 @@ public class ClusteringPlugin extends Plugin implements ActionPlugin {
 
     /**
      * A property key holding
-     * the default component suite's resource name.
-     */
-    public static final String DEFAULT_SUITE_PROPERTY_NAME = "suite";
-
-    /**
-     * A property key holding
      * the default location of additional resources (stopwords, etc.) for
      * algorithms. The location is resolved relative to <code>es/conf</code>
      * but can be absolute. By default it is <code>.</code>.
      */
     public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
-
-    /**
-     * A property key with the size
-     * of the clustering controller's algorithm pool. By default the size
-     * is zero, meaning the pool is sized dynamically. You can specify a fixed
-     * number of component instances to limit resource usage.
-     */
-    public static final String DEFAULT_COMPONENT_SIZE_PROPERTY_NAME = "controller.pool-size";
 
     private final boolean transportClient;
     private final boolean pluginEnabled;

@@ -21,17 +21,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.carrot2.core.Cluster;
-import org.carrot2.core.Controller;
-import org.carrot2.core.Document;
-import org.carrot2.core.LanguageCode;
-import org.carrot2.core.ProcessingException;
-import org.carrot2.core.ProcessingResult;
-import org.carrot2.core.attribute.CommonAttributesDescriptor;
+import org.carrot2.attrs.Attrs;
+import org.carrot2.clustering.Cluster;
+import org.carrot2.clustering.ClusteringAlgorithm;
+import org.carrot2.clustering.ClusteringAlgorithmProvider;
+import org.carrot2.clustering.Document;
+import org.carrot2.language.LanguageComponents;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionRequest;
@@ -769,41 +769,39 @@ public class ClusteringAction
                 public void onResponse(SearchResponse response) {
                     final long tsSearchEnd = System.nanoTime();
 
-                    List<String> algorithmComponentIds = controllerSingleton.getAlgorithms();
-                    String algorithmId = clusteringRequest.getAlgorithm();
-                    if (algorithmId == null) {
-                        algorithmId = algorithmComponentIds.get(0);
-                    } else {
-                        if (!algorithmComponentIds.contains(algorithmId)) {
-                            listener.onFailure(new IllegalArgumentException("No such algorithm: " + algorithmId));
-                            return;
-                        }
+                    LinkedHashMap<String, ClusteringAlgorithmProvider> algorithms = controllerSingleton.getAlgorithms();
+
+                    final String algorithmId = requireNonNullElse(
+                        clusteringRequest.getAlgorithm(), algorithms.keySet().iterator().next());
+
+                    ClusteringAlgorithmProvider provider = algorithms.get(algorithmId);
+                    if (provider == null) {
+                        listener.onFailure(new IllegalArgumentException("No such algorithm: " + algorithmId));
+                        return;
                     }
-                    final String _algorithmId = algorithmId;
 
                     /*
                      * We're not a threaded listener so we're running on the search thread. This
                      * is good -- we don't want to serve more clustering requests than we can handle
                      * anyway. 
                      */
-                    final Controller controller = controllerSingleton.getController();
-
-                    final Map<String, Object> processingAttrs = new HashMap<>();
-                    Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
-                    if (requestAttrs != null) {
-                        handleInputClustersSpec(requestAttrs);
-                        processingAttrs.putAll(requestAttrs);
-                    }
+                    ClusteringAlgorithm algorithm = provider.get();
 
                     try {
-                        CommonAttributesDescriptor.attributeBuilder(processingAttrs)
-                                .documents(prepareDocumentsForClustering(clusteringRequest, response))
-                                .query(clusteringRequest.getQueryHint());
+                        Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
+                        if (requestAttrs != null) {
+                            Attrs.populate(algorithm, requestAttrs);
+                        }
+
+                        // TODO: .query(clusteringRequest.getQueryHint());
+                        List<InputDocument> documents = prepareDocumentsForClustering(clusteringRequest, response);
+                        // TODO: handle languages. handle custom resources.
+                        LanguageComponents languageComponents = LanguageComponents.load("English");
 
                         final long tsClusteringStart = System.nanoTime();
-                        final ProcessingResult result = AccessController.doPrivileged((PrivilegedAction<ProcessingResult>) () ->
-                                                                                      controller.process(processingAttrs, _algorithmId));
-                        final DocumentGroup[] groups = adapt(result.getClusters());
+                        final List<Cluster<InputDocument>> clusters = AccessController.doPrivileged(
+                            (PrivilegedAction<List<Cluster<InputDocument>>>) () ->
+                                algorithm.cluster(documents.stream(), languageComponents));
                         final long tsClusteringEnd = System.nanoTime();
 
                         final Map<String, String> info = new LinkedHashMap<>();
@@ -826,59 +824,23 @@ public class ClusteringAction
                             response = filterMaxHits(response, clusteringRequest.getMaxHits());
                         }
 
+                        DocumentGroup[] groups = adapt(clusters, new AtomicInteger());
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
-                    } catch (ProcessingException e) {
+                    } catch (Exception e) {
                         // Log a full stack trace with all nested exceptions but only return 
                         // ElasticSearchException exception with a simple String (otherwise 
                         // clients cannot deserialize exception classes).
-                        String message = "Search results clustering error: " + e.getMessage();
+                        String message = "Clustering error: " + e.getMessage();
                         listener.onFailure(new ElasticsearchException(message));
 
-                        logger.warn("Could not process clustering request.", e);
-                        return;
+                        logger.warn(message, e);
                     }
                 }
             });
         }
 
-        @SuppressWarnings("unchecked")
-        private void handleInputClustersSpec(Map<String, Object> requestAttrs) {
-            // Handle the "special" attribute key "clusters", which Lingo3G recognizes as a request
-            // for incremental clustering. The structure of the input clusters must follow this xcontent
-            // schema:
-            //
-            // "clusters": [{}, {}, ...]
-            //
-            // with zero, one or more objects representing cluster labels inside:
-            //
-            // { "label": "cluster label",
-            //   "subclusters": [{}, {}, ...] }
-            //
-            // There is very limited input validation; this feature is largerly undocumented and
-            // officially unsupported.
-            if (requestAttrs.containsKey("clusters")) {
-                requestAttrs.put("clusters", parseClusters((List<Object>) requestAttrs.get("clusters")));
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        private List<Cluster> parseClusters(List<Object> xcontentList) {
-            ArrayList<Cluster> result = new ArrayList<>();
-            for (Object xcontent : xcontentList) {
-                result.add(parseCluster((Map<String, Object>) xcontent));
-            }
-            return result;
-        }
-
-        @SuppressWarnings("unchecked")
-        private Cluster parseCluster(Map<String, Object> xcontent) {
-            String label = (String) xcontent.get("label");
-            Cluster cluster = new Cluster(label);
-            List<Object> subclusters = (List<Object>) xcontent.get("clusters");
-            if (subclusters != null) {
-                cluster = cluster.addSubclusters(parseClusters(subclusters));
-            }
-            return cluster;
+        public static <T> T requireNonNullElse(T first, T def) {
+            return first != null ? first : def;
         }
 
         protected SearchResponse filterMaxHits(SearchResponse response, int maxHits) {
@@ -927,33 +889,28 @@ public class ClusteringAction
             return t;
         }
 
-        protected DocumentGroup[] adapt(List<Cluster> clusters) {
+        protected DocumentGroup[] adapt(List<Cluster<InputDocument>> clusters, AtomicInteger groupId) {
             DocumentGroup[] groups = new DocumentGroup[clusters.size()];
             for (int i = 0; i < groups.length; i++) {
-                groups[i] = adapt(clusters.get(i));
+                groups[i] = adapt(clusters.get(i), groupId);
             }
             return groups;
         }
 
-        private DocumentGroup adapt(Cluster cluster) {
+        private DocumentGroup adapt(Cluster<InputDocument> cluster, AtomicInteger groupId) {
             DocumentGroup group = new DocumentGroup();
-            group.setId(cluster.getId());
-            List<String> phrases = cluster.getPhrases();
-            group.setPhrases(phrases.toArray(new String[phrases.size()]));
-            group.setLabel(cluster.getLabel());
+            group.setId(groupId.incrementAndGet());
+            group.setPhrases(cluster.getLabels().toArray(new String[0]));
+            group.setLabel(String.join(", ", cluster.getLabels()));
             group.setScore(cluster.getScore());
-            group.setOtherTopics(cluster.isOtherTopics());
 
-            List<Document> documents = cluster.getDocuments();
+            List<InputDocument> documents = cluster.getDocuments();
             String[] documentReferences = new String[documents.size()];
             for (int i = 0; i < documentReferences.length; i++) {
                 documentReferences[i] = documents.get(i).getStringId();
             }
             group.setDocumentReferences(documentReferences);
-
-            List<Cluster> subclusters = cluster.getSubclusters();
-            subclusters = (subclusters == null ? Collections.emptyList() : subclusters);
-            group.setSubgroups(adapt(subclusters));
+            group.setSubgroups(adapt(cluster.getClusters(), groupId));
 
             return group;
         }
@@ -961,11 +918,11 @@ public class ClusteringAction
         /**
          * Map {@link SearchHit} fields to logical fields of Carrot2 {@link Document}.
          */
-        private List<Document> prepareDocumentsForClustering(
+        private List<InputDocument> prepareDocumentsForClustering(
                 final ClusteringActionRequest request,
                 SearchResponse response) {
             SearchHit[] hits = response.getHits().getHits();
-            List<Document> documents = new ArrayList<>(hits.length);
+            List<InputDocument> documents = new ArrayList<>(hits.length);
             List<FieldMappingSpec> fieldMapping = request.getFieldMapping();
             StringBuilder title = new StringBuilder();
             StringBuilder content = new StringBuilder();
@@ -1075,30 +1032,23 @@ public class ClusteringAction
                         }
 
                         // Separate multiple fields with a single dot (prevent accidental phrase gluing).
-                        if (appendContent != null) {
-                            if (target.length() > 0) {
-                                target.append(" . ");
-                            }
-                            target.append(appendContent);
+                        if (target.length() > 0) {
+                            target.append(" . ");
                         }
+                        target.append(appendContent);
                     }
                 }
 
-                LanguageCode langCode = null;
-                if (language.length() > 0) {
-                    String langCodeString = language.toString();
-                    langCode = LanguageCode.forISOCode(langCodeString);
-                    if (langCode == null && langCodeWarnings.add(langCodeString)) {
-                        logger.warn("Language mapping not a supported ISO639-1 code: {}", langCodeString);
-                    }
-                }
+                String langCode = language.length() > 0 ? language.toString() : null;
+                // TODO: langCodeWarnings; logger.warn("Language mapping not a supported ISO639-1 code: {}", langCodeString);
 
-                Document doc = new Document(
+                InputDocument doc = new InputDocument(
                         title.toString(),
                         content.toString(),
                         url.toString(),
                         langCode,
-                        hit.getId());
+                        hit.getId(),
+                        documents.size());
 
                 documents.add(doc);
             }
@@ -1171,7 +1121,7 @@ public class ClusteringAction
         }
 
         @Override
-        @SuppressWarnings("try")
+        @SuppressWarnings({"try", "deprecation"})
         public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) throws IOException {
             // A POST request must have a body.
             if (request.method() == POST && !request.hasContent()) {
