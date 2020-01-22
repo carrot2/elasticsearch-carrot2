@@ -139,11 +139,11 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
             extends TransportAction<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
 
         protected Logger logger = LogManager.getLogger(getClass());
-        private final ControllerSingleton controllerSingleton;
+        private final ClusteringContext controllerSingleton;
 
         @Inject
         public TransportListAlgorithmsAction(TransportService transportService,
-                                             ControllerSingleton controllerSingleton,
+                                             ClusteringContext controllerSingleton,
                                              ActionFilters actionFilters) {
             super(ListAlgorithmsAction.NAME,
                   actionFilters,

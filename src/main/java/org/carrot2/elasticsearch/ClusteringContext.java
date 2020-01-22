@@ -24,7 +24,7 @@ import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPE
  * Holds the language components initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
-public class ControllerSingleton extends AbstractLifecycleComponent {
+public class ClusteringContext extends AbstractLifecycleComponent {
     public static final String ATTR_RESOURCE_LOOKUP = "esplugin.resources";
 
     private final Environment environment;
@@ -32,7 +32,7 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
     private Logger logger;
 
     @Inject
-    public ControllerSingleton(Environment environment) {
+    public ClusteringContext(Environment environment) {
         this.environment = environment;
         this.logger = LogManager.getLogger("plugin.carrot2");
     }
@@ -67,14 +67,16 @@ public class ControllerSingleton extends AbstractLifecycleComponent {
             }
             Settings c2Settings = builder.build();
 
-           algorithmProviders = new LinkedHashMap<>();
-           ServiceLoader.load(ClusteringAlgorithmProvider.class).forEach((prov) -> {
+            algorithmProviders = new LinkedHashMap<>();
+            ServiceLoader.load(ClusteringAlgorithmProvider.class,
+                ClusteringAlgorithmProvider.class.getClassLoader()).forEach((prov) -> {
               algorithmProviders.put(prov.name(), prov);
-           });
+            });
+            logger.info("Available clustering components: {}",
+                String.join(", ", algorithmProviders.keySet()));
 
             // TODO: warn about obsolete option. c2Settings.get(DEFAULT_SUITE_PROPERTY_NAME));
             // TODO: filter out unavailable algorithms.
-           //  logger.info("Available clustering components: {}", String.join(", ", algorithms));
 
             final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME, "."))
                 .toAbsolutePath()

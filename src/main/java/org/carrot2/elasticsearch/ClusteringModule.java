@@ -5,6 +5,6 @@ import org.elasticsearch.common.inject.AbstractModule;
 public class ClusteringModule extends AbstractModule {
     @Override
     protected void configure() {
-        bind(ControllerSingleton.class).asEagerSingleton();
+        bind(ClusteringContext.class).asEagerSingleton();
     }
 }

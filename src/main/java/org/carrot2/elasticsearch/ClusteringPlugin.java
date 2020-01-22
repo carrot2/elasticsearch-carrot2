@@ -83,7 +83,7 @@ public class ClusteringPlugin extends Plugin implements ActionPlugin {
     public Collection<Class<? extends LifecycleComponent>> getGuiceServiceClasses() {
         if (pluginEnabled) {
             if (!transportClient) {
-                return Collections.singletonList(ControllerSingleton.class);
+                return Collections.singletonList(ClusteringContext.class);
             }
         }
         return Collections.emptyList();

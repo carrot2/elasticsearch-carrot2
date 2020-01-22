@@ -734,12 +734,12 @@ public class ClusteringAction
         private final Set<String> langCodeWarnings = new CopyOnWriteArraySet<>();
 
         private final TransportSearchAction searchAction;
-        private final ControllerSingleton controllerSingleton;
+        private final ClusteringContext controllerSingleton;
 
         @Inject
         public TransportClusteringAction(TransportService transportService,
                                          TransportSearchAction searchAction,
-                                         ControllerSingleton controllerSingleton,
+                                         ClusteringContext controllerSingleton,
                                          ActionFilters actionFilters) {
             super(ClusteringAction.NAME,
                   actionFilters,

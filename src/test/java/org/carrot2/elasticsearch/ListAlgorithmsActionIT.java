@@ -17,7 +17,7 @@ import static org.elasticsearch.test.ESIntegTestCase.Scope.SUITE;
 public class ListAlgorithmsActionIT extends ESIntegTestCase {
     @Override
     protected Collection<Class<? extends Plugin>> nodePlugins() {
-      return Arrays.<Class<? extends Plugin>> asList(ClusteringPlugin.class);
+      return Arrays.asList(ClusteringPlugin.class);
     }
 
     @Override
@@ -31,6 +31,6 @@ public class ListAlgorithmsActionIT extends ESIntegTestCase {
         ListAlgorithmsActionResponse response = new ListAlgorithmsActionRequestBuilder(client).get();
         Assertions.assertThat(response.getAlgorithms())
           .describedAs("A list of algorithms")
-          .contains("stc", "lingo", "kmeans");
+          .containsOnly("Lingo", "STC", "Bisecting K-Means");
     }
 }
