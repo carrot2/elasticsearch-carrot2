@@ -14,7 +14,6 @@ import java.util.Locale;
  * @see ClusteringActionRequest#addSourceFieldMapping(String, LogicalField)
  */
 public enum LogicalField {
-    URL,
     TITLE,
     CONTENT,
     LANGUAGE;

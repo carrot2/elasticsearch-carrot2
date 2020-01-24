@@ -10,12 +10,13 @@
     },
 
     "query_hint": "data mining",
+    "create_ungrouped": true,
     "field_mapping": {
         "title"  : ["_source.title"],
         "content": ["_source.content"]
     },
-    "algorithm": "lingo",
+    "algorithm": "Lingo",
     "attributes": {
-        "LingoClusteringAlgorithm.desiredClusterCountBase": "5"
+        "desiredClusterCount": 5
     }
 }

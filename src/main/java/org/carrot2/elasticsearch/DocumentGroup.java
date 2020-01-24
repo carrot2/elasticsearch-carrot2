@@ -25,8 +25,7 @@ public class DocumentGroup implements ToXContent, Writeable {
     private double score;
     private String[] documentReferences = EMPTY_STRING_ARRAY;
     private DocumentGroup[] subgroups = EMPTY_DOC_GROUP;
-    // TODO: remove other topics.
-    private boolean otherTopics;
+    private boolean ungroupedDocuments;
 
     public DocumentGroup() {
     }
@@ -36,7 +35,7 @@ public class DocumentGroup implements ToXContent, Writeable {
         score = in.readDouble();
         label = in.readOptionalString();
         phrases = in.readStringArray();
-        otherTopics = in.readBoolean();
+        ungroupedDocuments = in.readBoolean();
         documentReferences = in.readStringArray();
 
         int max = in.readVInt();
@@ -70,14 +69,10 @@ public class DocumentGroup implements ToXContent, Writeable {
         return phrases;
     }
     
-    public void setLabel(String label) {
-        this.label = label;
+    public String getLabel() {
+        return String.join(", ", getPhrases());
     }
 
-    public String getLabel() {
-        return label;
-    }
-    
     public void setScore(Double score) {
         this.score = (score == null ? 0 : score);
     }
@@ -94,12 +89,12 @@ public class DocumentGroup implements ToXContent, Writeable {
         return documentReferences;
     }
 
-    public void setOtherTopics(boolean otherTopics) {
-        this.otherTopics = otherTopics;
+    public void setUngroupedDocuments(boolean ungroupedDocuments) {
+        this.ungroupedDocuments = ungroupedDocuments;
     }
     
-    public boolean isOtherTopics() {
-        return otherTopics;
+    public boolean isUngroupedDocuments() {
+        return ungroupedDocuments;
     }
 
     @Override
@@ -108,7 +103,7 @@ public class DocumentGroup implements ToXContent, Writeable {
         out.writeDouble(score);
         out.writeOptionalString(label);
         out.writeStringArray(phrases);
-        out.writeBoolean(otherTopics);
+        out.writeBoolean(ungroupedDocuments);
         out.writeStringArray(documentReferences);
         
         out.writeVInt(subgroups.length);
@@ -127,8 +122,8 @@ public class DocumentGroup implements ToXContent, Writeable {
             .field("label", label)
             .array("phrases", phrases);
         
-        if (otherTopics) {
-            builder.field("other_topics", otherTopics);
+        if (ungroupedDocuments) {
+            builder.field("other_topics", ungroupedDocuments);
         }
 
         if (documentReferences.length > 0) {

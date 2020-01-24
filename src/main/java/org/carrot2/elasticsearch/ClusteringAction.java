@@ -1,29 +1,5 @@
 package org.carrot2.elasticsearch;
 
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
-import static org.elasticsearch.action.ValidateActions.addValidationError;
-import static org.elasticsearch.rest.RestRequest.Method.POST;
-import static org.elasticsearch.rest.RestRequest.Method.GET;
-
-import java.io.IOException;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.carrot2.attrs.Attrs;
@@ -57,12 +33,12 @@ import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.BaseRestHandler;
@@ -84,6 +60,31 @@ import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
+
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
+import static org.elasticsearch.action.ValidateActions.addValidationError;
+import static org.elasticsearch.rest.RestRequest.Method.GET;
+import static org.elasticsearch.rest.RestRequest.Method.POST;
 
 /**
  * Perform clustering of search results.
@@ -109,12 +110,22 @@ public class ClusteringAction
      * An {@link ActionRequest} for {@link ClusteringAction}.
      */
     public static class ClusteringActionRequest extends ActionRequest implements IndicesRequest.Replaceable {
+        public static String JSON_QUERY_HINT = "query_hint";
+        public static String JSON_FIELD_MAPPING = "field_mapping";
+        public static String JSON_ALGORITHM = "algorithm";
+        public static String JSON_ATTRIBUTES = "attributes";
+        public static String JSON_SEARCH_REQUEST = "search_request";
+        public static String JSON_INCLUDE_HITS = "include_hits";
+        public static String JSON_MAX_HITS = "max_hits";
+        public static String JSON_CREATE_UNGROUPED_CLUSTER = "create_ungrouped";
+
         private SearchRequest searchRequest;
         private String queryHint;
         private List<FieldMappingSpec> fieldMapping = new ArrayList<>();
         private String algorithm;
         private int maxHits = Integer.MAX_VALUE;
         private Map<String, Object> attributes;
+        private boolean createUngroupedDocumentsCluster;
 
         /**
          * Set the {@link SearchRequest} to use for fetching documents to be clustered.
@@ -145,6 +156,7 @@ public class ClusteringAction
             this.queryHint = in.readOptionalString();
             this.algorithm = in.readOptionalString();
             this.maxHits = in.readInt();
+            this.createUngroupedDocumentsCluster = in.readBoolean();
 
             int count = in.readVInt();
             while (count-- > 0) {
@@ -281,32 +293,37 @@ public class ClusteringAction
 
             try (XContentParser parser = XContentHelper.createParser(xContentRegistry,
                     DeprecationHandler.THROW_UNSUPPORTED_OPERATION, source, xContentType)) {
-                // TODO: we should avoid reparsing search_request here 
-                // but it's terribly difficult to slice the underlying byte 
+                // TODO: we should avoid reparsing search_request here
+                // but it's terribly difficult to slice the underlying byte
                 // buffer to get just the search request.
                 Map<String, Object> asMap = parser.mapOrdered();
 
-                String queryHint = (String) asMap.get("query_hint");
+                Boolean createUngrouped = (Boolean) asMap.get(JSON_CREATE_UNGROUPED_CLUSTER);
+                if (createUngrouped != null) {
+                    setCreateUngroupedDocumentsCluster(createUngrouped);
+                }
+
+                String queryHint = (String) asMap.get(JSON_QUERY_HINT);
                 if (queryHint != null) {
                     setQueryHint(queryHint);
                 }
 
-                Map<String, List<String>> fieldMapping = (Map<String, List<String>>) asMap.get("field_mapping");
+                Map<String, List<String>> fieldMapping = (Map<String, List<String>>) asMap.get(JSON_FIELD_MAPPING);
                 if (fieldMapping != null) {
                     parseFieldSpecs(fieldMapping);
                 }
 
-                String algorithm = (String) asMap.get("algorithm");
+                String algorithm = (String) asMap.get(JSON_ALGORITHM);
                 if (algorithm != null) {
                     setAlgorithm(algorithm);
                 }
 
-                Map<String, Object> attributes = (Map<String, Object>) asMap.get("attributes");
+                Map<String, Object> attributes = (Map<String, Object>) asMap.get(JSON_ATTRIBUTES);
                 if (attributes != null) {
                     setAttributes(attributes);
                 }
 
-                Map<String, ?> searchRequestMap = (Map<String, ?>) asMap.get("search_request");
+                Map<String, ?> searchRequestMap = (Map<String, ?>) asMap.get(JSON_SEARCH_REQUEST);
                 if (searchRequestMap != null) {
                     if (this.searchRequest == null) {
                         searchRequest = new SearchRequest();
@@ -320,13 +337,13 @@ public class ClusteringAction
                     searchRequest.source(searchSourceBuilder);
                 }
 
-                Object includeHits = asMap.get("include_hits");
+                Object includeHits = asMap.get(JSON_INCLUDE_HITS);
                 if (includeHits != null) {
                     LogManager.getLogger(getClass()).warn("Request used deprecated 'include_hits' parameter.");
                     setIncludeHits(Boolean.parseBoolean(includeHits.toString()));
                 }
 
-                Object maxHits = asMap.get("max_hits");
+                Object maxHits = asMap.get(JSON_MAX_HITS);
                 if (maxHits != null) {
                     setMaxHits(maxHits.toString());
                 }
@@ -461,6 +478,7 @@ public class ClusteringAction
             out.writeOptionalString(queryHint);
             out.writeOptionalString(algorithm);
             out.writeInt(maxHits);
+            out.writeBoolean(createUngroupedDocumentsCluster);
 
             out.writeVInt(fieldMapping.size());
             for (FieldMappingSpec spec : fieldMapping) {
@@ -487,6 +505,10 @@ public class ClusteringAction
         @Override
         public IndicesOptions indicesOptions() {
             return searchRequest.indicesOptions();
+        }
+
+        public void setCreateUngroupedDocumentsCluster(boolean enabled) {
+            this.createUngroupedDocumentsCluster = enabled;
         }
     }
 
@@ -588,6 +610,11 @@ public class ClusteringAction
 
         public ClusteringActionRequestBuilder addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
             super.request.addFieldMappingSpec(fieldSpec, logicalField);
+            return this;
+        }
+
+        public ClusteringActionRequestBuilder setCreateUngroupedDocumentsCluster(boolean enabled) {
+            super.request.setCreateUngroupedDocumentsCluster(enabled);
             return this;
         }
     }
@@ -783,7 +810,7 @@ public class ClusteringAction
                     /*
                      * We're not a threaded listener so we're running on the search thread. This
                      * is good -- we don't want to serve more clustering requests than we can handle
-                     * anyway. 
+                     * anyway.
                      */
                     ClusteringAlgorithm algorithm = provider.get();
 
@@ -796,7 +823,19 @@ public class ClusteringAction
                         // TODO: .query(clusteringRequest.getQueryHint());
                         List<InputDocument> documents = prepareDocumentsForClustering(clusteringRequest, response);
                         // TODO: handle languages. handle custom resources.
-                        LanguageComponents languageComponents = LanguageComponents.load("English");
+                        LanguageComponents languageComponents = AccessController.doPrivileged(
+                            (PrivilegedAction<LanguageComponents>) () -> {
+                                // TODO: this hack shouldn't be required.
+                                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                                try {
+                                    Thread.currentThread().setContextClassLoader(
+                                        LanguageComponents.class.getClassLoader()
+                                    );
+                                    return LanguageComponents.load("English");
+                                } finally {
+                                    Thread.currentThread().setContextClassLoader(cl);
+                                }
+                            });
 
                         final long tsClusteringStart = System.nanoTime();
                         final List<Cluster<InputDocument>> clusters = AccessController.doPrivileged(
@@ -824,17 +863,41 @@ public class ClusteringAction
                             response = filterMaxHits(response, clusteringRequest.getMaxHits());
                         }
 
-                        DocumentGroup[] groups = adapt(clusters, new AtomicInteger());
+                        AtomicInteger groupId = new AtomicInteger();
+                        DocumentGroup[] groups = adapt(clusters, groupId);
+                        if (clusteringRequest.createUngroupedDocumentsCluster) {
+                            DocumentGroup group = new DocumentGroup();
+                            group.setId(groupId.incrementAndGet());
+                            group.setPhrases(new String [] {"Ungrouped documents"});
+                            group.setUngroupedDocuments(true);
+                            group.setScore(0d);
+
+                            LinkedHashSet<InputDocument> ungrouped = new LinkedHashSet<>(documents);
+                            removeReferenced(ungrouped, clusters);
+                            group.setDocumentReferences(
+                                ungrouped.stream().map(InputDocument::getStringId).toArray(String[]::new));
+
+                            groups = Arrays.copyOf(groups, groups.length + 1);
+                            groups[groups.length - 1] = group;
+                        }
+
                         listener.onResponse(new ClusteringActionResponse(response, groups, info));
                     } catch (Exception e) {
-                        // Log a full stack trace with all nested exceptions but only return 
-                        // ElasticSearchException exception with a simple String (otherwise 
+                        // Log a full stack trace with all nested exceptions but only return
+                        // ElasticSearchException exception with a simple String (otherwise
                         // clients cannot deserialize exception classes).
                         String message = "Clustering error: " + e.getMessage();
                         listener.onFailure(new ElasticsearchException(message));
 
                         logger.warn(message, e);
                     }
+                }
+
+                private void removeReferenced(LinkedHashSet<InputDocument> ungrouped, List<Cluster<InputDocument>> clusters) {
+                    clusters.forEach(cluster -> {
+                        ungrouped.removeAll(cluster.getDocuments());
+                        removeReferenced(ungrouped, cluster.getClusters());
+                    });
                 }
             });
         }
@@ -859,7 +922,7 @@ public class ClusteringAction
                     new SearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore());
 
             SearchProfileShardResults _searchProfileShardResults = new SearchProfileShardResults(response.getProfileResults());
-           
+
             InternalSearchResponse _searchResponse =
                     new InternalSearchResponse(
                             _searchHits,
@@ -901,7 +964,6 @@ public class ClusteringAction
             DocumentGroup group = new DocumentGroup();
             group.setId(groupId.incrementAndGet());
             group.setPhrases(cluster.getLabels().toArray(new String[0]));
-            group.setLabel(String.join(", ", cluster.getLabels()));
             group.setScore(cluster.getScore());
 
             List<InputDocument> documents = cluster.getDocuments();
@@ -926,7 +988,6 @@ public class ClusteringAction
             List<FieldMappingSpec> fieldMapping = request.getFieldMapping();
             StringBuilder title = new StringBuilder();
             StringBuilder content = new StringBuilder();
-            StringBuilder url = new StringBuilder();
             StringBuilder language = new StringBuilder();
             boolean emptySourceWarningEmitted = false;
 
@@ -934,7 +995,6 @@ public class ClusteringAction
                 // Prepare logical fields for each hit.
                 title.setLength(0);
                 content.setLength(0);
-                url.setLength(0);
                 language.setLength(0);
 
                 Map<String, DocumentField> fields = hit.getFields();
@@ -984,7 +1044,7 @@ public class ClusteringAction
                                         value = ((Map<?, ?>) value).get(fieldName);
                                         if (value == null) {
                                             // No such key.
-                                            logger.warn("Cannot find into field {} from spec: {}",
+                                            logger.warn("Cannot find field named '{}' from spec: '{}'",
                                                     fieldName,
                                                     spec.field);
                                             break outer;
@@ -1013,10 +1073,6 @@ public class ClusteringAction
                     if (appendContent != null) {
                         StringBuilder target;
                         switch (spec.logicalField) {
-                            case URL:
-                                url.setLength(0); // Clear previous (single mapping allowed).
-                                target = url;
-                                break;
                             case LANGUAGE:
                                 language.setLength(0); // Clear previous (single mapping allowed);
                                 target = language;
@@ -1045,10 +1101,8 @@ public class ClusteringAction
                 InputDocument doc = new InputDocument(
                         title.toString(),
                         content.toString(),
-                        url.toString(),
                         langCode,
-                        hit.getId(),
-                        documents.size());
+                        hit.getId());
 
                 documents.add(doc);
             }
@@ -1130,8 +1184,8 @@ public class ClusteringAction
             }
 
             // Contrary to ES's default search handler we will not support
-            // GET requests with a body (this is against HTTP spec guidance 
-            // in my opinion -- GET requests should be URL-based). 
+            // GET requests with a body (this is against HTTP spec guidance
+            // in my opinion -- GET requests should not have a body).
             if (request.method() == GET && request.hasContent()) {
                 return channel -> emitErrorResponse(channel, logger,
                         new IllegalArgumentException("Request body was unexpected for a GET request."));
@@ -1152,7 +1206,6 @@ public class ClusteringAction
                     break;
 
                 case GET:
-
                     RestSearchAction.parseSearchRequest(searchRequest, request, null, (size) -> {
                         searchRequest.source().size(size);
                     });
@@ -1220,26 +1273,28 @@ public class ClusteringAction
                 ClusteringActionRequestBuilder actionBuilder,
                 RestRequest request) {
             // Use the search query as the query hint, if explicit query hint
-            // is not available. 
-            if (request.hasParam("query_hint")) {
-                actionBuilder.setQueryHint(request.param("query_hint"));
+            // is not available.
+            if (request.hasParam(ClusteringActionRequest.JSON_QUERY_HINT)) {
+                actionBuilder.setQueryHint(request.param(ClusteringActionRequest.JSON_QUERY_HINT));
             } else {
                 actionBuilder.setQueryHint(request.param("q"));
             }
 
-            // Algorithm.
-            if (request.hasParam("algorithm")) {
-                actionBuilder.setAlgorithm(request.param("algorithm"));
+            if (request.hasParam(ClusteringActionRequest.JSON_ALGORITHM)) {
+                actionBuilder.setAlgorithm(request.param(ClusteringActionRequest.JSON_ALGORITHM));
             }
 
-            // include_hits
-            if (request.hasParam("include_hits")) {
-                actionBuilder.setIncludeHits(request.param("include_hits"));
+            if (request.hasParam(ClusteringActionRequest.JSON_INCLUDE_HITS)) {
+                actionBuilder.setIncludeHits(request.param(ClusteringActionRequest.JSON_INCLUDE_HITS));
             }
 
-            // max_hits
-            if (request.hasParam("max_hits")) {
-                actionBuilder.setMaxHits(request.param("max_hits"));
+            if (request.hasParam(ClusteringActionRequest.JSON_MAX_HITS)) {
+                actionBuilder.setMaxHits(request.param(ClusteringActionRequest.JSON_MAX_HITS));
+            }
+
+            if (request.hasParam(ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER)) {
+                actionBuilder.setCreateUngroupedDocumentsCluster(
+                    Boolean.parseBoolean(request.param(ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER)));
             }
 
             // Field mappers.

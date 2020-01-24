@@ -164,6 +164,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
      */
     protected static void checkValid(ClusteringActionResponse result) {
         Assertions.assertThat(result.getDocumentGroups())
+            .as("top-level clusters")
             .isNotNull()
             .isNotEmpty();
 

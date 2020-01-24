@@ -14,8 +14,8 @@
         "title"  : ["_source.title"],
         "content": ["_source.content"]
     },
-    "algorithm": "stc",
+    "algorithm": "STC",
     "attributes": {
-        "STCClusteringAlgorithm.ignoreWordIfInHigherDocsPercent": 100
+        "ignoreWordIfInHigherDocsPercent": 100
     }
 }

@@ -1,3 +1,4 @@
+
 // This plugin's version (typically must match that of ES).
 version = '7.5.0'
 group = 'org.carrot2'

@@ -2,4 +2,4 @@
     - do:
         algorithms: {}
 
-    - match: { algorithms: ["lingo", "stc", "kmeans", "byurl"] }
+    - match: { algorithms: ["Lingo", "STC", "Bisecting K-Means"] }

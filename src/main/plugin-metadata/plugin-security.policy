@@ -1,5 +1,5 @@
 grant {
-  // required for simpleframework (XML deserialization)
-  permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  permission java.lang.RuntimePermission "accessDeclaredMembers";
+// TODO: REMOVE THESE HACKS
+  permission java.lang.RuntimePermission "getClassLoader";
+  permission java.lang.RuntimePermission "setContextClassLoader";
 };

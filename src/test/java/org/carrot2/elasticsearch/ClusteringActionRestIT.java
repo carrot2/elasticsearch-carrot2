@@ -9,6 +9,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.api.Assertions;
+import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.xcontent.XContentType;
 
@@ -25,10 +26,6 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     private XContentType xtype = randomFrom(XContentType.values());
     private ContentType contentType = ContentType.parse(xtype.mediaType());
 
-    public void testPostClusterByUrl() throws Exception {
-        post("post_cluster_by_url.json");
-    }
-    
     public void testPostMultipleFieldMapping() throws Exception {
         post("post_multiple_field_mapping.json");
     }
@@ -56,7 +53,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    void dumpClusters(List<Map<String, ?>> clusterList, int indent) {
+    private void dumpClusters(List<Map<String, ?>> clusterList, int indent) {
       for (Map<String, ?> cluster : clusterList) {
         float score = ((Number) cluster.get("score")).floatValue();
         String label = (String) cluster.get("label");
@@ -79,7 +76,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
       }
     }
 
-    protected Map<?,?> post(String queryJsonResource) throws Exception {
+    private Map<?,?> post(String queryJsonResource) throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
 
@@ -110,9 +107,9 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
                     + "&size=100"
                     // clustering-specific attrs
                     + "&query_hint=data+mining"
-                    + "&field_mapping_url=_source.url"
+                    + "&" + ClusteringAction.ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER + "=true"
                     + "&field_mapping_content=_source.title,_source.content"
-                    + "&algorithm=stc");
+                    + "&algorithm=" + STCClusteringAlgorithm.NAME);
             HttpResponse response = httpClient.execute(get);
 
             Map<?,?> map = checkHttpResponseContainsClusters(response);
@@ -159,7 +156,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
         }
     }
 
-    @AwaitsFix(bugUrl = "TODO: add langs")
+    @AwaitsFix(bugUrl = "TODO: add langs") // TODO: add langs
     public void testLanguageField() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
@@ -234,7 +231,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
             expectErrorResponseWithMessage(
                     response, 
                     HttpStatus.SC_INTERNAL_SERVER_ERROR, 
-                    "Search results clustering error:");
+                    "Clustering error: Value must be <= 1.0");
         }
     }    
 }

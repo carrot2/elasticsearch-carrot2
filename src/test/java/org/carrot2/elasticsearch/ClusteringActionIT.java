@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
+import org.carrot2.clustering.kmeans.BisectingKMeansProvider;
+import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
+import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
@@ -31,7 +34,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_TEST)
-                    .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
                     .highlighter(new HighlightBuilder().preTags("").postTags(""))
@@ -117,14 +119,18 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     }
              */
 
-    public void testListAlgorithms() throws IOException {
+    public void testListAlgorithms() {
         ListAlgorithmsActionResponse response = 
                 new ListAlgorithmsActionRequestBuilder(client).get();
 
         List<String> algorithms = response.getAlgorithms();
         Assertions.assertThat(algorithms)
             .isNotEmpty()
-            .contains("stc", "lingo", "kmeans");
+            .contains(
+                LingoClusteringAlgorithm.NAME,
+                STCClusteringAlgorithm.NAME,
+                // TODO: change to algorithm name.
+                new BisectingKMeansProvider().name());
     }
 
     public void testNonexistentFields() throws IOException {
@@ -132,10 +138,10 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .setQueryHint("data mining")
             .addSourceFieldMapping("_nonexistent_", LogicalField.TITLE)
             .addSourceFieldMapping("_nonexistent_", LogicalField.CONTENT)
+            .setCreateUngroupedDocumentsCluster(true)
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_TEST)
-                    .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
                     .setFetchSource(new String[] {"title", "content"}, null))
@@ -148,13 +154,13 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         // Top level groups should be input documents' languages (aggregation strategy above).
         DocumentGroup[] documentGroups = result.getDocumentGroups();
         for (DocumentGroup group : documentGroups) {
-            if (!group.isOtherTopics()) {
-                Assertions.fail("Expected no clusters for non-existent fields.");
+            if (!group.isUngroupedDocuments()) {
+                fail("Expected no clusters for non-existent fields.");
             }
         }
     }
     
-    public void testNonexistentAlgorithmId() throws IOException {
+    public void testNonexistentAlgorithmId() {
         // The query should result in an error.
         try {
             new ClusteringActionRequestBuilder(client)
@@ -164,7 +170,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
                 .setSearchRequest(
                   client.prepareSearch()
                         .setIndices(INDEX_TEST)
-                        .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("content", "data"))
                         .setFetchSource(new String[] {"title", "content"}, null))
@@ -213,7 +218,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
                 .setIndices(INDEX_TEST)
-                .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("content", "data"))
                 .setFetchSource(new String[] {"content"}, null);
@@ -221,8 +225,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         // with hits (default)
         ClusteringActionResponse resultWithHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
-            .setAlgorithm("stc")
+            .setAlgorithm(STCClusteringAlgorithm.NAME)
             .addSourceFieldMapping("title", LogicalField.TITLE)
+            .setCreateUngroupedDocumentsCluster(true)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(resultWithHits);
@@ -240,8 +245,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         ClusteringActionResponse resultWithoutHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .setMaxHits(0)
-            .setAlgorithm("stc")
+            .setAlgorithm(STCClusteringAlgorithm.NAME)
             .addSourceFieldMapping("title", LogicalField.TITLE)
+            .setCreateUngroupedDocumentsCluster(true)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(resultWithoutHits);
@@ -260,7 +266,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         // insert hits into jsonWithoutHits
         jsonWithoutHits.set("hits", jsonWithHits.get("hits"));
 
-        // took can vary, so ignore it
+        // 'took' can vary, so ignore it
         jsonWithoutHits.remove("took");
         jsonWithHits.remove("took");
 
@@ -284,7 +290,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         // same search with and without hits
         SearchRequestBuilder req = client.prepareSearch()
                 .setIndices(INDEX_TEST)
-                .setTypes("test")
                 .setSize(2)
                 .setQuery(QueryBuilders.termQuery("content", "data"))
                 .setFetchSource(new String[] {"content"}, null);
@@ -293,8 +298,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         ClusteringActionResponse limitedHits = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .setMaxHits(2)
-            .setAlgorithm("stc")
+            .setAlgorithm(STCClusteringAlgorithm.NAME)
             .addSourceFieldMapping("title", LogicalField.TITLE)
+            .setCreateUngroupedDocumentsCluster(true)
             .setSearchRequest(req)
             .execute().actionGet();
         checkValid(limitedHits);
