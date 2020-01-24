@@ -44,6 +44,7 @@ configure(rootProject) {
 // <<< Build HACK for 7.5.0
 
 repositories {
+  mavenLocal()
   mavenCentral()
 }
 
@@ -62,7 +63,7 @@ esplugin {
 // esplugin forces transitive:false on all dependencies
 // so list all transitive dependencies individually
 dependencies {
-  compile "org.carrot2:carrot2-core:4.0.0-beta1"
+  compile "org.carrot2:carrot2-core:4.0.0-SNAPSHOT"
   compile "com.carrotsearch:hppc:0.8.1"
   compile "org.slf4j:slf4j-api:1.7.13"
 

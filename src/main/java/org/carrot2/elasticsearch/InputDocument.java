@@ -8,13 +8,13 @@ import java.util.function.BiConsumer;
 public class InputDocument implements Document {
    private final String title;
    private final String content;
-   private final String langCode;
+   private final String language;
    private final String hitId;
 
-   public InputDocument(String title, String content, String langCode, String hitId) {
+   public InputDocument(String title, String content, String language, String hitId) {
       this.title = title;
       this.content = content;
-      this.langCode = langCode;
+      this.language = language;
       this.hitId = Objects.requireNonNull(hitId);
    }
 
@@ -26,5 +26,9 @@ public class InputDocument implements Document {
 
    public String getStringId() {
       return hitId;
+   }
+
+   public String language() {
+      return language;
    }
 }

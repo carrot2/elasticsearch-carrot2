@@ -1,5 +1,3 @@
 grant {
-// TODO: REMOVE THESE HACKS
-  permission java.lang.RuntimePermission "getClassLoader";
-  permission java.lang.RuntimePermission "setContextClassLoader";
+  // No special security exceptions are required.
 };

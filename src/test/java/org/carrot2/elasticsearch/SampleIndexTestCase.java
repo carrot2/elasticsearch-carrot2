@@ -121,7 +121,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             // Create content at random in the test index.
             Random rnd = random();
             String [] languages = LanguageComponents.languages().toArray(new String[0]);
-            Collections.shuffle(Arrays.asList(languages), rnd);
+            Arrays.sort(languages);
 
             BulkRequestBuilder bulk = client.prepareBulk();
             for (String[] data : SampleDocumentData.SAMPLE_DATA) {
@@ -203,7 +203,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
             .containsKey(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS)
             .containsKey(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS)
             .containsKey(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS)
-            .containsKey(ClusteringActionResponse.Fields.Info.MAX_HITS);
+            .containsKey(ClusteringActionResponse.Fields.Info.MAX_HITS)
+            .containsKey(ClusteringActionResponse.Fields.Info.LANGUAGES);
     }
     
     /**

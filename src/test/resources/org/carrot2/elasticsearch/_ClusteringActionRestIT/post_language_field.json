@@ -15,8 +15,7 @@
         "content" : ["_source.content"],
         "language": ["_source.rndlang"]
     },
-    "algorithm": "lingo",
+    "algorithm": "Lingo",
     "attributes": {
-        "MultilingualClustering.languageAggregationStrategy": "FLATTEN_NONE"
     }
 }

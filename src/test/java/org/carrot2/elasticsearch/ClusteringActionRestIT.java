@@ -13,10 +13,8 @@ import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.xcontent.XContentType;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * REST API tests for {@link ClusteringAction}.
@@ -156,7 +154,6 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
         }
     }
 
-    @AwaitsFix(bugUrl = "TODO: add langs") // TODO: add langs
     public void testLanguageField() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");
@@ -164,29 +161,16 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
             HttpResponse response = httpClient.execute(post);
             Map<?,?> map = checkHttpResponseContainsClusters(response);
 
-            // Check top level clusters labels.
-            Set<String> remainingLanguages = new HashSet<>();
-            /*
-            for (LanguageCode code : LanguageCode.values()) {
-                remainingLanguages.add(code.toString());
-            }
-             */
-
             List<?> clusterList = (List<?>) map.get("clusters");
-            for (Object o : clusterList) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> cluster = (Map<String, Object>) o; 
-                remainingLanguages.remove(cluster.get("label"));
-            }
+            Assertions.assertThat(clusterList.size())
+                .isGreaterThan(1);
 
-            /*
-            Assertions.assertThat(remainingLanguages.size())
-                .describedAs("Expected a lot of languages to appear in top groups: " + remainingLanguages)
-                .isLessThan(LanguageCode.values().length / 2);
-             */
+            Map<?,?> info = (Map<?,?>) map.get("info");
+            Assertions.assertThat(((String) info.get("languages")).split(","))
+                .hasSizeGreaterThan(3);
         }
     }
-    
+
     public void testNonexistentFields() throws Exception {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpPost post = new HttpPost(restBaseUrl + "/" + RestClusteringAction.NAME + "?pretty=true");

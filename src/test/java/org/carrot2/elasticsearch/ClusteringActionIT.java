@@ -4,13 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.Assertions;
-import org.carrot2.clustering.kmeans.BisectingKMeansProvider;
+import org.carrot2.attrs.Attrs;
+import org.carrot2.clustering.kmeans.BisectingKMeansClusteringAlgorithm;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -20,7 +22,9 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * API tests for {@link ClusteringAction}.
@@ -45,22 +49,21 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         checkJsonSerialization(result);
     }
 
-    /*
-    TODO:
     public void testAttributes() throws IOException {
-        Map<String,Object> attrs = new HashMap<>();
-        LingoClusteringAlgorithmDescriptor.attributeBuilder(attrs)
-            .desiredClusterCountBase(5);
+        LingoClusteringAlgorithm algorithm = new LingoClusteringAlgorithm();
+        algorithm.desiredClusterCount.set(5);
+
+        Map<String, Object> extract = Attrs.extract(algorithm);
+        Attrs.populate(algorithm, extract);
 
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
             .addSourceFieldMapping("title", LogicalField.TITLE)
             .addSourceFieldMapping("content", LogicalField.CONTENT)
-            .addAttributes(attrs)
+            .addAttributes(Attrs.extract(algorithm))
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_TEST)
-                    .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.matchAllQuery())
                     .setFetchSource(new String[] {"title", "content"}, null))
@@ -73,6 +76,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .isBetween(0, 5 + 1);
     }
 
+    /*
+    TODO:
     public void testLanguageField() throws IOException {
         Map<String,Object> attrs = new HashMap<>();
 
@@ -129,8 +134,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .contains(
                 LingoClusteringAlgorithm.NAME,
                 STCClusteringAlgorithm.NAME,
-                // TODO: change to algorithm name.
-                new BisectingKMeansProvider().name());
+                BisectingKMeansClusteringAlgorithm.NAME);
     }
 
     public void testNonexistentFields() throws IOException {
@@ -181,26 +185,22 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         }
     }
 
-    // TODO:
-    /*
-    public void testPropagatingAlgorithmException() throws IOException {
+    public void testPropagatingAlgorithmException() {
         // The query should result in an error.
         try {
-            Map<String,Object> attrs = new HashMap<>();
             // Out of allowed range (should cause an exception).
-            STCClusteringAlgorithmDescriptor.attributeBuilder(attrs)
-                .ignoreWordIfInHigherDocsPercent(Double.MAX_VALUE);
+            Map<String,Object> attrs = new HashMap<>();
+            attrs.put("ignoreWordIfInHigherDocsPercent", Double.MAX_VALUE);
 
             new ClusteringActionRequestBuilder(client)
                 .setQueryHint("")
                 .addSourceFieldMapping("title", LogicalField.TITLE)
                 .addSourceFieldMapping("content", LogicalField.CONTENT)
-                .setAlgorithm("stc")
+                .setAlgorithm(STCClusteringAlgorithm.NAME)
                 .addAttributes(attrs)
                 .setSearchRequest(
                   client.prepareSearch()
                         .setIndices(INDEX_TEST)
-                        .setTypes("test")
                         .setSize(100)
                         .setQuery(QueryBuilders.termQuery("content", "data"))
                         .setFetchSource(new String[] {"title", "content"}, null))
@@ -208,11 +208,9 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             throw Preconditions.unreachable();
         } catch (ElasticsearchException e) {
             Assertions.assertThat(e)
-                .hasMessageContaining("Search results clustering error:")
-                .hasMessageContaining(STCClusteringAlgorithmDescriptor.Keys.IGNORE_WORD_IF_IN_HIGHER_DOCS_PERCENT);
+                .hasMessageContaining("Clustering error:");
         }
     }
-     */
 
     public void testIncludeHits() throws IOException {
         // same search with and without hits
