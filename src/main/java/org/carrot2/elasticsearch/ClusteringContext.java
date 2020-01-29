@@ -15,6 +15,8 @@ import org.elasticsearch.node.Node;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -90,31 +92,34 @@ public class ClusteringContext extends AbstractLifecycleComponent {
             resourceLookup = null;
          }
 
-         languages = new LinkedHashMap<>();
-         for (String language : LanguageComponents.languages()) {
-            try {
-               LanguageComponents components =
-                   resourceLookup != null
-                       ? LanguageComponents.load(language, resourceLookup)
-                       : LanguageComponents.load(language);
-               languages.put(language, components);
-            } catch (Exception e) {
-               logger.warn("Could not load resources for language: '"
-                   + language + "', language will be ignored.", e);
+         AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+            languages = new LinkedHashMap<>();
+            for (String language : LanguageComponents.languages()) {
+               try {
+                  LanguageComponents components =
+                      resourceLookup != null
+                          ? LanguageComponents.load(language, resourceLookup)
+                          : LanguageComponents.load(language);
+                  languages.put(language, components);
+               } catch (Exception e) {
+                  logger.warn("Could not load resources for language: '"
+                      + language + "', language will be ignored.", e);
+               }
             }
-         }
-         logger.info("Available languages: {}",
-             String.join(", ", languages.keySet()));
+            logger.info("Available languages: {}",
+                String.join(", ", languages.keySet()));
 
-         // TODO: support custom preconfigured templates?
-         // TODO: Set up the license for Lingo3G, if it's available.
+            return null;
+         });
+
 /*
-            Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
-            if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
-              c2SettingsAsMap.put("license", new FileResource(lingo3gLicense));
-            } else if (algorithms.contains("lingo3g")) {
-              logger.warn("Lingo3G is on classpath, but no licenses have been found. Check out the documentation.");
-            }
+         // TODO: Set up the license provider for Lingo3G
+         Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
+         if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
+           c2SettingsAsMap.put("license", new FileResource(lingo3gLicense));
+         } else if (algorithms.contains("lingo3g")) {
+           logger.warn("Lingo3G is on classpath, but no licenses have been found. Check out the documentation.");
+         }
 */
       } catch (Exception e) {
          throw new ElasticsearchException(
