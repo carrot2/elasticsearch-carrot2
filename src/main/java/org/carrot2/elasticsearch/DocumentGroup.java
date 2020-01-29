@@ -10,6 +10,9 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A {@link DocumentGroup} acts as an adapter over {@link Cluster}, providing additional
@@ -21,11 +24,11 @@ public class DocumentGroup implements ToXContent, Writeable {
 
     private int id;
     private String[] phrases = EMPTY_STRING_ARRAY;
-    private String label;
     private double score;
     private String[] documentReferences = EMPTY_STRING_ARRAY;
     private DocumentGroup[] subgroups = EMPTY_DOC_GROUP;
     private boolean ungroupedDocuments;
+    private Set<String> uniqueDocuments;
 
     public DocumentGroup() {
     }
@@ -33,7 +36,6 @@ public class DocumentGroup implements ToXContent, Writeable {
     DocumentGroup(StreamInput in) throws IOException {
         id = in.readVInt();
         score = in.readDouble();
-        label = in.readOptionalString();
         phrases = in.readStringArray();
         ungroupedDocuments = in.readBoolean();
         documentReferences = in.readStringArray();
@@ -97,11 +99,22 @@ public class DocumentGroup implements ToXContent, Writeable {
         return ungroupedDocuments;
     }
 
+    public Set<String> uniqueDocuments() {
+        // Compute lazily.
+        if (uniqueDocuments == null) {
+            uniqueDocuments = new HashSet<>();
+            uniqueDocuments.addAll(Arrays.asList(getDocumentReferences()));
+            for (DocumentGroup group : subgroups) {
+                uniqueDocuments.addAll(group.uniqueDocuments);
+            }
+        }
+        return uniqueDocuments;
+    }
+
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         out.writeVInt(id);
         out.writeDouble(score);
-        out.writeOptionalString(label);
         out.writeStringArray(phrases);
         out.writeBoolean(ungroupedDocuments);
         out.writeStringArray(documentReferences);
@@ -119,7 +132,7 @@ public class DocumentGroup implements ToXContent, Writeable {
         builder
             .field("id", id)
             .field("score", score)
-            .field("label", label)
+            .field("label", getLabel())
             .array("phrases", phrases);
         
         if (ungroupedDocuments) {

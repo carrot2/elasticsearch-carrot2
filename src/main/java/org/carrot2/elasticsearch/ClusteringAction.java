@@ -915,7 +915,12 @@ public class ClusteringAction
                       ));
 
                   final ArrayList<DocumentGroup> groups = new ArrayList<>();
-                  adaptedByLanguage.values().forEach(langClusters -> groups.addAll(Arrays.asList(langClusters)));
+                  adaptedByLanguage.values()
+                      .forEach(langClusters -> groups.addAll(Arrays.asList(langClusters)));
+
+                  if (adaptedByLanguage.size() > 1) {
+                     groups.sort((a, b) -> Integer.compare(b.uniqueDocuments().size(), a.uniqueDocuments().size()));
+                  }
 
                   if (clusteringRequest.createUngroupedDocumentsCluster) {
                      DocumentGroup ungrouped = new DocumentGroup();
@@ -1345,6 +1350,11 @@ public class ClusteringAction
          if (request.hasParam(ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER)) {
             actionBuilder.setCreateUngroupedDocumentsCluster(
                 Boolean.parseBoolean(request.param(ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER)));
+         }
+
+         if (request.hasParam(ClusteringActionRequest.JSON_LANGUAGE)) {
+            actionBuilder.setDefaultLanguage(
+                request.param(ClusteringActionRequest.JSON_LANGUAGE));
          }
 
          // Field mappers.

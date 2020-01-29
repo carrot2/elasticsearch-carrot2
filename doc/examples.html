@@ -101,13 +101,13 @@
             <p>The clustering plugin attempts to automatically group together similar &quot;documents&quot; and
               assign human-readable labels to these groups. The clusters can be thought-of as &quot;dynamic facets&quot;
               generated for each unique query and set of search result hits. Take a look at the
-              <a target="_blank" href="http://search.carrot2.org/stable/search?query=elasticsearch&amp;results=200&amp;view=foamtree">Carrot<sup>2</sup>
+              <a target="_blank" href="https://search.carrot2.org">Carrot<sup>2</sup>
               demo page</a> to see how this can be used in practice.</p>
 
             <p>Each document passed for clustering is composed of several logical parts: the document's identifier,
-              title, the main content, language code and origin URL (only the identifier field is mandatory,
-              everything else is optional). Either the title or the description should be provided to make the clustering
-              process reasonable, otherwise there will be no input text the algorithm can work with.</p>
+              title, main content and language code (only the identifier field is mandatory,
+              everything else is optional). Either the title, main content or both should be provided to make the clustering
+              process reasonable, otherwise there will be no input for the algorithm to work on.</p>
           </div>
           <div class="span4">
             <div class="alert alert-danger">
@@ -126,8 +126,8 @@
 
             <p class="text-center"><img src="assets/img/mapping.png" alt="Logical field mapping" width="500" /></p>
 
-            <p>Note that two document fields are mapped to the title. This is not an error, any number of fields can
-              be mapped to either the title or the content—concatenated values of those fields
+            <p>Two document fields are mapped to the title. This is not an error: any number of fields can
+              be mapped to either the title or the content—values of those fields
               will be concatenated and used for clustering.</p>
 
             <p>Another way to provide the title and content fields is to use the
@@ -202,7 +202,7 @@
             <pre class="executable example">
 $.get(window.ES_URL + "/_algorithms", function(response) {
     $("#list-of-algorithms").text(
-      response.algorithms.join("\n"));
+              JSON.stringify(response, null, "  "));
 });
             </pre>
             </div>
@@ -281,10 +281,10 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                     <dt><code>content</code></dt>
                     <dd><p>The main body (content) of the document.</p></dd>
                     <dt><code>language</code></dt>
-                    <dd><p>Optional language "tag" for the title and content of a document. The language tag must be
+                    <dd><p>Optional language name for the title and content of a document. The language must be
                       consistent with language components installed and available in Carrot<sup>2</sup>. The
-                      list of supported languages is logged at startup. Note that a language can be
-                      supported by one clustering algorithm and not supported by another.
+                      list of supported languages is logged at startup. Note that unsupported languages will
+                      default to the main language of the request (<code>language</code> request parameter).
                     </p></dd>
                   </dl>
 
@@ -319,20 +319,14 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                   not provided.</p>
                 </dd>
 
-                <dt><code>include_hits</code></dt>
-                <dd><p><span class="badge">optional</span>
-                  If set to <code>false</code>, the clustering response will filter out search hits (documents) and only
-                  include cluster labels and document references. This option may be useful to decrease the size of clustering response in case
-                  only cluster labels are needed.</p>
-                </dd>
-
                 <dt><code>max_hits</code></dt>
                 <dd><p><span class="badge">optional</span>
                   If set to a non-negative number, the clustering response will be limited to
                   contain only a maximum of the given search hits. The clustering will still run
                   on a full window of results returned by the original search request. This option 
-                  may be useful to decrease the size of clustering response in case
-                  cluster labels are used as facets (for refining the query, but without the immediate
+                  may be useful to decrease the size of clustering response; in an extreme case of
+                  <code>max_hits</code> equal o 0, only clusters are returned
+                  and they can be used as facets (for refining the query, but without the immediate
                   link to the search hits).</p>
                   
                   <p>Note that clusters may still reference documents not present in the returned (trimmed) 
@@ -355,9 +349,8 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
 
                 <dt><code>attributes</code></dt>
                 <dd><p><span class="badge">optional</span>
-                  A map of key-value attributes overriding the default algorithm settings (per-query or runtime attributes
-                  in Carrot<sup>2</sup> parlance). The default permanent settings can be set using initialization-time 
-                  XML configuration files.</p>
+                  A JSON object with attributes overriding the default algorithm settings (per-query or runtime attributes
+                  in Carrot<sup>2</sup> parlance).</p>
                 </dd>
               </dl>
 
@@ -404,6 +397,20 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                   Identical semantics to <code>query_hint</code> attribute described in HTTP POST request.
                   For GET requests the query hint is optional; if not present, the <code>q</code> attribute is used
                   as the default.</p>
+                </dd>
+
+                <dt><code>create_ungrouped</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  If set to <code>true</code>, the documents not assigned to any cluster will form a synthetic
+                  group appended at the end of all clusters. This is effectively the "other topics" group
+                  created by Carrot<sup>2</sup> versions prior to 4.0.
+                </dd>
+
+                <dt><code>language</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  Declares the default language for documents where field mapping for the logical
+                  <code>language</code> field is not declared (or empty). The default value of this field
+                  is <code>English</code>.
                 </dd>
               </dl>
 
@@ -586,6 +593,7 @@ var request = {
     "size": 100
   },
 
+  "max_hits": 0,
   "query_hint": "data mining",
   "field_mapping": {
     "title": ["_source.title"],
@@ -744,14 +752,14 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         <div class="row">
           <div class="span12">
             <p>The clustering plugin comes with several open-source algorithms from
-              the <a href="http://project.carrot2.org">Carrot<sup>2</sup></a> project and has a built-in support
-              for the commercial <a href="http://carrotsearch.com/lingo3g-overview">Lingo3G</a> clustering algorithm.</p>
+              the <a href="https://project.carrot2.org">Carrot<sup>2</sup></a> project and has a built-in support
+              for the commercial <a href="https://carrotsearch.com/lingo3g">Lingo3G</a> clustering algorithm.</p>
 
             <p>The question of which algorithm to choose depends on the amount of traffic (STC is faster than Lingo, 
               but arguably produces less intuitive clusters, Lingo3G is the fastest algorithm but is not free or 
               open source), expected result (Lingo3G provides hierarchical clusters, Lingo and STC provide flat 
               clusters), and the input data (each algorithm will cluster the input slightly differently). 
-              There is no one answer which algorithm is "the best".</p>
+              There is no single answer as to which algorithm is "the best".</p>
 
             <p>Compare the clusters dumped for the following identical search request.</p>
           </div>
@@ -819,31 +827,8 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         <div class="page-header"><h3>Overriding algorithm attributes</h3></div>
         <div class="row">
           <div class="span12">
-            <p>The default algorithm suite contains empty stubs for all initialization attributes of every
-              included algorithm. These files follow a naming convention of:
-              <code>{algorithm-name}-attributes.xml</code>
-              and are resolved relative to the current setting of the <code>resources</code> configuration
-              setting (see <a href="#plugin-configuration">plugin configuration</a>).</p>
-
-            <p>For example to override the default attributes
-              for all requests to the <code>lingo</code> algorithm, one would tweak 
-              <code>{plugin.zip}/elasticsearch/config/lingo-attributes.xml</code>
-              and place any overridden attributes in there, as in:</p>
-
-            <pre class="linenums prettyprint">
-&lt;attribute-sets default="overridden-attributes"&gt;
-  &lt;attribute-set id="overridden-attributes"&gt;
-    &lt;value-set&gt;
-      &lt;label&gt;overridden-attributes&lt;/label&gt;
-
-      &lt;attribute key="LingoClusteringAlgorithm.desiredClusterCountBase"&gt;
-        &lt;value type="java.lang.Integer" value="5"/&gt;
-      &lt;/attribute&gt;
-    &lt;/value-set&gt;
-  &lt;/attribute-set&gt;
-&lt;/attribute-sets&gt;</pre>
-
-            <p>It is perhaps most convenient to export the configuration XMLs directly from the Carrot<sup>2</sup> Workbench.</p>
+            <p>By default algorithms run with their default settings. There is currently
+            no way of preconfiguring algorithm defaults. Use per-request overrides.</p>
           </div>
         </div>
       </section>
@@ -853,10 +838,9 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         <div class="page-header"><h3>Overriding algorithm attributes at runtime</h3></div>
         <div class="row">
           <div class="span12">
-            <p>Every clustering algorithm comes with (tons) of attributes that modify its
-              behavior (the Carrot<sup>2</sup> Workbench can be used for tuning these).
-              If desired, certain attributes can be modified per-request, as the following
-              example shows by modifying the number of desired clusters randomly (execute
+            <p>Clustering algorithms come with many attributes that modify their
+              runtime behavior. If desired, certain attributes can be modified per-request. The following
+              example shows how to modify the number of desired clusters randomly (execute
               the example a few times to see the difference).</p>
           </div>
         </div>
@@ -876,7 +860,7 @@ var request = {
   },
   "algorithm": "Lingo",
   "attributes": {
-     "LingoClusteringAlgorithm.desiredClusterCountBase": Math.round(5 + Math.random() * 5)
+     "desiredClusterCount": Math.round(5 + Math.random() * 5)
   }
 };
 
@@ -889,6 +873,14 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
             <pre class="result" id="request-attributes"></pre>
           </div>
         </div>
+        <div class="row">
+          <div class="span12">
+            <p>Each clustering algorithm will have a different set of parameters. Refere to
+              Carrot<sup>2</sup> releases as they come with
+              <a href="https://github.com/carrot2/carrot2/releases">extensive documentation of those
+                parameters</a>.</p>
+          </div>
+        </div>
       </section>
 
 
@@ -897,26 +889,25 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         <div class="row">
           <div class="span12">
             <p>The field mapping specification can include a <code>language</code> element, which
-            defines the <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1</a> 
-            code of the language in which the title and content of a document are
-            written. This information can be stored in the index based on apriori knowledge of
+            defines the name of the Carrot<sup>2</sup> language component
+            to use for clustering. This information can be stored in the index based on apriori knowledge of
             the documents' source or a language detection filter applied at indexing time.</p>
-            
-            <p>The algorithms inside Carrot<sup>2</sup> framework will accept ISO codes
-            of languages defined in 
-            <a href="https://github.com/carrot2/carrot2/blob/master/core/carrot2-core/src/org/carrot2/core/LanguageCode.java"><code>LanguageCode</code></a> enum.</p>
 
             <p>The language hint makes it easier for clustering algorithms to separate documents
             from different languages on input and to pick the right language resources for clustering.
             If you do have multi-lingual query results (or query results in a language different
-            than English), it is strongly advised to map the <code>language</code> field appropriately.</p>
+            than English), it is strongly advised to map the <code>language</code> field
+              appropriately.</p>
 
-            <p>The following example applies a clustering algorithm to all documents. Some
-            documents are in German (and have a <code>de</code> language code), some are in English
-            (and have an <code>en</code> language code). We additionally set the language aggregation
-            strategy to <code>FLATTEN_NONE</code> so that top-level groups indicate the language
-            of documents contained in sub-groups. Note the top-level group names in the output
-            from the code sample below.</p>
+            <p>Names of all supported languages are printed at clustering plugin's startup.</p>
+
+            <p>Documents with language codes not available in Carrot<sup>2</sup> will default to the
+              <code>language</code> parameter of the entire request.</p>
+
+            <p>The following example demonstrates clustering of documents in multiple languages.
+            Some documents are in German, some are in English. Note the default language is set
+            to "Italian" (but each document declares its own corresponding language so it does
+              not matter).</p>
           </div>
         </div>
         <div class="row">
@@ -929,13 +920,13 @@ var request = {
   },
 
   "query_hint": "bundestag",
+  "language": "Italian",
   "field_mapping": {
     "title":    ["_source.title"],
     "content":  ["_source.content"],
     "language": ["_source.lang"]
   },
   "attributes": {
-    "MultilingualClustering.languageAggregationStrategy": "FLATTEN_NONE"
   }
 };
 
@@ -949,7 +940,6 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
           </div>
         </div>
       </section>
-
 
 
       <section id="plugin-configuration">
@@ -998,29 +988,17 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
                 <p>The master configuration file for the plugin.</p>
 
                 <dl class="dl-horizontal">
-                  <dt><code>suite</code></dt>
-                  <dd><p>Path to the algorithm suite XML. The resource is looked up relative
-                  to the configuration folder. The algorithm suite XML is in Carrot<sup>2</sup> format
-                  ant it contains the defaults for all open-source algorithms and Lingo3G.</p></dd>
-
                   <dt><code>resources</code></dt>
-                  <dd><p>Resource lookup path for loading
-                    <a href="http://download.carrot2.org/head/manual/index.html#chapter.lexical-resources">Carrot<sup>2</sup> lexical resources</a>,
-                    <a href="http://download.carrotsearch.com/lingo3g/manual/#chapter.lexical-resources">Lingo3G's lexical resources</a>
-                    and algorithm descriptor files (including any initialization-time attributes).</p>
+                  <dd><p>Resource lookup path for loading language component and other resources.</p>
 
-                    <p>Any resources not present in this location will be loaded from classpath (defaults).</p>
+                    <p>Note that if this option is defined, all required resources must be present under this
+                      location. No other location will be scanned (no defaults from classpath).</p>
                   </dd>
-
-                  <dt><code>controller.pool-size</code></dt>
-                  <dd><p>Size of the internal pool of algorithm instances. This pool is sized automatically depending on
-                  the configuration of the search threadpool in Elasticsearch. If too many resources are consumed, the pool
-                  can be set to a fixed size using this option.</p></dd>                  
                 </dl>
               </dd>
             </dl>
             
-            <p>For <a href="http://carrotsearch.com/lingo3g">Lingo3G</a>, the license needs to be installed
+            <p>For <a href="https://carrotsearch.com/lingo3g">Lingo3G</a>, the license needs to be installed
             at any of the following locations.</p>
 
             <dl>
@@ -1031,7 +1009,7 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
               <dd></dd>
             </dl>            
             
-            <p>Note that if the license is installed inside the plugin, it should be copied to the ZIP file
+            <p>If the license is installed inside the plugin, it should be copied to the ZIP file
             <strong>before</strong> the installation. Once installed, the plugin's configuration is
             copied to <code>{es.home}/config/plugin-name/</code> and can be tweaked there.</p>
           </div>

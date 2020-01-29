@@ -168,7 +168,7 @@ http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn
             $progress.text("loading...");
             $.post(window.ES_URL + "/test/test/_search_with_clusters",
               JSON.stringify(request), function (result) {
-                if (result.hits.total > 0) {
+                if (result.hits.total.value > 0) {
                   $progress.text("");
                 } else {
                   $progress.text("no results found");
