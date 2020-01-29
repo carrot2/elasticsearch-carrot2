@@ -84,7 +84,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         List<String> shared = new ArrayList<>(english);
         shared.retainAll(italian);
         Assertions.assertThat(shared)
-            .hasSizeLessThanOrEqualTo(english.size() / 2);
+            .hasSizeLessThanOrEqualTo((int) (english.size() * 0.75));
     }
 
     public void testAttributes() throws IOException {

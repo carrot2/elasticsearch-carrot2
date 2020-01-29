@@ -3,6 +3,28 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+Backward-incompatible changes
+
+* Upgrade of Carrot2 to 4.0.0-beta2. This results in a number of backward-incompatible
+  changes to the plugin.
+
+  1) The local field for URL (and the corresponding mapping) is gone without replacement.
+  2) Names of clustering algorithms have changed. They are now (note white space):
+     Lingo, STC, Bisecting K-Means
+  3) The language field is no longer a two-letter code. The list of supported languages
+     is printed at startup and depends on the JARs installed (service extension point
+     is used to load languages).
+  4) Names and structure of attributes for clustering algorithms have changed. It reflects
+     the new, updated Carrot2 API.
+  5) Algorithm suites and predefined component descriptors (in XML) have been removed and
+     are no longer supported.
+  6) There are two new request attributes: "language" specifying default clustering
+     language for documents that don't declare it explicitly and "create_ungrouped" which
+     forces the plugin to create a synthetic group with unclustered document references
+     (this corresponds to "other topics" group from previous Carrot2 versions).
+  7) At the moment of writing Lingo3G algorithm is *not* supported yet in the new
+     infrastructure.
+
 ================ ElasticSearch-Carrot2 7.5.0 ====================
 
 Other changes
