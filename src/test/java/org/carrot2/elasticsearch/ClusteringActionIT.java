@@ -22,9 +22,11 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * API tests for {@link ClusteringAction}.
@@ -76,16 +78,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .isBetween(0, 5 + 1);
     }
 
-    /*
-    TODO:
     public void testLanguageField() throws IOException {
         Map<String,Object> attrs = new HashMap<>();
-
-        // We can't serialize enum attributes via ES infrastructure so use string
-        // constants from the descriptor.
-        attrs.put(
-                MultilingualClusteringDescriptor.Keys.LANGUAGE_AGGREGATION_STRATEGY,
-                LanguageAggregationStrategy.FLATTEN_NONE.name());
 
         ClusteringActionResponse result = new ClusteringActionRequestBuilder(client)
             .setQueryHint("data mining")
@@ -96,7 +90,6 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_TEST)
-                    .setTypes("test")
                     .setSize(100)
                     .setQuery(QueryBuilders.termQuery("content", "data"))
                     .setFetchSource(new String[] {"title", "content", "rndlang"}, null))
@@ -105,24 +98,20 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         checkValid(result);
         checkJsonSerialization(result);
 
-        // Top level groups should be input documents' languages (aggregation strategy above).
-        DocumentGroup[] documentGroups = result.getDocumentGroups();
-        Set<String> allLanguages = new HashSet<>();
-        for (LanguageCode code : LanguageCode.values()) {
-            allLanguages.add(code.name().toLowerCase(Locale.ROOT));
-        }
+        // We should receive groups for multiple languages
+        String [] languages =
+            result.getInfo().get(ClusteringActionResponse.Fields.Info.LANGUAGES).split(",");
 
-        for (DocumentGroup group : documentGroups) {
-            if (!group.isOtherTopics()) {
-                allLanguages.remove(group.getLabel().toLowerCase(Locale.ROOT));
-            }
-        }
+        Assertions.assertThat(languages)
+            .describedAs("Expected a lot of languages to appear in top groups: " + Arrays.toString(languages))
+            .hasSizeGreaterThan(5);
 
-        Assertions.assertThat(allLanguages.size())
-            .describedAs("Expected a lot of languages to appear in top groups: " + allLanguages)
-            .isLessThan(LanguageCode.values().length / 2);
+        DocumentGroup [] groups = result.getDocumentGroups();
+        List<String> groupLabels = Arrays.stream(groups)
+            .map(grp -> grp.getLabel() + " (" + grp.getDocumentReferences().length + ")").collect(Collectors.toList());
+        Assertions.assertThat(groupLabels)
+            .hasSizeGreaterThan(5);
     }
-             */
 
     public void testListAlgorithms() {
         ListAlgorithmsActionResponse response = 

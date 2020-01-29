@@ -820,11 +820,18 @@ public class ClusteringAction
                      Attrs.populate(algorithm, requestAttrs);
                   }
 
-                  // TODO: .query(clusteringRequest.getQueryHint());
+                  String queryHint = clusteringRequest.getQueryHint();
+                  if (queryHint != null) {
+                     algorithm.accept(new OptionalQueryHintSetterVisitor(clusteringRequest.getQueryHint()));
+                  }
+
                   List<InputDocument> documents = prepareDocumentsForClustering(clusteringRequest, response);
 
                   // TODO: add request support for default language?
                   String defaultLanguage = "English";
+                  if (!context.isLanguageSupported(defaultLanguage)) {
+                     throw new RuntimeException("Default language must be supported and isn't: '" + defaultLanguage + "'");
+                  }
 
                   // Split documents into language groups.
                   Map<String, List<InputDocument>> documentsByLanguage = documents.stream()
@@ -837,20 +844,21 @@ public class ClusteringAction
 
                   // Run clustering.
                   long tsClusteringTotal = 0;
+                  HashSet<String> warnOnce = new HashSet<>();
                   LinkedHashMap<String, List<Cluster<InputDocument>>> clustersByLanguage = new LinkedHashMap<>();
                   for (Map.Entry<String, List<InputDocument>> e : documentsByLanguage.entrySet()) {
                      String lang = e.getKey();
-                     LanguageComponents languageComponents =
-                         context.getLanguageComponents(lang);
-
-                     if (languageComponents == null) {
-                        throw new RuntimeException("Language is not supported: '" + lang + "'");
+                     if (!context.isLanguageSupported(lang)) {
+                        if (warnOnce.add(lang)) {
+                           logger.warn("Language is not supported, documents in this language will not be clustered: '" + lang + "'");
+                        }
+                     } else {
+                        LanguageComponents languageComponents = context.getLanguageComponents(lang);
+                        final long tsClusteringStart = System.nanoTime();
+                        clustersByLanguage.put(lang, algorithm.cluster(e.getValue().stream(), languageComponents));
+                        final long tsClusteringEnd = System.nanoTime();
+                        tsClusteringTotal += (tsClusteringEnd - tsClusteringStart);
                      }
-
-                     final long tsClusteringStart = System.nanoTime();
-                     clustersByLanguage.put(lang, algorithm.cluster(e.getValue().stream(), languageComponents));
-                     final long tsClusteringEnd = System.nanoTime();
-                     tsClusteringTotal += (tsClusteringEnd - tsClusteringStart);
                   }
 
                   final Map<String, String> info = new LinkedHashMap<>();
@@ -877,7 +885,9 @@ public class ClusteringAction
 
                   AtomicInteger groupId = new AtomicInteger();
                   Map<String, DocumentGroup[]> adaptedByLanguage = clustersByLanguage.entrySet()
-                      .stream().collect(Collectors.toMap(
+                      .stream()
+                      .filter(e -> !e.getValue().isEmpty())
+                      .collect(Collectors.toMap(
                           Map.Entry::getKey,
                           e -> adapt(e.getValue(), groupId)
                       ));
@@ -908,9 +918,8 @@ public class ClusteringAction
                   // ElasticSearchException exception with a simple String (otherwise
                   // clients cannot deserialize exception classes).
                   String message = "Clustering error: " + e.getMessage();
-                  listener.onFailure(new ElasticsearchException(message));
-
                   logger.warn(message, e);
+                  listener.onFailure(new ElasticsearchException(message));
                }
             }
 
@@ -1117,8 +1126,6 @@ public class ClusteringAction
             }
 
             String langCode = language.length() > 0 ? language.toString() : null;
-            // TODO: langCodeWarnings; logger.warn("Language mapping not a supported ISO639-1 code: {}", langCodeString);
-
             InputDocument doc = new InputDocument(
                 title.toString(),
                 content.toString(),

@@ -177,4 +177,8 @@ public class ClusteringContext extends AbstractLifecycleComponent {
    public LanguageComponents getLanguageComponents(String lang) {
       return languages.get(lang);
    }
+
+   public boolean isLanguageSupported(String langCode) {
+      return languages.containsKey(langCode);
+   }
 }
