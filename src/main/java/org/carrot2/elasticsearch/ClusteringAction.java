@@ -73,6 +73,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
@@ -116,6 +117,7 @@ public class ClusteringAction
       public static String JSON_INCLUDE_HITS = "include_hits";
       public static String JSON_MAX_HITS = "max_hits";
       public static String JSON_CREATE_UNGROUPED_CLUSTER = "create_ungrouped";
+      public static String JSON_LANGUAGE = "language";
 
       private SearchRequest searchRequest;
       private String queryHint;
@@ -124,6 +126,7 @@ public class ClusteringAction
       private int maxHits = Integer.MAX_VALUE;
       private Map<String, Object> attributes;
       private boolean createUngroupedDocumentsCluster;
+      private String defaultLanguage = "English";
 
       /**
        * Set the {@link SearchRequest} to use for fetching documents to be clustered.
@@ -156,6 +159,7 @@ public class ClusteringAction
          this.algorithm = in.readOptionalString();
          this.maxHits = in.readInt();
          this.createUngroupedDocumentsCluster = in.readBoolean();
+         this.defaultLanguage = in.readString();
 
          int count = in.readVInt();
          while (count-- > 0) {
@@ -305,6 +309,11 @@ public class ClusteringAction
             String queryHint = (String) asMap.get(JSON_QUERY_HINT);
             if (queryHint != null) {
                setQueryHint(queryHint);
+            }
+
+            String defaultLanguage = (String) asMap.get(JSON_LANGUAGE);
+            if (defaultLanguage != null) {
+               setDefaultLanguage(defaultLanguage);
             }
 
             Map<String, List<String>> fieldMapping = (Map<String, List<String>>) asMap.get(JSON_FIELD_MAPPING);
@@ -478,6 +487,7 @@ public class ClusteringAction
          out.writeOptionalString(algorithm);
          out.writeInt(maxHits);
          out.writeBoolean(createUngroupedDocumentsCluster);
+         out.writeString(defaultLanguage);
 
          out.writeVInt(fieldMapping.size());
          for (FieldMappingSpec spec : fieldMapping) {
@@ -508,6 +518,14 @@ public class ClusteringAction
 
       public void setCreateUngroupedDocumentsCluster(boolean enabled) {
          this.createUngroupedDocumentsCluster = enabled;
+      }
+
+      public void setDefaultLanguage(String defaultLanguage) {
+         this.defaultLanguage = Objects.requireNonNull(defaultLanguage);
+      }
+
+      public String getDefaultLanguage() {
+         return defaultLanguage;
       }
    }
 
@@ -614,6 +632,11 @@ public class ClusteringAction
 
       public ClusteringActionRequestBuilder setCreateUngroupedDocumentsCluster(boolean enabled) {
          super.request.setCreateUngroupedDocumentsCluster(enabled);
+         return this;
+      }
+
+      public ClusteringActionRequestBuilder setDefaultLanguage(String language) {
+         super.request.setDefaultLanguage(language);
          return this;
       }
    }
@@ -827,10 +850,9 @@ public class ClusteringAction
 
                   List<InputDocument> documents = prepareDocumentsForClustering(clusteringRequest, response);
 
-                  // TODO: add request support for default language?
-                  String defaultLanguage = "English";
+                  String defaultLanguage = clusteringRequest.getDefaultLanguage();
                   if (!context.isLanguageSupported(defaultLanguage)) {
-                     throw new RuntimeException("Default language must be supported and isn't: '" + defaultLanguage + "'");
+                     throw new RuntimeException("The requested default language is not supported: '" + defaultLanguage + "'");
                   }
 
                   // Split documents into language groups.

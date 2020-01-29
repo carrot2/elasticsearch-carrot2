@@ -12,6 +12,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
+import org.carrot2.language.LanguageComponents;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.Strings;
@@ -22,8 +23,10 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,6 +40,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .setQueryHint("data mining")
             .addSourceFieldMapping("title", LogicalField.TITLE)
             .addHighlightedFieldMapping("content", LogicalField.CONTENT)
+            .setDefaultLanguage("English")
             .setSearchRequest(
               client.prepareSearch()
                     .setIndices(INDEX_TEST)
@@ -49,6 +53,38 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
         checkValid(result);
         checkJsonSerialization(result);
+    }
+
+    public void testDefaultLanguage() throws IOException {
+        LinkedHashMap<String, List<String>> labelsByLanguage = new LinkedHashMap<>();
+        for (String lang : LanguageComponents.languages()) {
+            ClusteringActionResponse english = new ClusteringActionRequestBuilder(client)
+                .setQueryHint("data mining")
+                .addSourceFieldMapping("title", LogicalField.TITLE)
+                .addHighlightedFieldMapping("content", LogicalField.CONTENT)
+                .setDefaultLanguage(lang)
+                .setSearchRequest(
+                    client.prepareSearch()
+                        .setIndices(INDEX_TEST)
+                        .setSize(100)
+                        .setQuery(QueryBuilders.termQuery("content", "data"))
+                        .setFetchSource(new String[]{"title"}, null))
+                .execute().actionGet();
+
+            checkValid(english);
+            checkJsonSerialization(english);
+
+            labelsByLanguage.put(lang,
+                Arrays.stream(english.getDocumentGroups()).map(DocumentGroup::getLabel)
+                    .collect(Collectors.toList()));
+        }
+
+        List<String> english = labelsByLanguage.get("English");
+        List<String> italian = labelsByLanguage.get("Italian");
+        List<String> shared = new ArrayList<>(english);
+        shared.retainAll(italian);
+        Assertions.assertThat(shared)
+            .hasSizeLessThanOrEqualTo(english.size() / 2);
     }
 
     public void testAttributes() throws IOException {
@@ -73,7 +109,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
         checkValid(result);
         checkJsonSerialization(result);
-        
+
         Assertions.assertThat(result.getDocumentGroups().length)
             .isBetween(0, 5 + 1);
     }
@@ -114,7 +150,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     }
 
     public void testListAlgorithms() {
-        ListAlgorithmsActionResponse response = 
+        ListAlgorithmsActionResponse response =
                 new ListAlgorithmsActionRequestBuilder(client).get();
 
         List<String> algorithms = response.getAlgorithms();
@@ -152,7 +188,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             }
         }
     }
-    
+
     public void testNonexistentAlgorithmId() {
         // The query should result in an error.
         try {
@@ -305,5 +341,5 @@ public class ClusteringActionIT extends SampleIndexTestCase {
         Assertions.assertThat(json
                     .get("hits")
                     .get("hits").size()).isEqualTo(2);
-    }        
+    }
 }

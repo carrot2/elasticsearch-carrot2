@@ -269,7 +269,6 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                   defined by these specifications is concatenated). For example this is a valid field mapping specification:</p>
 
                 <pre class="linenums prettyprint">{
-  "url":      [_source.urlSource],
   "title":    [_source.subject],
   "content":  [_source.abstract, highlight.main],
   "language": [_source.lang]
@@ -277,19 +276,15 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
 
                   <p>Any of the following logical document field names are valid:</p>
                   <dl class="dl-horizontal">
-                    <dt><code>url</code></dt>
-                    <dd><p>The URL of the document.</p></dd>
                     <dt><code>title</code></dt>
                     <dd><p>The title of the document.</p></dd>
                     <dt><code>content</code></dt>
                     <dd><p>The main body (content) of the document.</p></dd>
                     <dt><code>language</code></dt>
-                    <dd><p>Optional language "tag" for the title and content of a document. The language tag is a two-letter
-                      <a href="http://www.loc.gov/standards/iso639-2/php/code_list.php">ISO 639-1 code</a>, with the
-                      exception of Simplified Chinese (<code>zh_cn</code> code). Whether or not the language
-                      is supported by a clustering engine depends on the algorithm used. Carrot<sup>2</sup> algorithms
-                      support languages defined in the
-                      <a href="http://download.carrot2.org/stable/javadoc/org/carrot2/core/LanguageCode.html"><code>LanguageCode</code> class</a>.
+                    <dd><p>Optional language "tag" for the title and content of a document. The language tag must be
+                      consistent with language components installed and available in Carrot<sup>2</sup>. The
+                      list of supported languages is logged at startup. Note that a language can be
+                      supported by one clustering algorithm and not supported by another.
                     </p></dd>
                   </dl>
 
@@ -318,7 +313,7 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
 
                 <dt><code>algorithm</code></dt>
                 <dd><p><span class="badge">optional</span>
-                  Defines which clustering component (algorithm) should be used for clustering. Names of all built-in clustering
+                  Defines which clustering algorithm should be used for clustering. Names of all built-in clustering
                   algorithms are logged at startup and are also returned
                   from the <a href="#list-algorithms">list algorithms</a> request. The default algorithm is used, if value is empty or 
                   not provided.</p>
@@ -342,6 +337,20 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                   
                   <p>Note that clusters may still reference documents not present in the returned (trimmed) 
                   hits window.</p>
+                </dd>
+
+                <dt><code>create_ungrouped</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  If set to <code>true</code>, the documents not assigned to any cluster will form a synthetic
+                  group appended at the end of all clusters. This is effectively the "other topics" group
+                  created by Carrot<sup>2</sup> versions prior to 4.0.
+                </dd>
+
+                <dt><code>language</code></dt>
+                <dd><p><span class="badge">optional</span>
+                  Declares the default language for documents where field mapping for the logical
+                  <code>language</code> field is not declared (or empty). The default value of this field
+                  is <code>English</code>.
                 </dd>
 
                 <dt><code>attributes</code></dt>
@@ -373,14 +382,13 @@ $.get(window.ES_URL + "/_algorithms", function(response) {
                 All additional parameters correspond to those typically defined in the body of a clustering
                 request sent via HTTP POST. Namely, the following parameters are supported by HTTP GET:</p>
 
-              <!-- TODO: field_mapping_url is no more. -->
               <dl class="dl-horizontal">
                 <dt><code>field_mapping_*</code></dt>
                 <dd><p><span class="badge badge-info">required</span>
                   This is a wildcard (a family) of parameters, each of which defines a logical field mapping, similar
                   to <code>field_mapping</code> map described in the HTTP POST request. A <code>field_mapping_title</code>
-                  will specify the logical title's mapping, wheareas <code>field_mapping_url</code> will specify
-                  the logical URL's mapping and so on.</p>
+                  will specify the logical title's mapping, wheareas <code>field_mapping_content</code> will specify
+                  the logical document content mapping.</p>
 
                   <p>The value of the mapping parameter is a comma-separated list of mapping specifications, as described
                   in the description of the POST request.</p>
@@ -527,9 +535,8 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters",
             <div class="span12">
               <p>The output will vary depending on the choice of clustering algorithm
                 (and particular documents that made it to the hit list if search is not
-                deterministic). The following example shows a pseudo-clustering algorithm
-                that uses the logical <code>url</code> field to produce clusters based on the
-                components of each document's domain. We don't need every search hit here
+                deterministic). The following example shows the same result as above
+                but uses the <code>STC</code> algorithm. We don't need every search hit here
                 so we will omit them in the response.</p>
             </div>
 
@@ -544,9 +551,10 @@ var request = {
   "max_hits": 0,
   "query_hint": "data mining",
   "field_mapping": {
-    "url": ["_source.url"]
+    "title": ["_source.title"],
+    "content": ["_source.content"]
   },
-  "algorithm": "byurl"
+  "algorithm": "STC"
 };
 
 $.post(window.ES_URL + "/test/test/_search_with_clusters",
@@ -659,7 +667,6 @@ var request = {
 
   "query_hint": "mining",
   "field_mapping": {
-    "url":     ["_source.url"],
     "title":   ["_source.title"],
     "content": ["_source.content"]
   }
@@ -695,7 +702,6 @@ var request = {
 
   "query_hint": "mining",
   "field_mapping": {
-    "url":     ["_source.url"],
     "title":   ["_source.title"],
     "content": ["highlight.content"]
   }
@@ -764,7 +770,7 @@ var request = {
     "title":   ["_source.title"],
     "content": ["_source.content"]
   },
-  "algorithm": "lingo"
+  "algorithm": "Lingo"
 };
 
 $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
@@ -786,7 +792,7 @@ var request = {
     "title":   ["_source.title"],
     "content": ["_source.content"]
   },
-  "algorithm": "stc"
+  "algorithm": "STC"
 };
 
 $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(request), function(response) {
@@ -868,7 +874,7 @@ var request = {
     "title":   ["_source.title"],
     "content": ["_source.content"]
   },
-  "algorithm": "lingo",
+  "algorithm": "Lingo",
   "attributes": {
      "LingoClusteringAlgorithm.desiredClusterCountBase": Math.round(5 + Math.random() * 5)
   }

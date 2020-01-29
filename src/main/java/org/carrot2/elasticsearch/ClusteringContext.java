@@ -118,7 +118,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
 */
       } catch (Exception e) {
          throw new ElasticsearchException(
-             "Could not start Carrot2 controller.", e);
+             "Could not initialize clustering.", e);
       }
 
       if (algorithmProviders == null || algorithmProviders.isEmpty()) {
