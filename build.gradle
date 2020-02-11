@@ -1,11 +1,11 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.5.0'
+version = '7.5.2'
 group = 'org.carrot2'
 
 buildscript {
   ext {
-    version_es = '7.5.0'
+    version_es = '7.5.2'
   }
 
   repositories {
@@ -23,16 +23,10 @@ apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'nebula.maven-base-publish'
 
-// >>> Build HACK for 7.5.0
+// >>> Build HACK for 7.5.2
 
 import org.elasticsearch.gradle.testclusters.TestClustersRegistry
 import org.elasticsearch.gradle.testclusters.TestClustersPlugin
-
-configurations.whenObjectAdded { c ->
-  if (c.name == 'elasticsearch_7.5.0_integ_test_zip_null') {
-    project.dependencies.add(c.name, 'org.elasticsearch.distribution.integ-test-zip:elasticsearch:7.5.0@zip')
-  }
-}
 
 configure(rootProject) {
   TestClustersRegistry registry = rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
@@ -41,7 +35,7 @@ configure(rootProject) {
   TestClustersPlugin.configureStopClustersHook(project.gradle, registry)
 }
 
-// <<< Build HACK for 7.5.0
+// <<< Build HACK for 7.5.2
 
 repositories {
   mavenLocal()
@@ -66,13 +60,6 @@ dependencies {
   compile "org.carrot2:carrot2-core:4.0.0-beta2"
   compile "com.carrotsearch:hppc:0.8.1"
   compile "org.slf4j:slf4j-api:1.7.13"
-
-/*
-  compile "org.apache.commons:commons-lang3:3.5"
-  compile "org.apache.logging.log4j:log4j-slf4j-impl:2.11.1"
-  compile "org.carrot2:morfologik-stemming:2.1.5"
-  compile "org.carrot2:morfologik-fsa:2.1.5"
-*/
 
   testCompile "com.fasterxml.jackson.core:jackson-core:2.8.11"
   testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
