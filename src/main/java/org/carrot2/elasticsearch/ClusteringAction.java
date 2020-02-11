@@ -118,7 +118,7 @@ public class ClusteringAction
       public static String JSON_MAX_HITS = "max_hits";
       public static String JSON_CREATE_UNGROUPED_CLUSTER = "create_ungrouped";
       public static String JSON_LANGUAGE = "language";
-
+           
       private SearchRequest searchRequest;
       private String queryHint;
       private List<FieldMappingSpec> fieldMapping = new ArrayList<>();
@@ -786,6 +786,8 @@ public class ClusteringAction
       private final TransportSearchAction searchAction;
       private final ClusteringContext context;
 
+      public static int MAX_SIZE_OF_CONTENT = 250000;
+      
       @Inject
       public TransportClusteringAction(TransportService transportService,
                                        TransportSearchAction searchAction,
@@ -1152,6 +1154,12 @@ public class ClusteringAction
                }
             }
 
+            /* pmaker hack to stop massive text content being passed to the clustering algorithm */
+            if(content.length() > MAX_SIZE_OF_CONTENT) {
+            	content.delete(MAX_SIZE_OF_CONTENT, content.length());
+            	logger.debug("Trimmed: " + hit.getId());
+            }
+            
             String langCode = language.length() > 0 ? language.toString() : null;
             InputDocument doc = new InputDocument(
                 title.toString(),
