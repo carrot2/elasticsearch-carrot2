@@ -8,7 +8,6 @@ import org.carrot2.util.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
-import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
@@ -37,7 +36,6 @@ public class ClusteringContext extends AbstractLifecycleComponent {
    private ResourceLookup resourceLookup;
    private LinkedHashMap<String, LanguageComponents> languages;
 
-   @Inject
    public ClusteringContext(Environment environment) {
       this.environment = environment;
       this.logger = LogManager.getLogger("plugin.carrot2");
