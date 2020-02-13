@@ -872,7 +872,8 @@ public class ClusteringAction
                      String lang = e.getKey();
                      if (!context.isLanguageSupported(lang)) {
                         if (warnOnce.add(lang)) {
-                           logger.warn("Language is not supported, documents in this language will not be clustered: '" + lang + "'");
+                           logger.warn("Language is not supported, documents in this " +
+                               "language will not be clustered: '" + lang + "'");
                         }
                      } else {
                         LanguageComponents languageComponents = context.getLanguageComponents(lang);

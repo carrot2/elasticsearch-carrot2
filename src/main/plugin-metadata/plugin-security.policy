@@ -1,5 +1,2 @@
 grant {
-  // Required for Lingo3G.
-  // permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-  // permission java.lang.RuntimePermission "accessDeclaredMembers";
 };
