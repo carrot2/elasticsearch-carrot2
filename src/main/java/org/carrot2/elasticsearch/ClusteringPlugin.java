@@ -110,11 +110,37 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
                                               NamedWriteableRegistry namedWriteableRegistry) {
       List<Object> components = new ArrayList<>();
       if (pluginEnabled && !transportClient) {
+
          components.add(new ClusteringContext(environment,
-             new LinkedHashMap<>(algorithmProviders),
+             reorderAlgorithms(algorithmProviders),
              new LinkedHashMap<>(languageComponentProviders)));
       }
       return components;
+   }
+
+   /**
+    * This places Lingo3G in front of the algorithm list if it is available.
+    */
+   private LinkedHashMap<String, ClusteringAlgorithmProvider> reorderAlgorithms(
+       LinkedHashMap<String, ClusteringAlgorithmProvider> providers) {
+      String [] desiredOrder = {
+          "Lingo3G",
+          "Lingo",
+          "STC",
+          "Bisecting K-Means"
+      };
+      LinkedHashMap<String, ClusteringAlgorithmProvider> copy = new LinkedHashMap<>();
+      for (String name  : desiredOrder) {
+         if (providers.containsKey(name)) {
+            copy.put(name, providers.get(name));
+         }
+      }
+      providers.forEach((name, provider) -> {
+         if (!copy.containsKey(name)) {
+            copy.put(name, provider);
+         }
+      });
+      return copy;
    }
 
    @Override
