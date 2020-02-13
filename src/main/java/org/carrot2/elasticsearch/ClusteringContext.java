@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.carrot2.clustering.ClusteringAlgorithmProvider;
 import org.carrot2.language.LanguageComponents;
+import org.carrot2.language.LanguageComponentsProvider;
 import org.carrot2.util.ResourceLookup;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.SuppressForbidden;
@@ -12,14 +13,20 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ServiceLoader;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
 
@@ -31,14 +38,20 @@ public class ClusteringContext extends AbstractLifecycleComponent {
    public static final String ATTR_RESOURCE_LOOKUP = "esplugin.resources";
 
    private final Environment environment;
-   private LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders;
+   private final LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders;
+   private final LinkedHashMap<String, List<LanguageComponentsProvider>> languageComponentProviders;
+
    private Logger logger;
    private ResourceLookup resourceLookup;
    private LinkedHashMap<String, LanguageComponents> languages;
 
-   public ClusteringContext(Environment environment) {
+   public ClusteringContext(Environment environment,
+                            LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders,
+                            LinkedHashMap<String, List<LanguageComponentsProvider>> languageComponentProviders) {
       this.environment = environment;
       this.logger = LogManager.getLogger("plugin.carrot2");
+      this.algorithmProviders = algorithmProviders;
+      this.languageComponentProviders = languageComponentProviders;
    }
 
    @SuppressForbidden(reason = "C2 integration (File API)")
@@ -71,14 +84,6 @@ public class ClusteringContext extends AbstractLifecycleComponent {
          }
          Settings c2Settings = builder.build();
 
-         algorithmProviders = new LinkedHashMap<>();
-         ServiceLoader.load(ClusteringAlgorithmProvider.class,
-             ClusteringAlgorithmProvider.class.getClassLoader()).forEach((prov) -> {
-            algorithmProviders.put(prov.name(), prov);
-         });
-         logger.info("Available clustering components: {}",
-             String.join(", ", algorithmProviders.keySet()));
-
          if (c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME) != null) {
             final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME))
                 .toAbsolutePath()
@@ -86,26 +91,38 @@ public class ClusteringContext extends AbstractLifecycleComponent {
             logger.info("Resources located at: {}", resourcesPath);
             resourceLookup = new PathResourceLookup(resourcesPath);
          } else {
-            logger.info("Resources read from default locations (JARs).");
             resourceLookup = null;
+            logger.info("Resources read from default locations (JARs).");
          }
 
          AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
             languages = new LinkedHashMap<>();
-            for (String language : LanguageComponents.languages()) {
-               try {
-                  LanguageComponents components =
-                      resourceLookup != null
-                          ? LanguageComponents.load(language, resourceLookup)
-                          : LanguageComponents.load(language);
-                  languages.put(language, components);
-               } catch (Exception e) {
-                  logger.warn("Could not load resources for language: '"
-                      + language + "', language will be ignored.", e);
-               }
+            for (Map.Entry<String, List<LanguageComponentsProvider>> e : languageComponentProviders.entrySet()) {
+               String language = e.getKey();
+               languages.put(language, new LanguageComponents(language,
+                   componentSuppliers(language, resourceLookup, e.getValue())));
             }
-            logger.info("Available languages: {}",
-                String.join(", ", languages.keySet()));
+
+            // Remove languages for which there are no algorithms that support them.
+            languages.entrySet().removeIf(e -> {
+                   LanguageComponents lc = e.getValue();
+                   return algorithmProviders.values()
+                       .stream()
+                       .noneMatch(algorithm -> algorithm.get().supports(lc));
+                });
+
+            logger.info("Available clustering algorithms: {}",
+                String.join(", ", algorithmProviders.keySet()));
+
+            algorithmProviders.forEach((name, prov) -> {
+               String supportedLanguages = languages.values().stream()
+                   .filter(lc -> prov.get().supports(lc))
+                   .map(LanguageComponents::language)
+                   .collect(Collectors.joining(", "));
+
+               logger.info("Algorithm {} supports the following languages: {}",
+                   name, supportedLanguages);
+            });
 
             return null;
          });
@@ -127,6 +144,42 @@ public class ClusteringContext extends AbstractLifecycleComponent {
       if (algorithmProviders == null || algorithmProviders.isEmpty()) {
          throw new ElasticsearchException("No registered/ available clustering algorithms? Check the logs, it's odd.");
       }
+   }
+
+   private Map<Class<?>, Supplier<?>> componentSuppliers(String language,
+                                                         ResourceLookup resourceLookup,
+                                                         List<LanguageComponentsProvider> providers) {
+      Map<Class<?>, Supplier<?>> suppliers = new HashMap<>();
+      for (LanguageComponentsProvider provider : providers) {
+         try {
+            Map<Class<?>, Supplier<?>> components =
+                resourceLookup == null
+                    ? provider.load(language)
+                    : provider.load(language, resourceLookup);
+
+            components.forEach((clazz, supplier) -> {
+               Supplier<?> existing = suppliers.put(clazz, supplier);
+               if (existing != null) {
+                  throw new RuntimeException(
+                      String.format(
+                          Locale.ROOT,
+                          "Language '%s' has multiple providers of component '%s': %s",
+                          language,
+                          clazz.getSimpleName(),
+                          Stream.of(existing, supplier)
+                              .map(s -> s.getClass().getName())
+                              .collect(Collectors.joining(", "))));
+
+               }
+            });
+         } catch (IOException e) {
+            logger.warn(String.format(Locale.ROOT,
+                "Could not load resources for language '%s' of provider '%s', provider ignored for this language.",
+                language,
+                provider.name()));
+         }
+      }
+      return suppliers;
    }
 
    /**
