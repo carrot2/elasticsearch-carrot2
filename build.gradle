@@ -59,6 +59,7 @@ esplugin {
 dependencies {
   compile "org.carrot2:carrot2-core:4.0.0-beta2"
   compile "com.carrotsearch:hppc:0.8.1"
+  compile "org.slf4j:slf4j-api:1.7.13"
 
   testCompile "com.fasterxml.jackson.core:jackson-core:2.8.11"
   testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"

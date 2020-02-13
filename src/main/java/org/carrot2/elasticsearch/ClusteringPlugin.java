@@ -2,9 +2,7 @@ package org.carrot2.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.carrot2.clustering.ClusteringAlgorithmProvider;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
-import org.carrot2.language.LanguageComponentsProvider;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.client.Client;
@@ -33,107 +31,67 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.function.Supplier;
 
 public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, ActionPlugin {
-   /**
-    * Master on/off switch property for the plugin (general settings).
-    */
-   public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
+    /**
+     * Master on/off switch property for the plugin (general settings).
+     */
+    public static final String DEFAULT_ENABLED_PROPERTY_NAME = "carrot2.enabled";
 
-   /**
-    * Plugin name.
-    */
-   public static final String PLUGIN_NAME = "elasticsearch-carrot2";
+    /**
+     * Plugin name.
+     */
+    public static final String PLUGIN_NAME = "elasticsearch-carrot2";
 
-   /**
-    * A property key holding
-    * the default location of additional resources (stopwords, etc.) for
-    * algorithms. The location is resolved relative to <code>es/conf</code>
-    * but can be absolute. By default it is <code>.</code>.
-    */
-   public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
+    /**
+     * A property key holding
+     * the default location of additional resources (stopwords, etc.) for
+     * algorithms. The location is resolved relative to <code>es/conf</code>
+     * but can be absolute. By default it is <code>.</code>.
+     */
+    public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
 
-   /**
-    * All algorithm providers.
-    */
-   private LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders = new LinkedHashMap<>();
+    private final boolean transportClient;
+    private final boolean pluginEnabled;
+    private final Logger logger;
 
-   /**
-    * All language component providers.
-    */
-   private Map<String, List<LanguageComponentsProvider>> languageComponentProviders = new LinkedHashMap<>();
+    public ClusteringPlugin(Settings settings) {
+        this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
+        this.transportClient = TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
+        this.logger = LogManager.getLogger("plugin.carrot2");
+    }
 
-   private final boolean transportClient;
-   private final boolean pluginEnabled;
-   private final Logger logger;
+    @Override
+    public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
+        if (pluginEnabled) {
+            return Arrays.asList(
+                    new ActionHandler<>(ClusteringAction.INSTANCE, TransportClusteringAction.class),
+                    new ActionHandler<>(ListAlgorithmsAction.INSTANCE, ListAlgorithmsAction.TransportListAlgorithmsAction.class));
+        }
+        return Collections.emptyList();
+    }
 
-   public ClusteringPlugin(Settings settings) {
-      this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
-      this.transportClient = TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
-      this.logger = LogManager.getLogger("plugin.carrot2");
+    @Override
+    public List<RestHandler> getRestHandlers(Settings settings, RestController restController,
+      ClusterSettings clusterSettings, IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
+      IndexNameExpressionResolver indexNameExpressionResolver, Supplier<DiscoveryNodes> nodesInCluster) {
+    return Arrays.asList(
+        new ClusteringAction.RestClusteringAction(restController),
+        new ListAlgorithmsAction.RestListAlgorithmsAction(restController));
+    }
 
-      // Invoke loadSPI on our own class loader to load default algorithms.
-      reloadSPI(getClass().getClassLoader());
-   }
-
-   @Override
-   public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
-      if (pluginEnabled) {
-         return Arrays.asList(
-             new ActionHandler<>(ClusteringAction.INSTANCE, TransportClusteringAction.class),
-             new ActionHandler<>(ListAlgorithmsAction.INSTANCE, ListAlgorithmsAction.TransportListAlgorithmsAction.class));
-      }
-      return Collections.emptyList();
-   }
-
-   @Override
-   public List<RestHandler> getRestHandlers(Settings settings, RestController restController,
-                                            ClusterSettings clusterSettings,
-                                            IndexScopedSettings indexScopedSettings, SettingsFilter settingsFilter,
-                                            IndexNameExpressionResolver indexNameExpressionResolver,
-                                            Supplier<DiscoveryNodes> nodesInCluster) {
-      return Arrays.asList(
-          new ClusteringAction.RestClusteringAction(restController),
-          new ListAlgorithmsAction.RestListAlgorithmsAction(restController));
-   }
-
-   @Override
-   public Collection<Object> createComponents(Client client, ClusterService clusterService,
-                                              ThreadPool threadPool, ResourceWatcherService resourceWatcherService,
-                                              ScriptService scriptService, NamedXContentRegistry xContentRegistry,
-                                              Environment environment, NodeEnvironment nodeEnvironment,
-                                              NamedWriteableRegistry namedWriteableRegistry) {
-      List<Object> components = new ArrayList<>();
-      if (pluginEnabled && !transportClient) {
-         components.add(new ClusteringContext(environment,
-             new LinkedHashMap<>(algorithmProviders),
-             new LinkedHashMap<>(languageComponentProviders)));
-      }
-      return components;
-   }
-
-   @Override
-   public void reloadSPI(ClassLoader loader) {
-      ServiceLoader.load(ClusteringAlgorithmProvider.class, loader).forEach((provider) -> {
-         String name = provider.name();
-         if (algorithmProviders.containsKey(name)) {
-            throw new RuntimeException("More than one provider for algorithm " + name + "?");
-         }
-         algorithmProviders.put(name, provider);
-      });
-
-      for (LanguageComponentsProvider provider :
-          ServiceLoader.load(LanguageComponentsProvider.class, loader)) {
-         for (String lang : provider.languages()) {
-            languageComponentProviders
-                .computeIfAbsent(lang, (k) -> new ArrayList<>())
-                .add(provider);
-         }
-      }
-   }
+    @Override
+    public Collection<Object> createComponents(Client client, ClusterService clusterService,
+                                               ThreadPool threadPool, ResourceWatcherService resourceWatcherService,
+                                               ScriptService scriptService, NamedXContentRegistry xContentRegistry,
+                                               Environment environment, NodeEnvironment nodeEnvironment,
+                                               NamedWriteableRegistry namedWriteableRegistry) {
+        List<Object> components = new ArrayList<>();
+        if (pluginEnabled && !transportClient) {
+            components.add(new ClusteringContext(environment));
+        }
+        return components;
+    }
 }
