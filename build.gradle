@@ -18,7 +18,7 @@ buildscript {
   }
 }
 
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'nebula.maven-base-publish'
@@ -54,11 +54,17 @@ esplugin {
   classname 'org.carrot2.elasticsearch.ClusteringPlugin'
 }
 
+configurations {
+  c2resources
+}
+
 // esplugin forces transitive:false on all dependencies
 // so list all transitive dependencies individually
 dependencies {
+  c2resources("org.carrot2:carrot2-core:4.0.0-beta2") {
+    transitive false
+  }
   compile "org.carrot2:carrot2-core:4.0.0-beta2"
-  compile "com.carrotsearch:hppc:0.8.1"
 
   testCompile "com.fasterxml.jackson.core:jackson-core:2.8.11"
   testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
@@ -96,6 +102,17 @@ testClusters.integTest {
   fileTree(dir: 'src/main/config').each { file ->
     extraConfigFile 'elasticsearch-carrot2/' + file.name, file
   }
+}
+
+bundlePlugin {
+  from({ zipTree(configurations.c2resources.asPath).matching { include "**/*.utf8" } }, {
+    eachFile { fcd ->
+      fcd.path -= "org/carrot2/language/"
+    }
+    includeEmptyDirs = false
+
+    into 'config'
+  })
 }
 
 // Configure publishing.

@@ -7,27 +7,50 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PathResourceLookup implements ResourceLookup {
-   private final Path base;
+   private final List<Path> locations;
 
-   public PathResourceLookup(Path base) {
-      this.base = Objects.requireNonNull(base);
+   public PathResourceLookup(List<Path> locations) {
+      if (locations == null || locations.isEmpty()) {
+         throw new RuntimeException("At least one resource location is required.");
+      }
+      this.locations = locations;
    }
 
    @Override
    public InputStream open(String resource) throws IOException {
-      return new BufferedInputStream(Files.newInputStream(base.resolve(resource)));
+      Path p = locate(resource);
+      if (p == null) {
+         throw new IOException("Resource " + p + " not found relative to: "
+             + locations.stream().map(path -> path.toAbsolutePath().toString())
+               .collect(Collectors.joining(", ")));
+      }
+      return new BufferedInputStream(Files.newInputStream(p));
    }
 
    @Override
    public boolean exists(String resource) {
-      return Files.exists(base.resolve(resource));
+      return locate(resource) != null;
    }
 
    @Override
    public String pathOf(String resource) {
-      return base.resolve(resource).toAbsolutePath().normalize().toString();
+      return "[" + locations.stream()
+          .map(path -> path.resolve(resource).toAbsolutePath().toString())
+          .collect(Collectors.joining(" | "))
+          + "]";
+   }
+
+   private Path locate(String resource) {
+      for (Path base : locations) {
+         Path p = base.resolve(resource);
+         if (Files.exists(p)) {
+            return p;
+         }
+      }
+      return null;
    }
 }

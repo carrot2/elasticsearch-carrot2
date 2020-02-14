@@ -22,8 +22,11 @@ Backward-incompatible changes
      language for documents that don't declare it explicitly and "create_ungrouped" which
      forces the plugin to create a synthetic group with unclustered document references
      (this corresponds to "other topics" group from previous Carrot2 versions).
-  7) At the moment of writing Lingo3G algorithm is *not* supported yet in the new
-     infrastructure.
+  7) Nearly all plugin options have been removed. The single option remaining is "resources"
+     pointing at ES configuration folder-relative locations where algorithm resources
+     are looked up.
+  8) Default lexical resources from Carrot2 are included under configuration folder and
+     used by default.
 
 ================ ElasticSearch-Carrot2 7.5.0 ====================
 

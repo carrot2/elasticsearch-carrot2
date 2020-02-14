@@ -1,7 +1,5 @@
 package org.carrot2.elasticsearch;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.carrot2.clustering.ClusteringAlgorithmProvider;
 import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.carrot2.language.LanguageComponentsProvider;
@@ -51,14 +49,6 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
    public static final String PLUGIN_NAME = "elasticsearch-carrot2";
 
    /**
-    * A property key holding
-    * the default location of additional resources (stopwords, etc.) for
-    * algorithms. The location is resolved relative to <code>es/conf</code>
-    * but can be absolute. By default it is <code>.</code>.
-    */
-   public static final String DEFAULT_RESOURCES_PROPERTY_NAME = "resources";
-
-   /**
     * All algorithm providers.
     */
    private LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders = new LinkedHashMap<>();
@@ -70,12 +60,10 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
 
    private final boolean transportClient;
    private final boolean pluginEnabled;
-   private final Logger logger;
 
    public ClusteringPlugin(Settings settings) {
       this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
       this.transportClient = TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
-      this.logger = LogManager.getLogger("plugin.carrot2");
 
       // Invoke loadSPI on our own class loader to load default algorithms.
       reloadSPI(getClass().getClassLoader());
@@ -110,7 +98,6 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
                                               NamedWriteableRegistry namedWriteableRegistry) {
       List<Object> components = new ArrayList<>();
       if (pluginEnabled && !transportClient) {
-
          components.add(new ClusteringContext(environment,
              reorderAlgorithms(algorithmProviders),
              new LinkedHashMap<>(languageComponentProviders)));
@@ -123,14 +110,14 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
     */
    private LinkedHashMap<String, ClusteringAlgorithmProvider> reorderAlgorithms(
        LinkedHashMap<String, ClusteringAlgorithmProvider> providers) {
-      String [] desiredOrder = {
+      String[] desiredOrder = {
           "Lingo3G",
           "Lingo",
           "STC",
           "Bisecting K-Means"
       };
       LinkedHashMap<String, ClusteringAlgorithmProvider> copy = new LinkedHashMap<>();
-      for (String name  : desiredOrder) {
+      for (String name : desiredOrder) {
          if (providers.containsKey(name)) {
             copy.put(name, providers.get(name));
          }

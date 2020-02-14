@@ -1,6 +1,6 @@
-#
-# Path to lexical resources. If defined, all
-# lexical resources must be copied into
-# this location (no fallback on defaults).
-#
-# resources: .
+
+# Declare locations of external algorithm resources.
+resources: [
+  "elasticsearch-carrot2",
+  "elasticsearch-lingo3g"
+]

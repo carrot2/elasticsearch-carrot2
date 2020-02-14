@@ -27,14 +27,12 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.carrot2.elasticsearch.ClusteringPlugin.DEFAULT_RESOURCES_PROPERTY_NAME;
-
 /**
  * Holds the language components initialized and ready throughout
  * the {@link Node}'s lifecycle.
  */
 public class ClusteringContext extends AbstractLifecycleComponent {
-   public static final String ATTR_RESOURCE_LOOKUP = "esplugin.resources";
+   public static final String PROP_RESOURCES = "resources";
 
    private final Environment environment;
    private final LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders;
@@ -57,41 +55,47 @@ public class ClusteringContext extends AbstractLifecycleComponent {
    @Override
    protected void doStart() throws ElasticsearchException {
       try {
-         Settings.Builder builder = Settings.builder();
-         Path pluginConfigPath = environment.configFile().resolve(ClusteringPlugin.PLUGIN_NAME);
+         Path esConfig = environment.configFile();
+         Path pluginConfigPath = esConfig.resolve(ClusteringPlugin.PLUGIN_NAME);
 
          if (!Files.isDirectory(pluginConfigPath)) {
-            throw new ElasticsearchException("Missing config files: {}", pluginConfigPath);
-         } else {
-            logger.info("Configuration files at: {}", pluginConfigPath.toAbsolutePath());
+            throw new ElasticsearchException("Missing configuration folder?: {}", pluginConfigPath);
          }
 
+         Settings.Builder builder = Settings.builder();
          for (String configName : new String[]{
              "config.yml",
              "config.yaml",
              "config.json",
              "config.properties"
          }) {
-            try {
-               Path resolved = pluginConfigPath.resolve(configName);
-               if (resolved != null && Files.exists(resolved)) {
-                  builder.loadFromPath(resolved);
-               }
-            } catch (NoClassDefFoundError e) {
-               logger.warn("Could not parse: " + configName, e);
+            Path resolved = pluginConfigPath.resolve(configName);
+            if (Files.exists(resolved)) {
+               builder.loadFromPath(resolved);
             }
          }
          Settings c2Settings = builder.build();
 
-         if (c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME) != null) {
-            final Path resourcesPath = pluginConfigPath.resolve(c2Settings.get(DEFAULT_RESOURCES_PROPERTY_NAME))
-                .toAbsolutePath()
-                .normalize();
-            logger.info("Resources located at: {}", resourcesPath);
-            resourceLookup = new PathResourceLookup(resourcesPath);
+         List<Path> resourceLocations = c2Settings.getAsList(PROP_RESOURCES)
+             .stream()
+             .map(p -> esConfig.resolve(p).toAbsolutePath())
+             .filter(p -> {
+                boolean exists = Files.exists(p);
+                if (!exists) {
+                   logger.info("Clustering algorithm resource location does not exist, ignored: {}", p);
+                }
+                return exists;
+             })
+             .collect(Collectors.toList());
+
+         if (resourceLocations.isEmpty()) {
+            resourceLookup = new PathResourceLookup(resourceLocations);
+            for (Path p : resourceLocations) {
+               logger.info("Clustering algorithm resources loaded relative to: {}", p);
+            }
          } else {
             resourceLookup = null;
-            logger.info("Resources read from default locations (JARs).");
+            logger.info("Resources read from defaults (JARs).");
          }
 
          AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
