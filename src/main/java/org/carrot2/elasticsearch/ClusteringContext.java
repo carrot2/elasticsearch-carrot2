@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -105,14 +104,22 @@ public class ClusteringContext extends AbstractLifecycleComponent {
 
             // Remove languages for which there are no algorithms that support them.
             languages.entrySet().removeIf(e -> {
-                   LanguageComponents lc = e.getValue();
-                   return algorithmProviders.values()
-                       .stream()
-                       .noneMatch(algorithm -> algorithm.get().supports(lc));
-                });
+               LanguageComponents lc = e.getValue();
+               return algorithmProviders.values()
+                   .stream()
+                   .noneMatch(algorithm -> algorithm.get().supports(lc));
+            });
 
-            logger.info("Available clustering algorithms: {}",
-                String.join(", ", algorithmProviders.keySet()));
+            // Remove algorithms for which there are no languages that are supported.
+            algorithmProviders.entrySet().removeIf(e -> {
+               boolean remove = languages.values().stream()
+                   .noneMatch(lc -> e.getValue().get().supports(lc));
+               if (remove) {
+                  logger.info("Algorithm {} does not support any of the loaded languages and will be ignored.",
+                      e.getKey());
+               }
+               return remove;
+            });
 
             algorithmProviders.forEach((name, prov) -> {
                String supportedLanguages = languages.values().stream()
@@ -120,7 +127,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
                    .map(LanguageComponents::language)
                    .collect(Collectors.joining(", "));
 
-               logger.info("Algorithm {} supports the following languages: {}",
+               logger.info("Clustering algorithm {} loaded with support for the following languages: {}",
                    name, supportedLanguages);
             });
 
