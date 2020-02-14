@@ -126,16 +126,6 @@ public class ClusteringContext extends AbstractLifecycleComponent {
 
             return null;
          });
-
-/*
-         // TODO: Set up the license provider for Lingo3G
-         Path lingo3gLicense = scanForLingo3GLicense(environment, pluginConfigPath);
-         if (lingo3gLicense != null && Files.isReadable(lingo3gLicense)) {
-           c2SettingsAsMap.put("license", new FileResource(lingo3gLicense));
-         } else if (algorithms.contains("lingo3g")) {
-           logger.warn("Lingo3G is on classpath, but no licenses have been found. Check out the documentation.");
-         }
-*/
       } catch (Exception e) {
          throw new ElasticsearchException(
              "Could not initialize clustering.", e);
@@ -180,37 +170,6 @@ public class ClusteringContext extends AbstractLifecycleComponent {
          }
       }
       return suppliers;
-   }
-
-   /**
-    * Because we're running with a security manager (most likely), we need to scan for Lingo3G
-    * license in ES configuration directories.
-    */
-   private Path scanForLingo3GLicense(Environment environment, Path pluginConfigPath) {
-      List<Path> licenses = new ArrayList<>();
-
-      for (Path candidate : new Path[]{
-          pluginConfigPath.resolve("license.xml"),
-          pluginConfigPath.resolve(".license.xml"),
-          environment.configFile().resolve("license.xml"),
-          environment.configFile().resolve(".license.xml")
-      }) {
-         logger.debug("Lingo3G license location scan: {} {}.",
-             candidate.toAbsolutePath().normalize(),
-             Files.isRegularFile(candidate) ? "(found)" : "(not found)");
-         if (Files.isRegularFile(candidate)) {
-            licenses.add(candidate);
-         }
-      }
-
-      switch (licenses.size()) {
-         case 0:
-            return null;
-         case 1:
-            return licenses.iterator().next();
-         default:
-            throw new ElasticsearchException("There should be exactly one Lingo3G license on scan paths: {}", licenses);
-      }
    }
 
    /**
