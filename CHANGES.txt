@@ -3,27 +3,30 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 7.6.0 ====================
+
 Backward-incompatible changes
 
-* Upgrade of Carrot2 to 4.0.0-beta2. This results in a number of backward-incompatible
+* Upgrade of Carrot2 to 4.0.0-beta3. This results in a number of backward-incompatible
   changes to the plugin.
 
   1) The local field for URL (and the corresponding mapping) is gone without replacement.
   2) Names of clustering algorithms have changed. They are now (note white space):
-     Lingo, STC, Bisecting K-Means
+     Lingo, STC, Bisecting K-Means, Lingo3G (optional, commercial)
   3) The language field is no longer a two-letter code. The list of supported languages
-     is printed at startup and depends on the JARs installed (service extension point
-     is used to load languages).
-  4) Names and structure of attributes for clustering algorithms have changed. It reflects
-     the new, updated Carrot2 API.
+     depends on the algorithm and availability of resources and is printed at startup;
+     (service extension points are used to load algorithms and languages).
+  4) Names and structure of attributes for clustering algorithms have changed. They reflect
+     the new, updated Carrot2 API, see:
+     https://carrot2.github.io/release/4.0.0-beta3/doc/rest-api-reference/
   5) Algorithm suites and predefined component descriptors (in XML) have been removed and
-     are no longer supported.
+     are no longer supported. Algorithms are loaded via service extensions.
   6) There are two new request attributes: "language" specifying default clustering
      language for documents that don't declare it explicitly and "create_ungrouped" which
      forces the plugin to create a synthetic group with unclustered document references
      (this corresponds to "other topics" group from previous Carrot2 versions).
   7) Nearly all plugin options have been removed. The single option remaining is "resources"
-     pointing at ES configuration folder-relative locations where algorithm resources
+     with an array of ES configuration folder-relative locations where algorithm resources
      are looked up.
   8) Default lexical resources from Carrot2 are included under configuration folder and
      used by default.

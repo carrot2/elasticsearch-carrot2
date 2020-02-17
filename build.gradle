@@ -1,11 +1,11 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.5.2-SNAPSHOT'
+version = '7.6.0'
 group = 'org.carrot2'
 
 buildscript {
   ext {
-    version_es = '7.5.2'
+    version_es = '7.6.0'
     version_c2 = 'org.carrot2:carrot2-core:4.0.0-beta3'
   }
 
@@ -23,20 +23,6 @@ apply plugin: 'java-library'
 apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
 apply plugin: 'nebula.maven-base-publish'
-
-// >>> Build HACK for 7.5.2
-
-import org.elasticsearch.gradle.testclusters.TestClustersRegistry
-import org.elasticsearch.gradle.testclusters.TestClustersPlugin
-
-configure(rootProject) {
-  TestClustersRegistry registry = rootProject.extensions.create("testClustersRegistry", TestClustersRegistry)
-  TestClustersPlugin.configureClaimClustersHook(project.gradle, registry)
-  TestClustersPlugin.configureStartClustersHook(project.gradle, registry)
-  TestClustersPlugin.configureStopClustersHook(project.gradle, registry)
-}
-
-// <<< Build HACK for 7.5.2
 
 repositories {
   mavenLocal()
