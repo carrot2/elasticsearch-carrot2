@@ -131,8 +131,8 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
    }
 
    @Override
-   public void reloadSPI(ClassLoader loader) {
-      ServiceLoader.load(ClusteringAlgorithmProvider.class, loader).forEach((provider) -> {
+   public void reloadSPI(ClassLoader classLoader) {
+      ServiceLoader.load(ClusteringAlgorithmProvider.class, classLoader).forEach((provider) -> {
          String name = provider.name();
          if (algorithmProviders.containsKey(name)) {
             throw new RuntimeException("More than one provider for algorithm " + name + "?");
@@ -141,7 +141,7 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
       });
 
       for (LanguageComponentsProvider provider :
-          ServiceLoader.load(LanguageComponentsProvider.class, loader)) {
+          ServiceLoader.load(LanguageComponentsProvider.class, classLoader)) {
          for (String lang : provider.languages()) {
             languageComponentProviders
                 .computeIfAbsent(lang, (k) -> new ArrayList<>())

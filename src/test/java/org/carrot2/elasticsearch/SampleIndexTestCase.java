@@ -1,5 +1,34 @@
 package org.carrot2.elasticsearch;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.assertj.core.api.Assertions;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
+import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
+import org.carrot2.language.LanguageComponentsLoader;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.bytes.BytesArray;
+import org.elasticsearch.common.network.NetworkAddress;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.test.ESIntegTestCase;
+import org.junit.Before;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,35 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.assertj.core.api.Assertions;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse.Fields;
-import org.carrot2.language.LanguageComponents;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.bytes.BytesArray;
-import org.elasticsearch.common.network.NetworkAddress;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.DeprecationHandler;
-import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.common.xcontent.json.JsonXContent;
-import org.elasticsearch.plugins.Plugin;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.test.ESIntegTestCase;
-import org.junit.Before;
 
 /**
  * Perform tests on sample data.
@@ -119,7 +119,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
 
          // Create content at random in the test index.
          Random rnd = random();
-         String[] languages = LanguageComponents.languages().toArray(new String[0]);
+         String[] languages = new LanguageComponentsLoader().load().languages().toArray(String[]::new);
          Arrays.sort(languages);
 
          BulkRequestBuilder bulk = client.prepareBulk();

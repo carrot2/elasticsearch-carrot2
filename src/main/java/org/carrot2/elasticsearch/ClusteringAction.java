@@ -809,155 +809,183 @@ public class ClusteringAction
                                final ClusteringActionRequest clusteringRequest,
                                final ActionListener<ClusteringActionResponse> listener) {
          final long tsSearchStart = System.nanoTime();
-         searchAction.execute(clusteringRequest.getSearchRequest(), new ActionListener<SearchResponse>() {
+      searchAction.execute(
+          clusteringRequest.getSearchRequest(),
+          new ActionListener<SearchResponse>() {
             @Override
             public void onFailure(Exception e) {
-               listener.onFailure(e);
+              listener.onFailure(e);
             }
 
             @Override
             public void onResponse(SearchResponse response) {
-               final long tsSearchEnd = System.nanoTime();
+              final long tsSearchEnd = System.nanoTime();
 
-               LinkedHashMap<String, ClusteringAlgorithmProvider> algorithms = context.getAlgorithms();
+              LinkedHashMap<String, ClusteringAlgorithmProvider> algorithms =
+                  context.getAlgorithms();
 
-               final String algorithmId = requireNonNullElse(
-                   clusteringRequest.getAlgorithm(), algorithms.keySet().iterator().next());
+              final String algorithmId =
+                  requireNonNullElse(
+                      clusteringRequest.getAlgorithm(), algorithms.keySet().iterator().next());
 
-               ClusteringAlgorithmProvider provider = algorithms.get(algorithmId);
-               if (provider == null) {
-                  listener.onFailure(new IllegalArgumentException("No such algorithm: " + algorithmId));
-                  return;
-               }
+              ClusteringAlgorithmProvider provider = algorithms.get(algorithmId);
+              if (provider == null) {
+                listener.onFailure(
+                    new IllegalArgumentException("No such algorithm: " + algorithmId));
+                return;
+              }
 
-               /*
-                * We're not a threaded listener so we're running on the search thread. This
-                * is good -- we don't want to serve more clustering requests than we can handle
-                * anyway.
-                */
-               ClusteringAlgorithm algorithm = provider.get();
+              /*
+               * We're not a threaded listener so we're running on the search thread. This
+               * is good -- we don't want to serve more clustering requests than we can handle
+               * anyway.
+               */
+              ClusteringAlgorithm algorithm = provider.get();
 
-               try {
-                  Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
-                  if (requestAttrs != null) {
-                     Attrs.populate(algorithm, requestAttrs);
+              try {
+                Map<String, Object> requestAttrs = clusteringRequest.getAttributes();
+                if (requestAttrs != null) {
+                  Attrs.populate(algorithm, requestAttrs);
+                }
+
+                String queryHint = clusteringRequest.getQueryHint();
+                if (queryHint != null) {
+                  algorithm.accept(
+                      new OptionalQueryHintSetterVisitor(clusteringRequest.getQueryHint()));
+                }
+
+                List<InputDocument> documents =
+                    prepareDocumentsForClustering(clusteringRequest, response);
+
+                String defaultLanguage = clusteringRequest.getDefaultLanguage();
+                if (!context.isLanguageSupported(defaultLanguage)) {
+                  throw new RuntimeException(
+                      "The requested default language is not supported: '" + defaultLanguage + "'");
+                }
+
+                // Split documents into language groups.
+                Map<String, List<InputDocument>> documentsByLanguage =
+                    documents.stream()
+                        .collect(
+                            Collectors.groupingBy(
+                                doc -> {
+                                  String lang = doc.language();
+                                  return lang == null ? defaultLanguage : lang;
+                                }));
+
+                // Run clustering.
+                long tsClusteringTotal = 0;
+                HashSet<String> warnOnce = new HashSet<>();
+                LinkedHashMap<String, List<Cluster<InputDocument>>> clustersByLanguage =
+                    new LinkedHashMap<>();
+                for (Map.Entry<String, List<InputDocument>> e : documentsByLanguage.entrySet()) {
+                  String lang = e.getKey();
+                  if (!context.isLanguageSupported(lang)) {
+                    if (warnOnce.add(lang)) {
+                      logger.warn(
+                          "Language is not supported, documents in this "
+                              + "language will not be clustered: '"
+                              + lang
+                              + "'");
+                    }
+                  } else {
+                    LanguageComponents languageComponents = context.getLanguageComponents(lang);
+                    final long tsClusteringStart = System.nanoTime();
+                    clustersByLanguage.put(
+                        lang, algorithm.cluster(e.getValue().stream(), languageComponents));
+                    final long tsClusteringEnd = System.nanoTime();
+                    tsClusteringTotal += (tsClusteringEnd - tsClusteringStart);
                   }
+                }
 
-                  String queryHint = clusteringRequest.getQueryHint();
-                  if (queryHint != null) {
-                     algorithm.accept(new OptionalQueryHintSetterVisitor(clusteringRequest.getQueryHint()));
-                  }
+                final Map<String, String> info = new LinkedHashMap<>();
+                info.put(ClusteringActionResponse.Fields.Info.ALGORITHM, algorithmId);
+                info.put(
+                    ClusteringActionResponse.Fields.Info.SEARCH_MILLIS,
+                    Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)));
+                info.put(
+                    ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS,
+                    Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringTotal)));
+                info.put(
+                    ClusteringActionResponse.Fields.Info.TOTAL_MILLIS,
+                    Long.toString(
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - tsSearchStart)));
+                info.put(
+                    ClusteringActionResponse.Fields.Info.INCLUDE_HITS,
+                    Boolean.toString(clusteringRequest.getIncludeHits()));
+                info.put(
+                    ClusteringActionResponse.Fields.Info.MAX_HITS,
+                    clusteringRequest.getMaxHits() == Integer.MAX_VALUE
+                        ? ""
+                        : Integer.toString(clusteringRequest.getMaxHits()));
+                info.put(
+                    ClusteringActionResponse.Fields.Info.LANGUAGES,
+                    String.join(", ", clustersByLanguage.keySet()));
 
-                  List<InputDocument> documents = prepareDocumentsForClustering(clusteringRequest, response);
+                // Trim search response's hits if we need to.
+                if (clusteringRequest.getMaxHits() != Integer.MAX_VALUE) {
+                  response = filterMaxHits(response, clusteringRequest.getMaxHits());
+                }
 
-                  String defaultLanguage = clusteringRequest.getDefaultLanguage();
-                  if (!context.isLanguageSupported(defaultLanguage)) {
-                     throw new RuntimeException("The requested default language is not supported: '" + defaultLanguage + "'");
-                  }
+                AtomicInteger groupId = new AtomicInteger();
+                Map<String, DocumentGroup[]> adaptedByLanguage =
+                    clustersByLanguage.entrySet().stream()
+                        .filter(e -> !e.getValue().isEmpty())
+                        .collect(
+                            Collectors.toMap(Map.Entry::getKey, e -> adapt(e.getValue(), groupId)));
 
-                  // Split documents into language groups.
-                  Map<String, List<InputDocument>> documentsByLanguage = documents.stream()
-                      .collect(Collectors.groupingBy(
-                          doc -> {
-                             String lang = doc.language();
-                             return lang == null ? defaultLanguage : lang;
-                          }
-                      ));
+                final ArrayList<DocumentGroup> groups = new ArrayList<>();
+                adaptedByLanguage
+                    .values()
+                    .forEach(langClusters -> groups.addAll(Arrays.asList(langClusters)));
 
-                  // Run clustering.
-                  long tsClusteringTotal = 0;
-                  HashSet<String> warnOnce = new HashSet<>();
-                  LinkedHashMap<String, List<Cluster<InputDocument>>> clustersByLanguage = new LinkedHashMap<>();
-                  for (Map.Entry<String, List<InputDocument>> e : documentsByLanguage.entrySet()) {
-                     String lang = e.getKey();
-                     if (!context.isLanguageSupported(lang)) {
-                        if (warnOnce.add(lang)) {
-                           logger.warn("Language is not supported, documents in this " +
-                               "language will not be clustered: '" + lang + "'");
-                        }
-                     } else {
-                        LanguageComponents languageComponents = context.getLanguageComponents(lang);
-                        final long tsClusteringStart = System.nanoTime();
-                        clustersByLanguage.put(lang, algorithm.cluster(e.getValue().stream(), languageComponents));
-                        final long tsClusteringEnd = System.nanoTime();
-                        tsClusteringTotal += (tsClusteringEnd - tsClusteringStart);
-                     }
-                  }
+                if (adaptedByLanguage.size() > 1) {
+                  groups.sort(
+                      (a, b) ->
+                          Integer.compare(b.uniqueDocuments().size(), a.uniqueDocuments().size()));
+                }
 
-                  final Map<String, String> info = new LinkedHashMap<>();
-                  info.put(ClusteringActionResponse.Fields.Info.ALGORITHM,
-                      algorithmId);
-                  info.put(ClusteringActionResponse.Fields.Info.SEARCH_MILLIS,
-                      Long.toString(TimeUnit.NANOSECONDS.toMillis(tsSearchEnd - tsSearchStart)));
-                  info.put(ClusteringActionResponse.Fields.Info.CLUSTERING_MILLIS,
-                      Long.toString(TimeUnit.NANOSECONDS.toMillis(tsClusteringTotal)));
-                  info.put(ClusteringActionResponse.Fields.Info.TOTAL_MILLIS,
-                      Long.toString(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - tsSearchStart)));
-                  info.put(ClusteringActionResponse.Fields.Info.INCLUDE_HITS,
-                      Boolean.toString(clusteringRequest.getIncludeHits()));
-                  info.put(ClusteringActionResponse.Fields.Info.MAX_HITS,
-                      clusteringRequest.getMaxHits() == Integer.MAX_VALUE ?
-                          "" : Integer.toString(clusteringRequest.getMaxHits()));
-                  info.put(ClusteringActionResponse.Fields.Info.LANGUAGES,
-                      String.join(", ", clustersByLanguage.keySet()));
+                if (clusteringRequest.createUngroupedDocumentsCluster) {
+                  DocumentGroup ungrouped = new DocumentGroup();
+                  ungrouped.setId(groupId.incrementAndGet());
+                  ungrouped.setPhrases(new String[] {"Ungrouped documents"});
+                  ungrouped.setUngroupedDocuments(true);
+                  ungrouped.setScore(0d);
 
-                  // Trim search response's hits if we need to.
-                  if (clusteringRequest.getMaxHits() != Integer.MAX_VALUE) {
-                     response = filterMaxHits(response, clusteringRequest.getMaxHits());
-                  }
+                  LinkedHashSet<InputDocument> ungroupedDocuments = new LinkedHashSet<>(documents);
+                  clustersByLanguage
+                      .values()
+                      .forEach(langClusters -> removeReferenced(ungroupedDocuments, langClusters));
+                  ungrouped.setDocumentReferences(
+                      ungroupedDocuments.stream()
+                          .map(InputDocument::getStringId)
+                          .toArray(String[]::new));
 
-                  AtomicInteger groupId = new AtomicInteger();
-                  Map<String, DocumentGroup[]> adaptedByLanguage = clustersByLanguage.entrySet()
-                      .stream()
-                      .filter(e -> !e.getValue().isEmpty())
-                      .collect(Collectors.toMap(
-                          Map.Entry::getKey,
-                          e -> adapt(e.getValue(), groupId)
-                      ));
+                  groups.add(ungrouped);
+                }
 
-                  final ArrayList<DocumentGroup> groups = new ArrayList<>();
-                  adaptedByLanguage.values()
-                      .forEach(langClusters -> groups.addAll(Arrays.asList(langClusters)));
-
-                  if (adaptedByLanguage.size() > 1) {
-                     groups.sort((a, b) -> Integer.compare(b.uniqueDocuments().size(), a.uniqueDocuments().size()));
-                  }
-
-                  if (clusteringRequest.createUngroupedDocumentsCluster) {
-                     DocumentGroup ungrouped = new DocumentGroup();
-                     ungrouped.setId(groupId.incrementAndGet());
-                     ungrouped.setPhrases(new String[]{"Ungrouped documents"});
-                     ungrouped.setUngroupedDocuments(true);
-                     ungrouped.setScore(0d);
-
-                     LinkedHashSet<InputDocument> ungroupedDocuments = new LinkedHashSet<>(documents);
-                     clustersByLanguage.values().forEach(
-                         langClusters -> removeReferenced(ungroupedDocuments, langClusters));
-                     ungrouped.setDocumentReferences(
-                         ungroupedDocuments.stream().map(InputDocument::getStringId).toArray(String[]::new));
-
-                     groups.add(ungrouped);
-                  }
-
-                  listener.onResponse(
-                      new ClusteringActionResponse(response, groups.toArray(new DocumentGroup[0]), info));
-               } catch (Exception e) {
-                  // Log a full stack trace with all nested exceptions but only return
-                  // ElasticSearchException exception with a simple String (otherwise
-                  // clients cannot deserialize exception classes).
-                  String message = "Clustering error: " + e.getMessage();
-                  logger.warn(message, e);
-                  listener.onFailure(new ElasticsearchException(message));
-               }
+                listener.onResponse(
+                    new ClusteringActionResponse(
+                        response, groups.toArray(new DocumentGroup[0]), info));
+              } catch (Exception e) {
+                // Log a full stack trace with all nested exceptions but only return
+                // ElasticSearchException exception with a simple String (otherwise
+                // clients cannot deserialize exception classes).
+                String message = "Clustering error: " + e.getMessage();
+                logger.warn(message, e);
+                listener.onFailure(new ElasticsearchException(message));
+              }
             }
 
-            private void removeReferenced(LinkedHashSet<InputDocument> ungrouped, List<Cluster<InputDocument>> clusters) {
-               clusters.forEach(cluster -> {
-                  ungrouped.removeAll(cluster.getDocuments());
-                  removeReferenced(ungrouped, cluster.getClusters());
-               });
+            private void removeReferenced(
+                LinkedHashSet<InputDocument> ungrouped, List<Cluster<InputDocument>> clusters) {
+              clusters.forEach(
+                  cluster -> {
+                    ungrouped.removeAll(cluster.getDocuments());
+                    removeReferenced(ungrouped, cluster.getClusters());
+                  });
             }
-         });
+          });
       }
 
       public static <T> T requireNonNullElse(T first, T def) {

@@ -12,7 +12,7 @@ import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder
 import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
-import org.carrot2.language.LanguageComponents;
+import org.carrot2.language.LanguageComponentsLoader;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.Strings;
@@ -57,7 +57,8 @@ public class ClusteringActionIT extends SampleIndexTestCase {
 
     public void testDefaultLanguage() throws IOException {
         LinkedHashMap<String, List<String>> labelsByLanguage = new LinkedHashMap<>();
-        for (String lang : LanguageComponents.languages()) {
+        String[] languages = new LanguageComponentsLoader().load().languages().toArray(String[]::new);
+        for (String lang : languages) {
             ClusteringActionResponse english = new ClusteringActionRequestBuilder(client)
                 .setQueryHint("data mining")
                 .addSourceFieldMapping("title", LogicalField.TITLE)
