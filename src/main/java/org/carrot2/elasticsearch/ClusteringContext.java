@@ -146,7 +146,9 @@ public class ClusteringContext extends AbstractLifecycleComponent {
     }
   }
 
-  /** Return a list of available algorithm component identifiers. */
+  /**
+   * @return Return a list of available algorithm component identifiers.
+   */
   public LinkedHashMap<String, ClusteringAlgorithmProvider> getAlgorithms() {
     return algorithmProviders;
   }

@@ -86,8 +86,8 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
                                             IndexNameExpressionResolver indexNameExpressionResolver,
                                             Supplier<DiscoveryNodes> nodesInCluster) {
       return Arrays.asList(
-          new ClusteringAction.RestClusteringAction(restController),
-          new ListAlgorithmsAction.RestListAlgorithmsAction(restController));
+          new ClusteringAction.RestClusteringAction(),
+          new ListAlgorithmsAction.RestListAlgorithmsAction());
    }
 
    @Override
@@ -95,7 +95,8 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
                                               ThreadPool threadPool, ResourceWatcherService resourceWatcherService,
                                               ScriptService scriptService, NamedXContentRegistry xContentRegistry,
                                               Environment environment, NodeEnvironment nodeEnvironment,
-                                              NamedWriteableRegistry namedWriteableRegistry) {
+                                              NamedWriteableRegistry namedWriteableRegistry,
+                                              IndexNameExpressionResolver indexNameExpressionResolver) {
       List<Object> components = new ArrayList<>();
       if (pluginEnabled && !transportClient) {
          components.add(new ClusteringContext(environment,

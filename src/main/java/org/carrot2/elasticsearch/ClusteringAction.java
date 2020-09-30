@@ -43,7 +43,6 @@ import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
-import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.search.SearchHit;
@@ -114,7 +113,6 @@ public class ClusteringAction
       public static String JSON_ALGORITHM = "algorithm";
       public static String JSON_ATTRIBUTES = "attributes";
       public static String JSON_SEARCH_REQUEST = "search_request";
-      public static String JSON_INCLUDE_HITS = "include_hits";
       public static String JSON_MAX_HITS = "max_hits";
       public static String JSON_CREATE_UNGROUPED_CLUSTER = "create_ungrouped";
       public static String JSON_LANGUAGE = "language";
@@ -143,6 +141,9 @@ public class ClusteringAction
 
       /**
        * @see #setSearchRequest(SearchRequest)
+       *
+       * @param builder The search builder
+       * @return Returns same object for chaining.
        */
       public ClusteringActionRequest setSearchRequest(SearchRequestBuilder builder) {
          return setSearchRequest(builder.request());
@@ -192,6 +193,8 @@ public class ClusteringAction
 
       /**
        * @see #setQueryHint(String)
+       *
+       * @return Query hint
        */
       public String getQueryHint() {
          return queryHint;
@@ -200,6 +203,9 @@ public class ClusteringAction
       /**
        * Sets the identifier of the clustering algorithm to use. If <code>null</code>, the default
        * algorithm will be used (depending on what's available).
+       *
+       * @param algorithm identifier of the clustering algorithm to use.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest setAlgorithm(String algorithm) {
          this.algorithm = algorithm;
@@ -208,34 +214,11 @@ public class ClusteringAction
 
       /**
        * @see #setAlgorithm
+       *
+       * @return The current algorithm to use for clustering
        */
       public String getAlgorithm() {
          return algorithm;
-      }
-
-      /**
-       * @see #getIncludeHits
-       * @deprecated Use {@link #setMaxHits} and set it to zero instead.
-       */
-      @Deprecated()
-      public boolean getIncludeHits() {
-         return maxHits > 0;
-      }
-
-      /**
-       * Sets whether to include hits with clustering results. If only cluster labels
-       * are needed the hits may be omitted to save bandwidth.
-       *
-       * @deprecated Use {@link #setMaxHits} instead.
-       */
-      @Deprecated()
-      public ClusteringActionRequest setIncludeHits(boolean includeHits) {
-         if (includeHits) {
-            setMaxHits(Integer.MAX_VALUE);
-         } else {
-            setMaxHits(0);
-         }
-         return this;
       }
 
       /**
@@ -244,6 +227,8 @@ public class ClusteringAction
        * to save bandwidth if only cluster labels are needed).
        * <p>
        * Set to {@link Integer#MAX_VALUE} to include all the hits.
+       *
+       * @param maxHits Maximum hits
        */
       public void setMaxHits(int maxHits) {
          assert maxHits >= 0;
@@ -253,6 +238,8 @@ public class ClusteringAction
       /**
        * Sets {@link #setMaxHits(int)} from a string. An empty string or null means
        * all hits should be included.
+       *
+       * @param value Maximum number of hits.
        */
       public void setMaxHits(String value) {
          if (value == null || value.trim().isEmpty()) {
@@ -263,8 +250,8 @@ public class ClusteringAction
       }
 
       /**
-       * Returns the maximum number of hits to be returned as part of the response.
-       * If equal to {@link Integer#MAX_VALUE}, then all hits will be returned.
+       * @return Returns the maximum number of hits to be returned as part of the response. * If equal
+       *     to {@link Integer#MAX_VALUE}, then all hits will be returned.
        */
       public int getMaxHits() {
          return maxHits;
@@ -272,6 +259,9 @@ public class ClusteringAction
 
       /**
        * Sets a map of runtime override attributes for clustering algorithms.
+       *
+       * @param map Clustering attributes to use.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest setAttributes(Map<String, Object> map) {
          this.attributes = map;
@@ -280,6 +270,8 @@ public class ClusteringAction
 
       /**
        * @see #setAttributes(Map)
+       *
+       * @return Clustering algorithm attributes map
        */
       public Map<String, Object> getAttributes() {
          return attributes;
@@ -287,6 +279,10 @@ public class ClusteringAction
 
       /**
        * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request.
+       *
+       * @param source arg
+       * @param xContentType arg
+       * @param xContentRegistry arg
        */
       @SuppressWarnings("unchecked")
       public void source(BytesReference source, XContentType xContentType, NamedXContentRegistry xContentRegistry) {
@@ -345,12 +341,6 @@ public class ClusteringAction
                searchRequest.source(searchSourceBuilder);
             }
 
-            Object includeHits = asMap.get(JSON_INCLUDE_HITS);
-            if (includeHits != null) {
-               LogManager.getLogger(getClass()).warn("Request used deprecated 'include_hits' parameter.");
-               setIncludeHits(Boolean.parseBoolean(includeHits.toString()));
-            }
-
             Object maxHits = asMap.get(JSON_MAX_HITS);
             if (maxHits != null) {
                setMaxHits(maxHits.toString());
@@ -381,6 +371,10 @@ public class ClusteringAction
        * Map a hit's field to a logical section of a document to be clustered (title, content or URL).
        *
        * @see LogicalField
+       *
+       * @param fieldName field name
+       * @param logicalField logical field mapping.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest addFieldMapping(String fieldName, LogicalField logicalField) {
          fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.FIELD));
@@ -392,6 +386,10 @@ public class ClusteringAction
        * to a logical section of a document to be clustered (title, content or URL).
        *
        * @see LogicalField
+       *
+       * @param sourceFieldName field name
+       * @param logicalField logical field mapping.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest addSourceFieldMapping(String sourceFieldName, LogicalField logicalField) {
          fieldMapping.add(new FieldMappingSpec(sourceFieldName, logicalField, FieldSource.SOURCE));
@@ -403,6 +401,10 @@ public class ClusteringAction
        * of a document to be clustered. This may be used to decrease the amount of information
        * passed to the clustering engine but also to "focus" the clustering engine on the context
        * of the query.
+       *
+       * @param fieldName field name
+       * @param logicalField logical field mapping.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest addHighlightedFieldMapping(String fieldName, LogicalField logicalField) {
          fieldMapping.add(new FieldMappingSpec(fieldName, logicalField, FieldSource.HIGHLIGHT));
@@ -413,6 +415,10 @@ public class ClusteringAction
        * Add a (valid!) field mapping specification to a logical field.
        *
        * @see FieldSource
+       *
+       * @param fieldSpec field specification
+       * @param logicalField logical field mapping.
+       * @return Same object for chaining
        */
       public ClusteringActionRequest addFieldMappingSpec(String fieldSpec, LogicalField logicalField) {
          FieldSource.ParsedFieldSource pfs = FieldSource.parseSpec(fieldSpec);
@@ -566,18 +572,6 @@ public class ClusteringAction
                                                       XContentType xContentType,
                                                       NamedXContentRegistry xContentRegistry) {
          super.request.source(content, xContentType, xContentRegistry);
-         return this;
-      }
-
-      /**
-       * @deprecated Use {@link #setMaxHits} instead.
-       */
-      @Deprecated()
-      public ClusteringActionRequestBuilder setIncludeHits(String includeHits) {
-         if (includeHits != null)
-            super.request.setIncludeHits(Boolean.parseBoolean(includeHits));
-         else
-            super.request.setIncludeHits(true);
          return this;
       }
 
@@ -911,9 +905,6 @@ public class ClusteringAction
                     Long.toString(
                         TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - tsSearchStart)));
                 info.put(
-                    ClusteringActionResponse.Fields.Info.INCLUDE_HITS,
-                    Boolean.toString(clusteringRequest.getIncludeHits()));
-                info.put(
                     ClusteringActionResponse.Fields.Info.MAX_HITS,
                     clusteringRequest.getMaxHits() == Integer.MAX_VALUE
                         ? ""
@@ -1243,14 +1234,16 @@ public class ClusteringAction
        */
       public static String NAME = "_search_with_clusters";
 
-      public RestClusteringAction(RestController controller) {
-         controller.registerHandler(POST, "/" + NAME, this);
-         controller.registerHandler(POST, "/{index}/" + NAME, this);
-         controller.registerHandler(POST, "/{index}/{type}/" + NAME, this);
-
-         controller.registerHandler(GET, "/" + NAME, this);
-         controller.registerHandler(GET, "/{index}/" + NAME, this);
-         controller.registerHandler(GET, "/{index}/{type}/" + NAME, this);
+      @Override
+      public List<Route> routes() {
+         return Arrays.asList(
+             new Route(POST, "/" + NAME),
+             new Route(POST, "/{index}/" + NAME),
+             new Route(POST, "/{index}/{type}/" + NAME),
+             new Route(GET, "/" + NAME),
+             new Route(GET, "/{index}/" + NAME),
+             new Route(GET, "/{index}/{type}/" + NAME)
+         );
       }
 
       @Override
@@ -1366,10 +1359,6 @@ public class ClusteringAction
 
          if (request.hasParam(ClusteringActionRequest.JSON_ALGORITHM)) {
             actionBuilder.setAlgorithm(request.param(ClusteringActionRequest.JSON_ALGORITHM));
-         }
-
-         if (request.hasParam(ClusteringActionRequest.JSON_INCLUDE_HITS)) {
-            actionBuilder.setIncludeHits(request.param(ClusteringActionRequest.JSON_INCLUDE_HITS));
          }
 
          if (request.hasParam(ClusteringActionRequest.JSON_MAX_HITS)) {

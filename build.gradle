@@ -1,11 +1,11 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.6.2'
+version = '7.7.0'
 group = 'org.carrot2'
 
 buildscript {
   ext {
-    version_es = '7.6.2'
+    version_es = '7.7.0'
     version_c2 = 'org.carrot2:carrot2-core:4.0.1'
   }
 
@@ -54,9 +54,9 @@ dependencies {
   }
   compile version_c2
 
-  testCompile "com.fasterxml.jackson.core:jackson-core:2.8.11"
-  testCompile "com.fasterxml.jackson.core:jackson-annotations:2.8.11"
-  testCompile "com.fasterxml.jackson.core:jackson-databind:2.8.11"
+  testCompile "com.fasterxml.jackson.core:jackson-core:2.10.4"
+  testCompile "com.fasterxml.jackson.core:jackson-annotations:2.10.4"
+  testCompile "com.fasterxml.jackson.core:jackson-databind:2.10.4"
 
   testCompile "org.assertj:assertj-core:3.12.0"
   testCompile "org.elasticsearch.client:transport:" + version_es
@@ -107,6 +107,11 @@ bundlePlugin {
 
     into 'config'
   })
+}
+
+// Disable POM validation inside ES infrastructure.
+tasks.matching {it.path in [":validateMavenPom", ":validateNebulaPom"]}.all { task ->
+  task.enabled = false
 }
 
 // Configure publishing.

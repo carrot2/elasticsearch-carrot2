@@ -20,7 +20,6 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.rest.BaseRestHandler;
 import org.elasticsearch.rest.BytesRestResponse;
-import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestRequest.Method;
 import org.elasticsearch.rest.RestStatus;
@@ -202,11 +201,12 @@ public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAl
 
         protected Logger logger = LogManager.getLogger(getClass());
 
-        public RestListAlgorithmsAction(
-                RestController controller) {
-
-            controller.registerHandler(Method.POST, "/" + NAME, this);
-            controller.registerHandler(Method.GET, "/" + NAME, this);
+        @Override
+        public List<Route> routes() {
+            return Arrays.asList(
+                new Route(Method.POST, "/" + NAME),
+                new Route(Method.GET, "/" + NAME)
+            );
         }
 
         @Override
