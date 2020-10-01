@@ -87,8 +87,8 @@ public class ClusteringContext extends AbstractLifecycleComponent {
       LanguageComponentsLoader loader = LanguageComponents.loader();
 
       if (!resourceLocations.isEmpty()) {
-        logger.info("Clustering algorithm resources first looked up relative to: {}",
-            resourceLocations);
+        logger.info(
+            "Clustering algorithm resources first looked up relative to: {}", resourceLocations);
         loader.withResourceLookup(
             (provider) ->
                 new ChainedResourceLookup(
@@ -109,9 +109,23 @@ public class ClusteringContext extends AbstractLifecycleComponent {
           (PrivilegedExceptionAction<Void>)
               () -> {
                 languages = new LinkedHashMap<>();
-                LoadedLanguages loadedLanguages = loader.load();
+                LoadedLanguages loadedLanguages = loader.load(languageComponentProviders);
                 for (String lang : loadedLanguages.languages()) {
                   languages.put(lang, loadedLanguages.language(lang));
+                }
+
+                // Debug info about loaded languages.
+                if (logger.isDebugEnabled()) {
+                  for (String lang : loadedLanguages.languages()) {
+                    logger.debug(
+                        "Loaded language '"
+                            + lang
+                            + "' with components: "
+                            + "\n  - "
+                            + loadedLanguages.language(lang).components().stream()
+                                .map(c -> c.getSimpleName())
+                                .collect(Collectors.joining("\n  - ")));
+                  }
                 }
 
                 // Remove algorithms for which there are no languages that are supported.
@@ -145,9 +159,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
     }
   }
 
-  /**
-   * @return Return a list of available algorithm component identifiers.
-   */
+  /** @return Return a list of available algorithm component identifiers. */
   public LinkedHashMap<String, ClusteringAlgorithmProvider> getAlgorithms() {
     return algorithmProviders;
   }
