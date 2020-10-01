@@ -148,7 +148,8 @@ configure(rootProject) {
         pom {
           name = esplugin.name
           description = esplugin.description
-          url = 'https://github.com/carrot2/elasticsearch-carrot2'
+          // Added automatically by ES plugin.
+          // url = 'https://github.com/carrot2/elasticsearch-carrot2'
           inceptionYear = "2013"
           artifactId 'elasticsearch-carrot2'
           licenses {
@@ -176,7 +177,8 @@ configure(rootProject) {
           scm {
             connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
             developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-            url = 'https://github.com/carrot2/elasticsearch-carrot2'
+            // Added automatically by ES plugin.
+            // url = 'https://github.com/carrot2/elasticsearch-carrot2'
           }
         }
       }
