@@ -86,10 +86,9 @@ public class ClusteringContext extends AbstractLifecycleComponent {
 
       LanguageComponentsLoader loader = LanguageComponents.loader();
 
-      if (resourceLocations.isEmpty()) {
-        for (Path p : resourceLocations) {
-          logger.info("Clustering algorithm resources first looked up relative to: {}", p);
-        }
+      if (!resourceLocations.isEmpty()) {
+        logger.info("Clustering algorithm resources first looked up relative to: {}",
+            resourceLocations);
         loader.withResourceLookup(
             (provider) ->
                 new ChainedResourceLookup(
