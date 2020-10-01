@@ -119,8 +119,17 @@ configure(rootProject) {
   apply plugin: 'maven-publish'
   apply plugin: 'signing'
 
+  ext {
+    mavenBuildRepo = file("${buildDir}/maven")
+  }
+
   publishing {
     repositories {
+      maven {
+        name = 'build'
+        url = mavenBuildRepo
+      }
+
       maven {
         name = 'sonatype'
         url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
@@ -174,12 +183,14 @@ configure(rootProject) {
               email = 'dawid.weiss@carrotsearch.com'
             }
           }
+          // Added automatically by ES plugin.
+          /*
           scm {
             connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
             developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-            // Added automatically by ES plugin.
             // url = 'https://github.com/carrot2/elasticsearch-carrot2'
           }
+           */
         }
       }
     }
@@ -191,5 +202,32 @@ configure(rootProject) {
 
   task publishToSonatype() {
     dependsOn publishMavenPublicationToSonatypeRepository
+  }
+
+  tasks.matching { it.path == ":publishMavenPublicationToBuildRepository" }.all {
+    doFirst {
+      delete mavenBuildRepo
+    }
+  }
+
+  task publishToLocal() {
+    group "Publishing"
+    description "Publish Maven artifacts locally to " + file(mavenBuildRepo)
+
+    dependsOn ":publishMavenPublicationToBuildRepository"
+  }
+
+  task sonatypeBundle(type: Zip) {
+    group "Publishing"
+    description "Prepare a sonatype bundle archive with all artifacts."
+
+    dependsOn publishToLocal
+
+    archiveFileName = "bundle-${project.archivesBaseName}-${project.version}.zip"
+    destinationDirectory = file("${buildDir}/sonatype")
+
+    from(mavenBuildRepo, {
+      exclude "**/maven-metadata*"
+    })
   }
 }
