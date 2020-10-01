@@ -117,7 +117,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
                 // Debug info about loaded languages.
                 if (logger.isDebugEnabled()) {
                   for (String lang : loadedLanguages.languages()) {
-                    logger.debug(
+                    logger.trace(
                         "Loaded language '"
                             + lang
                             + "' with components: "
