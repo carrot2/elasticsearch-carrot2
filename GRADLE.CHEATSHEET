@@ -9,5 +9,4 @@ signing.password=
 signing.secretKeyRingFile=.../secring.gpg
 
 # then:
-gradlew clean publishToSonatype
-
+gradlew clean publishToSonatype --max-workers 1

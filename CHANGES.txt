@@ -3,6 +3,14 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 7.7.1 ====================
+
+Other changes
+
+* Upgrade to Carrot2 4.0.3. Adjust to API changes in language resources.
+
+* API updates to ES 7.7.1. Build scripts updates.
+
 ================ ElasticSearch-Carrot2 7.6.0 ====================
 
 Backward-incompatible changes
