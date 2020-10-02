@@ -6,7 +6,7 @@ group = 'org.carrot2'
 buildscript {
   ext {
     version_es = '7.8.1'
-    version_c2 = 'org.carrot2:carrot2-core:4.0.3'
+    version_c2 = 'org.carrot2:carrot2-core:4.0.4'
   }
 
   repositories {
@@ -54,13 +54,6 @@ dependencies {
 
   compile(version_c2, {
     exclude group: "com.carrotsearch", module: "hppc"
-    exclude group: "org.apache.logging.log4j"
-    exclude group: "org.apache.lucene"
-    exclude group: "com.fasterxml.jackson.core"
-    exclude group: "org.apache.httpcomponents"
-    exclude group: "commons-logging"
-    exclude group: "junit"
-    exclude group: "com.carrotsearch.randomizedtesting"
   })
 
   testCompile "com.fasterxml.jackson.core:jackson-core:2.10.4"
