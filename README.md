@@ -2,9 +2,11 @@ Search results clustering for ElasticSearch
 ===========================================
 
 This clustering plugin adds on-the-fly text clustering capability
-to an ElasticSearch node. Clustering algorithms from the Carrot2
-project (open source) or proprietary Lingo3G algorithm from
-Carrot Search can be used for actual clustering implementation.
+to an ElasticSearch node. Clustering algorithms from the
+[Carrot2](https://github.com/carrot2/carrot2) project (open source)
+are used by default. Proprietary [Lingo3G algorithm](https://carrotsearch.com/lingo3g/) 
+from [Carrot Search](https://carrotsearch.com) can also be used
+via an [extension plugin](https://github.com/carrotsearch/elasticsearch-lingo3g). 
 
 
 Installation
@@ -14,7 +16,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/elasticsearch-plugin install org.carrot2:elasticsearch-carrot2:7.6.0.1
+    bin/elasticsearch-plugin install org.carrot2:elasticsearch-carrot2:7.7.1
 
 To install from sources (master branch), run:
 
@@ -30,7 +32,7 @@ then install with:
 
 Should the plugin installed show a popup to request additional
 permissions for the plugin you have to accept such a prompt. Plugin
-versions for Carrot2 4.0.0 and on do not require any extra permissions.
+versions for Carrot2 4.0.0+ do not require any extra permissions.
 
 
 Usage
@@ -70,7 +72,7 @@ Versions and compatibility
 
 Recommended compatibility chart (matching versions of ES, Carrot2, 
 and optionally Lingo3G). (+) means it'll probably work with newer
-releases (we test against latest version from that branch). 
+releases (we test against the latest version from that branch). 
 
 The plugin is compiled against *an exact* version of ES 
 and *will not work* with any other version. The numbering of the plugin
@@ -84,12 +86,17 @@ then update the project descriptor (pom.xml) and recompile from sources,
 this will yield a binary version of the plugin compatible with the 
 given ES version.
 
-| Clustering Plugin | Elasticsearch          | Carrot2 | Lingo3G |
-| ---               |                    --- | ---     | ---     |
-| (master, unreleased) |                     | 3.16.1  | 1.16.1  |
-| 7.6.0             |                        | 4.0.0-beta3 | not supported (yet) |
-| 7.0.0 -> 7.5.0    |                        | 3.16.1  | 1.16.1  |
-| 6.8.5             |                        | 3.16.1  | 1.16.1  |
+Lingo3G 2.x will be supported via a separate
+[extension plugin](https://github.com/carrotsearch/elasticsearch-lingo3g).
+
+| Clustering Plugin | Elasticsearch          | Carrot2     |     Lingo3G   |
+| ---               |                    --- | ---         |     ---       |
+| (master, unreleased) |                     | 4.0.3       | ext-plugin    |
+| 7.7.1             |                        | 4.0.3       | ext-plugin    |
+| 7.6.0.1           | 7.6.0                  | 4.0.0-beta3 | not supported |
+| 7.6.0             |                        | 4.0.0-beta3 | not supported |
+| 7.0.0 -> 7.5.0    |                        | 3.16.1      | 1.16.1        |
+| 6.8.5 -> 6.8.9    |                        | 3.16.1      | 1.16.1        |
 
 Discontinued version branches:
 
