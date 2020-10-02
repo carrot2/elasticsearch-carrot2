@@ -21,6 +21,7 @@ import org.elasticsearch.env.NodeEnvironment;
 import org.elasticsearch.plugins.ActionPlugin;
 import org.elasticsearch.plugins.ExtensiblePlugin;
 import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.repositories.RepositoriesService;
 import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.script.ScriptService;
@@ -92,11 +93,14 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
 
    @Override
    public Collection<Object> createComponents(Client client, ClusterService clusterService,
-                                              ThreadPool threadPool, ResourceWatcherService resourceWatcherService,
+                                              ThreadPool threadPool,
+                                              ResourceWatcherService resourceWatcherService,
                                               ScriptService scriptService, NamedXContentRegistry xContentRegistry,
-                                              Environment environment, NodeEnvironment nodeEnvironment,
+                                              Environment environment,
+                                              NodeEnvironment nodeEnvironment,
                                               NamedWriteableRegistry namedWriteableRegistry,
-                                              IndexNameExpressionResolver indexNameExpressionResolver) {
+                                              IndexNameExpressionResolver indexNameExpressionResolver,
+                                              Supplier<RepositoriesService> repositoriesServiceSupplier) {
       List<Object> components = new ArrayList<>();
       if (pluginEnabled && !transportClient) {
          components.add(new ClusteringContext(environment,

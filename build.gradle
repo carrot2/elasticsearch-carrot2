@@ -1,11 +1,11 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.7.1'
+version = '7.8.1'
 group = 'org.carrot2'
 
 buildscript {
   ext {
-    version_es = '7.7.1'
+    version_es = '7.8.1'
     version_c2 = 'org.carrot2:carrot2-core:4.0.3'
   }
 
@@ -22,7 +22,6 @@ buildscript {
 apply plugin: 'java-library'
 apply plugin: 'idea'
 apply plugin: 'elasticsearch.esplugin'
-apply plugin: 'nebula.maven-base-publish'
 
 repositories {
   mavenLocal()
@@ -49,20 +48,36 @@ configurations {
 // esplugin forces transitive:false on all dependencies
 // so list all transitive dependencies individually
 dependencies {
-  c2resources(version_c2) {
+  c2resources(version_c2, {
     transitive false
-  }
-  compile version_c2
+  })
+
+  compile(version_c2, {
+    exclude group: "com.carrotsearch", module: "hppc"
+    exclude group: "org.apache.logging.log4j"
+    exclude group: "org.apache.lucene"
+    exclude group: "com.fasterxml.jackson.core"
+    exclude group: "org.apache.httpcomponents"
+    exclude group: "commons-logging"
+    exclude group: "junit"
+    exclude group: "com.carrotsearch.randomizedtesting"
+  })
 
   testCompile "com.fasterxml.jackson.core:jackson-core:2.10.4"
   testCompile "com.fasterxml.jackson.core:jackson-annotations:2.10.4"
   testCompile "com.fasterxml.jackson.core:jackson-databind:2.10.4"
 
-  testCompile "org.assertj:assertj-core:3.12.0"
+  testCompile "org.assertj:assertj-core:3.13.2"
   testCompile "org.elasticsearch.client:transport:" + version_es
 
   testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
+}
+
+configurations.all { config ->
+  resolutionStrategy {
+    force "commons-logging:commons-logging:1.2"
+  }
 }
 
 // Set target compatibility
