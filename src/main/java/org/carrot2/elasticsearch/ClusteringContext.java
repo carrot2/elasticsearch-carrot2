@@ -1,5 +1,16 @@
 package org.carrot2.elasticsearch;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.AccessController;
+import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.carrot2.clustering.ClusteringAlgorithm;
@@ -15,18 +26,6 @@ import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.AccessController;
-import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /** Holds the language components initialized and ready throughout the {@link Node}'s lifecycle. */
 public class ClusteringContext extends AbstractLifecycleComponent {

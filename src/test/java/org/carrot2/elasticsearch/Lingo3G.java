@@ -1,7 +1,6 @@
 package org.carrot2.elasticsearch;
 
 import com.carrotsearch.randomizedtesting.annotations.TestGroup;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -14,5 +13,4 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
 @TestGroup(enabled = false, sysProperty = "tests.lingo3g")
-public @interface Lingo3G {
-}
+public @interface Lingo3G {}

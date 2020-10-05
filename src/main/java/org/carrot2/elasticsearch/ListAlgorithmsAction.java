@@ -1,5 +1,12 @@
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.ActionListener;
@@ -29,222 +36,207 @@ import org.elasticsearch.transport.TransportChannel;
 import org.elasticsearch.transport.TransportRequestHandler;
 import org.elasticsearch.transport.TransportService;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+/** List all available clustering algorithms. */
+public class ListAlgorithmsAction
+    extends ActionType<ListAlgorithmsAction.ListAlgorithmsActionResponse> {
+  /* Action name. */
+  public static final String NAME = "cluster:monitor/carrot2/algorithms";
 
-import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
+  /* Reusable singleton. */
+  public static final ListAlgorithmsAction INSTANCE = new ListAlgorithmsAction();
 
-/**
- * List all available clustering algorithms.
- */
-public class ListAlgorithmsAction extends ActionType<ListAlgorithmsAction.ListAlgorithmsActionResponse> {
-    /* Action name. */
-    public static final String NAME = "cluster:monitor/carrot2/algorithms";
+  private ListAlgorithmsAction() {
+    super(NAME, ListAlgorithmsActionResponse::new);
+  }
 
-    /* Reusable singleton. */
-    public static final ListAlgorithmsAction INSTANCE = new ListAlgorithmsAction();
+  @Override
+  public Writeable.Reader<ListAlgorithmsActionResponse> getResponseReader() {
+    return ListAlgorithmsActionResponse::new;
+  }
 
-    private ListAlgorithmsAction() {
-        super(NAME, ListAlgorithmsActionResponse::new);
+  /** An {@link ActionRequest} for {@link ListAlgorithmsAction}. */
+  public static class ListAlgorithmsActionRequest extends ActionRequest {
+
+    ListAlgorithmsActionRequest() {}
+
+    ListAlgorithmsActionRequest(StreamInput in) throws IOException {
+      super(in);
     }
 
     @Override
-    public Writeable.Reader<ListAlgorithmsActionResponse> getResponseReader() {
-        return ListAlgorithmsActionResponse::new;
+    public ActionRequestValidationException validate() {
+      return /* Nothing to validate. */ null;
+    }
+  }
+
+  /** An {@link ActionRequestBuilder} for {@link ListAlgorithmsAction}. */
+  public static class ListAlgorithmsActionRequestBuilder
+      extends ActionRequestBuilder<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
+    public ListAlgorithmsActionRequestBuilder(ElasticsearchClient client) {
+      super(client, ListAlgorithmsAction.INSTANCE, new ListAlgorithmsActionRequest());
+    }
+  }
+
+  /** A {@link ActionResponse} for {@link ListAlgorithmsAction}. */
+  public static class ListAlgorithmsActionResponse extends ActionResponse implements ToXContent {
+    private static final String[] EMPTY_LIST = {};
+    private String[] algorithms;
+
+    /** Clustering-related response fields. */
+    static final class Fields {
+      static final String ALGORITHMS = "algorithms";
     }
 
-    /**
-     * An {@link ActionRequest} for {@link ListAlgorithmsAction}.
-     */
-    public static class ListAlgorithmsActionRequest
-            extends ActionRequest {
-
-        ListAlgorithmsActionRequest() {}
-
-        ListAlgorithmsActionRequest(StreamInput in) throws IOException {
-            super(in);
-        }
-
-        @Override
-        public ActionRequestValidationException validate() {
-            return /* Nothing to validate. */ null;
-        }
+    public ListAlgorithmsActionResponse(StreamInput in) throws IOException {
+      super(in);
+      algorithms = in.readStringArray();
     }
 
-    /**
-     * An {@link ActionRequestBuilder} for {@link ListAlgorithmsAction}.
-     */
-    public static class ListAlgorithmsActionRequestBuilder
-            extends ActionRequestBuilder<ListAlgorithmsActionRequest,
-            ListAlgorithmsActionResponse> {
-        public ListAlgorithmsActionRequestBuilder(ElasticsearchClient client) {
-            super(client, ListAlgorithmsAction.INSTANCE, new ListAlgorithmsActionRequest());
-        }
+    public ListAlgorithmsActionResponse(List<String> algorithms) {
+      this.algorithms = algorithms.toArray(new String[0]);
     }
 
-    /**
-     * A {@link ActionResponse} for {@link ListAlgorithmsAction}.
-     */
-    public static class ListAlgorithmsActionResponse extends ActionResponse implements ToXContent {
-        private static final String[] EMPTY_LIST = {};
-        private String [] algorithms;
-
-        /**
-         * Clustering-related response fields.
-         */
-        static final class Fields {
-            static final String ALGORITHMS = "algorithms";
-        }
-
-        public ListAlgorithmsActionResponse(StreamInput in) throws IOException {
-            super(in);
-            algorithms = in.readStringArray();
-        }
-
-        public ListAlgorithmsActionResponse(List<String> algorithms) {
-            this.algorithms = algorithms.toArray(new String[0]);
-        }
-
-        public List<String> getAlgorithms() {
-            return Collections.unmodifiableList(Arrays.asList(algorithms));
-        }
-
-        @Override
-        public XContentBuilder toXContent(XContentBuilder builder, Params params)
-                throws IOException {
-            return builder.array(Fields.ALGORITHMS, algorithms);
-        }
-
-        @Override
-        public void writeTo(StreamOutput out) throws IOException {
-            out.writeStringArray(algorithms);
-        }
-
-        @Override
-        public String toString() {
-            return ToString.objectToJson(this);
-        }
+    public List<String> getAlgorithms() {
+      return Collections.unmodifiableList(Arrays.asList(algorithms));
     }
 
-    /**
-     * A {@link TransportAction} for actually executing
-     * {@link ListAlgorithmsActionRequest} and providing
-     * {@link ListAlgorithmsActionResponse}.
-     */
-    public static class TransportListAlgorithmsAction
-            extends TransportAction<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
-
-        protected Logger logger = LogManager.getLogger(getClass());
-        private final ClusteringContext controllerSingleton;
-
-        @Inject
-        public TransportListAlgorithmsAction(TransportService transportService,
-                                             ClusteringContext controllerSingleton,
-                                             ActionFilters actionFilters) {
-            super(ListAlgorithmsAction.NAME,
-                  actionFilters,
-                  transportService.getTaskManager());
-            this.controllerSingleton = controllerSingleton;
-            transportService.registerRequestHandler(
-                    ListAlgorithmsAction.NAME,
-                    ThreadPool.Names.SAME,
-                    ListAlgorithmsActionRequest::new,
-                    new TransportHandler());
-        }
-
-        @Override
-        protected void doExecute(Task task,
-                                 ListAlgorithmsActionRequest request,
-                                 ActionListener<ListAlgorithmsActionResponse> listener) {
-            listener.onResponse(new ListAlgorithmsActionResponse(
-                new ArrayList<>(controllerSingleton.getAlgorithms().keySet())));
-        }
-
-        private final class TransportHandler implements TransportRequestHandler<ListAlgorithmsActionRequest> {
-            @Override
-            public void messageReceived(final ListAlgorithmsActionRequest request,
-                                        final TransportChannel channel,
-                                        Task task) throws Exception {
-                execute(request, new ActionListener<ListAlgorithmsActionResponse>() {
-                    @Override
-                    public void onResponse(ListAlgorithmsActionResponse response) {
-                        try {
-                            channel.sendResponse(response);
-                        } catch (Exception e) {
-                            onFailure(e);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Exception e) {
-                        try {
-                            channel.sendResponse(e);
-                        } catch (Exception e1) {
-                            logger.warn("Failed to send error response for action ["
-                                    + NAME + "] and request [" + request + "]", e1);
-                        }
-                    }
-                });
-            }
-        }
+    @Override
+    public XContentBuilder toXContent(XContentBuilder builder, Params params) throws IOException {
+      return builder.array(Fields.ALGORITHMS, algorithms);
     }
 
-    /**
-     * {@link BaseRestHandler} for serving {@link ListAlgorithmsAction}.
-     */
-    public static class RestListAlgorithmsAction extends BaseRestHandler {
-        /* Action name suffix. */
-        public static String NAME = "_algorithms";
+    @Override
+    public void writeTo(StreamOutput out) throws IOException {
+      out.writeStringArray(algorithms);
+    }
 
-        protected Logger logger = LogManager.getLogger(getClass());
+    @Override
+    public String toString() {
+      return ToString.objectToJson(this);
+    }
+  }
 
-        @Override
-        public List<Route> routes() {
-            return Arrays.asList(
-                new Route(Method.POST, "/" + NAME),
-                new Route(Method.GET, "/" + NAME)
-            );
-        }
+  /**
+   * A {@link TransportAction} for actually executing {@link ListAlgorithmsActionRequest} and
+   * providing {@link ListAlgorithmsActionResponse}.
+   */
+  public static class TransportListAlgorithmsAction
+      extends TransportAction<ListAlgorithmsActionRequest, ListAlgorithmsActionResponse> {
 
-        @Override
-        public String getName() {
-            return NAME;
-        }
+    protected Logger logger = LogManager.getLogger(getClass());
+    private final ClusteringContext controllerSingleton;
 
-        @Override
-        public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) {
-            if (request.hasContent()) {
-                return channel -> emitErrorResponse(channel, logger,
-                        new IllegalArgumentException("Request body was expected."));
-            }
+    @Inject
+    public TransportListAlgorithmsAction(
+        TransportService transportService,
+        ClusteringContext controllerSingleton,
+        ActionFilters actionFilters) {
+      super(ListAlgorithmsAction.NAME, actionFilters, transportService.getTaskManager());
+      this.controllerSingleton = controllerSingleton;
+      transportService.registerRequestHandler(
+          ListAlgorithmsAction.NAME,
+          ThreadPool.Names.SAME,
+          ListAlgorithmsActionRequest::new,
+          new TransportHandler());
+    }
 
-            ListAlgorithmsActionRequest actionRequest = new ListAlgorithmsActionRequest();
-            return channel -> client.execute(INSTANCE, actionRequest, new ActionListener<ListAlgorithmsActionResponse>() {
+    @Override
+    protected void doExecute(
+        Task task,
+        ListAlgorithmsActionRequest request,
+        ActionListener<ListAlgorithmsActionResponse> listener) {
+      listener.onResponse(
+          new ListAlgorithmsActionResponse(
+              new ArrayList<>(controllerSingleton.getAlgorithms().keySet())));
+    }
+
+    private final class TransportHandler
+        implements TransportRequestHandler<ListAlgorithmsActionRequest> {
+      @Override
+      public void messageReceived(
+          final ListAlgorithmsActionRequest request, final TransportChannel channel, Task task)
+          throws Exception {
+        execute(
+            request,
+            new ActionListener<ListAlgorithmsActionResponse>() {
+              @Override
+              public void onResponse(ListAlgorithmsActionResponse response) {
+                try {
+                  channel.sendResponse(response);
+                } catch (Exception e) {
+                  onFailure(e);
+                }
+              }
+
+              @Override
+              public void onFailure(Exception e) {
+                try {
+                  channel.sendResponse(e);
+                } catch (Exception e1) {
+                  logger.warn(
+                      "Failed to send error response for action ["
+                          + NAME
+                          + "] and request ["
+                          + request
+                          + "]",
+                      e1);
+                }
+              }
+            });
+      }
+    }
+  }
+
+  /** {@link BaseRestHandler} for serving {@link ListAlgorithmsAction}. */
+  public static class RestListAlgorithmsAction extends BaseRestHandler {
+    /* Action name suffix. */
+    public static String NAME = "_algorithms";
+
+    protected Logger logger = LogManager.getLogger(getClass());
+
+    @Override
+    public List<Route> routes() {
+      return Arrays.asList(new Route(Method.POST, "/" + NAME), new Route(Method.GET, "/" + NAME));
+    }
+
+    @Override
+    public String getName() {
+      return NAME;
+    }
+
+    @Override
+    public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client) {
+      if (request.hasContent()) {
+        return channel ->
+            emitErrorResponse(
+                channel, logger, new IllegalArgumentException("Request body was expected."));
+      }
+
+      ListAlgorithmsActionRequest actionRequest = new ListAlgorithmsActionRequest();
+      return channel ->
+          client.execute(
+              INSTANCE,
+              actionRequest,
+              new ActionListener<ListAlgorithmsActionResponse>() {
                 @Override
                 public void onResponse(ListAlgorithmsActionResponse response) {
-                    try {
-                        XContentBuilder builder = channel.newBuilder();
-                        builder.startObject();
-                        response.toXContent(builder, request);
-                        builder.endObject();
-                        channel.sendResponse(
-                                new BytesRestResponse(
-                                        RestStatus.OK,
-                                        builder));
-                    } catch (Exception e) {
-                        logger.debug("Failed to emit response.", e);
-                        onFailure(e);
-                    }
+                  try {
+                    XContentBuilder builder = channel.newBuilder();
+                    builder.startObject();
+                    response.toXContent(builder, request);
+                    builder.endObject();
+                    channel.sendResponse(new BytesRestResponse(RestStatus.OK, builder));
+                  } catch (Exception e) {
+                    logger.debug("Failed to emit response.", e);
+                    onFailure(e);
+                  }
                 }
 
                 @Override
                 public void onFailure(Exception e) {
-                    emitErrorResponse(channel, logger, e);
+                  emitErrorResponse(channel, logger, e);
                 }
-            });
-        }
+              });
     }
+  }
 }
