@@ -752,8 +752,11 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
         <div class="row">
           <div class="span12">
             <p>The clustering plugin comes with several open-source algorithms from
-              the <a href="https://project.carrot2.org">Carrot<sup>2</sup></a> project and has a built-in support
-              for the commercial <a href="https://carrotsearch.com/lingo3g">Lingo3G</a> clustering algorithm.</p>
+              the <a href="https://project.carrot2.org">Carrot<sup>2</sup></a> project. An
+              <a href="https://github.com/carrotsearch/elasticsearch-lingo3g">extension plugin</a> must be installed
+              separately to add support for
+              the commercial <a href="https://carrotsearch.com/lingo3g">Lingo3G</a> clustering
+              algorithm.</p>
 
             <p>The question of which algorithm to choose depends on the amount of traffic (STC is faster than Lingo, 
               but arguably produces less intuitive clusters, Lingo3G is the fastest algorithm but is not free or 
@@ -998,20 +1001,15 @@ $.post(window.ES_URL + "/test/test/_search_with_clusters", JSON.stringify(reques
               </dd>
             </dl>
             
-            <p>For <a href="https://carrotsearch.com/lingo3g">Lingo3G</a>, the license needs to be installed
-            at any of the following locations.</p>
+            <p>If <a href="https://carrotsearch.com/lingo3g">Lingo3G</a>
+              <a href="https://github.com/carrotsearch/elasticsearch-lingo3g">extension plugin</a> is installed and
+              the algorithm is available, the license needs to be installed at any of the following locations.</p>
 
             <dl>
-              <dt><code>{es.home}/config/license.xml</code>,<br/>
-                  <code>{es.home}/config/.license.xml</code>,<br/>
-                  <code>{plugin.zip}/elasticsearch/config/license.xml</code>,<br/>
-                  <code>{plugin.zip}/elasticsearch/config/.license.xml</code></dt>
+              <dt><code>{es.home}/config/license*.xml</code>,<br/>
+                  <code>{plugin.zip}/elasticsearch/config/license*.xml</code></dt>
               <dd></dd>
             </dl>            
-            
-            <p>If the license is installed inside the plugin, it should be copied to the ZIP file
-            <strong>before</strong> the installation. Once installed, the plugin's configuration is
-            copied to <code>{es.home}/config/plugin-name/</code> and can be tweaked there.</p>
           </div>
         </div>
       </section>
