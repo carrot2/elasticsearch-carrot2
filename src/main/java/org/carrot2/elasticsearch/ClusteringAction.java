@@ -992,7 +992,7 @@ public class ClusteringAction
 
          InternalAggregations _internalAggregations = null;
          if (response.getAggregations() != null) {
-            _internalAggregations = new InternalAggregations(toInternal(response.getAggregations().asList()));
+            _internalAggregations = new InternalAggregations(toInternal(response.getAggregations().asList()), null);
          }
 
          SearchHits _searchHits =

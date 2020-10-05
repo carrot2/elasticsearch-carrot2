@@ -1,11 +1,11 @@
 
 // This plugin's version (typically must match that of ES).
-version = '7.8.1'
+version = '7.9.2'
 group = 'org.carrot2'
 
 buildscript {
   ext {
-    version_es = '7.8.1'
+    version_es = '7.9.2'
     version_c2 = 'org.carrot2:carrot2-core:4.0.4'
   }
 
@@ -19,9 +19,11 @@ buildscript {
   }
 }
 
-apply plugin: 'java-library'
-apply plugin: 'idea'
-apply plugin: 'elasticsearch.esplugin'
+plugins {
+  id 'java-library'
+  id 'idea'
+  id 'elasticsearch.esplugin'
+}
 
 repositories {
   mavenLocal()

@@ -66,8 +66,8 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
       this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
       this.transportClient = TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
 
-      // Invoke loadSPI on our own class loader to load default algorithms.
-      reloadSPI(getClass().getClassLoader());
+      // load our own class loader's extensions.
+      loadExtensions(getClass().getClassLoader());
    }
 
    @Override
@@ -136,22 +136,34 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
    }
 
    @Override
-   public void reloadSPI(ClassLoader classLoader) {
-      ServiceLoader.load(ClusteringAlgorithmProvider.class, classLoader).forEach((provider) -> {
-         String name = provider.name();
-         if (algorithmProviders.containsKey(name)) {
-            throw new RuntimeException("More than one provider for algorithm " + name + "?");
-         }
-         algorithmProviders.put(name, provider);
-      });
-
-      for (LanguageComponentsProvider provider :
-          ServiceLoader.load(LanguageComponentsProvider.class, classLoader)) {
-         for (String lang : provider.languages()) {
-            languageComponentProviders
-                .computeIfAbsent(lang, (k) -> new ArrayList<>())
-                .add(provider);
-         }
-      }
+   public void loadExtensions(ExtensionLoader loader) {
+     loadExtensions(
+         loader.loadExtensions(ClusteringAlgorithmProvider.class),
+         loader.loadExtensions(LanguageComponentsProvider.class));
    }
+
+  private void loadExtensions(ClassLoader classLoader) {
+     loadExtensions(
+         ServiceLoader.load(ClusteringAlgorithmProvider.class, classLoader),
+         ServiceLoader.load(LanguageComponentsProvider.class, classLoader));
+  }
+
+  private void loadExtensions(Iterable<ClusteringAlgorithmProvider> clusteringAlgorithmProviders,
+                              Iterable<LanguageComponentsProvider> languageComponentsProviders) {
+    clusteringAlgorithmProviders.forEach((provider) -> {
+        String name = provider.name();
+        if (algorithmProviders.containsKey(name)) {
+           throw new RuntimeException("More than one provider for algorithm " + name + "?");
+        }
+        algorithmProviders.put(name, provider);
+     });
+
+    languageComponentsProviders.forEach(provider -> {
+        for (String lang : provider.languages()) {
+           languageComponentProviders
+               .computeIfAbsent(lang, (k) -> new ArrayList<>())
+               .add(provider);
+        }
+     });
+  }
 }
