@@ -2,7 +2,6 @@ package org.carrot2.elasticsearch;
 
 import java.util.HashMap;
 import java.util.Locale;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequest;
 
 /**
  * Logical fields of a document to be clustered.

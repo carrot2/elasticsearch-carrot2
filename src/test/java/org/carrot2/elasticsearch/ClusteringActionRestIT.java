@@ -111,7 +111,7 @@ public class ClusteringActionRestIT extends SampleIndexTestCase {
                   // clustering-specific attrs
                   + "&query_hint=data+mining"
                   + "&"
-                  + ClusteringAction.ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER
+                  + ClusteringActionRequest.JSON_CREATE_UNGROUPED_CLUSTER
                   + "=true"
                   + "&field_mapping_content=_source.title,_source.content"
                   + "&algorithm="

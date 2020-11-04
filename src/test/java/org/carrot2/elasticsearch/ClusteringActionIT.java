@@ -16,8 +16,6 @@ import org.carrot2.attrs.Attrs;
 import org.carrot2.clustering.kmeans.BisectingKMeansClusteringAlgorithm;
 import org.carrot2.clustering.lingo.LingoClusteringAlgorithm;
 import org.carrot2.clustering.stc.STCClusteringAlgorithm;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionRequestBuilder;
-import org.carrot2.elasticsearch.ClusteringAction.ClusteringActionResponse;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionRequestBuilder;
 import org.carrot2.elasticsearch.ListAlgorithmsAction.ListAlgorithmsActionResponse;
 import org.carrot2.language.LanguageComponentsLoader;

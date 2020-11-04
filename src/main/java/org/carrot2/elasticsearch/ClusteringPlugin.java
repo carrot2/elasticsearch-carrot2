@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import org.carrot2.clustering.ClusteringAlgorithmProvider;
-import org.carrot2.elasticsearch.ClusteringAction.TransportClusteringAction;
 import org.carrot2.language.LanguageComponentsProvider;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
@@ -68,7 +67,7 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
   public List<ActionHandler<? extends ActionRequest, ? extends ActionResponse>> getActions() {
     if (pluginEnabled) {
       return Arrays.asList(
-          new ActionHandler<>(ClusteringAction.INSTANCE, TransportClusteringAction.class),
+          new ActionHandler<>(ClusteringAction.INSTANCE, ClusteringActionTransport.class),
           new ActionHandler<>(
               ListAlgorithmsAction.INSTANCE,
               ListAlgorithmsAction.TransportListAlgorithmsAction.class));
