@@ -3,6 +3,20 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 7.9.3 ====================
+
+* ES 7.9.3 compatibility build.
+
+================ ElasticSearch-Carrot2 7.9.2 ====================
+
+* ES 7.9.2 compatibility build.
+
+================ ElasticSearch-Carrot2 7.8.1 ====================
+
+* ES 7.8.1 compatibility build.
+
+* Upgrade to Carrot2 4.0.4.
+
 ================ ElasticSearch-Carrot2 7.7.1 ====================
 
 Other changes
