@@ -1,7 +1,7 @@
 
 buildscript {
   ext {
-    version_es = '7.9.3'
+    version_es = '7.10.0'
     version_c2 = 'org.carrot2:carrot2-core:4.0.4'
   }
 
@@ -22,10 +22,13 @@ plugins {
 }
 
 apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'elasticsearch.yaml-rest-test'
+apply plugin: 'elasticsearch.internal-cluster-test'
+
 apply from: file('gradle/validation/spotless.gradle')
 
 // This plugin's version (typically must match that of ES).
-version = '7.9.3'
+version = '7.10.0'
 group = 'org.carrot2'
 
 repositories {
@@ -92,24 +95,6 @@ loggerUsageCheck.enabled = false
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
-
-// Disable some stuff we don't need
-testingConventions {
-  enabled = true
-}
-
-integTest {
-  runner {
-    systemProperty 'tests.security.manager', 'false'
-  }
-}
-
-testClusters.integTest {
-  // extraConfigFile doesn't allow directories, only files, so we need to add each individually
-  fileTree(dir: 'src/main/config').each { file ->
-    extraConfigFile 'elasticsearch-carrot2/' + file.name, file
-  }
-}
 
 bundlePlugin {
   from({ zipTree(configurations.c2resources.asPath).matching { include "**/*.utf8" } }, {

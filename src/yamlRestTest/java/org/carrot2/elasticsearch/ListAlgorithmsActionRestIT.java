@@ -7,7 +7,7 @@ import com.carrotsearch.randomizedtesting.annotations.Name;
 import com.carrotsearch.randomizedtesting.annotations.ParametersFactory;
 
 /**
- * REST API tests for {@link ListAlgorithmsAction}.
+ * REST API tests for {@code ListAlgorithmsAction}.
  */
 public class ListAlgorithmsActionRestIT extends ESClientYamlSuiteTestCase {
 

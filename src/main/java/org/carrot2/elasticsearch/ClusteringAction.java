@@ -113,6 +113,7 @@ public class ClusteringAction extends ActionType<ClusteringActionResponse> {
               searchRequest,
               request,
               null,
+              client.getNamedWriteableRegistry(),
               (size) -> {
                 searchRequest.source().size(size);
               });
