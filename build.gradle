@@ -117,11 +117,6 @@ licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
 
-// Disable POM validation inside ES infrastructure.
-tasks.matching {it.path in [":validateMavenPom", ":validateNebulaPom"]}.all { task ->
-  task.enabled = false
-}
-
 // Unpack and bundle the default resources with the plugin.
 bundlePlugin {
   from({ zipTree(configurations.c2resources.singleFile).matching { include "**/*.utf8" } }, {
@@ -132,3 +127,6 @@ bundlePlugin {
     into 'config'
   })
 }
+
+// Configure publishing.
+apply from: file('gradle/publishing.gradle')
