@@ -1,7 +1,9 @@
 buildscript {
   ext {
-    version_es = '7.10.0'
-    version_c2 = 'org.carrot2:carrot2-core:4.0.4'
+    localversions = [
+        es : "7.10.0",
+        c2 : "4.0.4"
+    ]
   }
 
   repositories {
@@ -10,7 +12,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "org.elasticsearch.gradle:build-tools:" + version_es
+    classpath "org.elasticsearch.gradle:build-tools:${localversions.es}"
   }
 }
 
@@ -27,7 +29,9 @@ apply plugin: 'elasticsearch.yaml-rest-test'
 apply from: file('gradle/validation/spotless.gradle')
 
 // This plugin's version (typically must match that of ES).
-version = '7.10.0'
+// For bugfix releases against the same ES version, you can add a bugfix suffix.
+def bugfix = ""
+version = "${localversions.es}${bugfix}"
 group = 'org.carrot2'
 
 repositories {
@@ -36,15 +40,13 @@ repositories {
 }
 
 ext {
-  projectSubstitutions = [:]
   licenseFile = rootProject.file('LICENSE.txt')
   noticeFile = rootProject.file('NOTICE.txt')
-  c2version = ""
 }
 
 esplugin {
   name 'elasticsearch-carrot2'
-  description 'Search results clustering plugin for Elasticsearch (Carrot2)'
+  description "Search results clustering plugin for Elasticsearch ${localversions.es} (Carrot2 ${localversions.c2})"
   classname 'org.carrot2.elasticsearch.ClusteringPlugin'
 }
 
@@ -52,14 +54,12 @@ configurations {
   c2resources
 }
 
-// esplugin forces transitive:false on all dependencies
-// so list all transitive dependencies individually
 dependencies {
-  c2resources(version_c2, {
+  c2resources("org.carrot2:carrot2-core:${localversions.c2}", {
     transitive false
   })
 
-  compile(version_c2, {
+  compile("org.carrot2:carrot2-core:${localversions.c2}", {
     exclude group: "com.carrotsearch", module: "hppc"
   })
 
@@ -68,7 +68,7 @@ dependencies {
   testCompile "com.fasterxml.jackson.core:jackson-databind:2.10.4"
 
   testCompile "org.assertj:assertj-core:3.13.2"
-  testCompile "org.elasticsearch.client:transport:" + version_es
+  testCompile "org.elasticsearch.client:transport:${versions.elasticsearch}"
 
   testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
@@ -78,12 +78,13 @@ dependencies {
   javaRestTestImplementation project.sourceSets.test.runtimeClasspath
 
   // TODO: ES 7.10.0 hack: missing log4j classes?
-  yamlRestTestImplementation "org.apache.logging.log4j:log4j-core:2.11.1"
+  yamlRestTestImplementation "org.apache.logging.log4j:log4j-core:${versions.log4j}"
 }
 
+// Ensure consistency for test dependencies.
 configurations.all { config ->
   resolutionStrategy {
-    force "commons-logging:commons-logging:1.2"
+    force "commons-logging:commons-logging:${versions.commonslogging}"
   }
 }
 
@@ -94,155 +95,35 @@ targetCompatibility = 11
 // We don't have unit tests, only integration tests.
 test.enabled = false
 
-// logger check does not run on jdk 11 bytecode.
+// Add plugin configuration files to each testClusters instance.
+// 'extraConfigFile' doesn't allow directories, only files, so we
+// need to add each individually
+testClusters.all {
+  fileTree(dir: 'src/main/config').each { file ->
+    extraConfigFile 'elasticsearch-carrot2/' + file.name, file
+  }
+}
+
+// TODO: ES 7.10.0 hack: fails if set to true.
 loggerUsageCheck.enabled = false
 
-// Audits
+// Turn off internal ES audits.
 licenseHeaders.enabled = false
 dependencyLicenses.enabled = false
 thirdPartyAudit.enabled = false
-
-bundlePlugin {
-  from({ zipTree(configurations.c2resources.asPath).matching { include "**/*.utf8" } }, {
-    eachFile { fcd ->
-      fcd.path -= "org/carrot2/language/"
-    }
-    includeEmptyDirs = false
-
-    into 'config'
-  })
-}
 
 // Disable POM validation inside ES infrastructure.
 tasks.matching {it.path in [":validateMavenPom", ":validateNebulaPom"]}.all { task ->
   task.enabled = false
 }
 
-testClusters.all {
-  // extraConfigFile doesn't allow directories, only files, so we need to add each individually
-  fileTree(dir: 'src/main/config').each { file ->
-    extraConfigFile 'elasticsearch-carrot2/' + file.name, file
-  }
-}
-
-// Configure publishing.
-configure(rootProject) {
-  apply plugin: 'maven-publish'
-  apply plugin: 'signing'
-
-  ext {
-    mavenBuildRepo = file("${buildDir}/maven")
-  }
-
-  // Do not generate gradle metadata files.
-  tasks.withType(GenerateModuleMetadata) {
-    enabled = false
-  }
-
-  publishing {
-    repositories {
-      maven {
-        name = 'build'
-        url = mavenBuildRepo
-      }
-
-      maven {
-        name = 'sonatype'
-        url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-        credentials {
-          if (project.hasProperty('nexusUsername')) {
-            username project.nexusUsername
-          }
-          if (project.hasProperty('nexusPassword')) {
-            password project.nexusPassword
-          }
-        }
-      }
+// Unpack and bundle the default resources with the plugin.
+bundlePlugin {
+  from({ zipTree(configurations.c2resources.singleFile).matching { include "**/*.utf8" } }, {
+    eachFile { fcd ->
+      fcd.path -= "org/carrot2/language/"
     }
-
-    publications {
-      maven(MavenPublication) {
-        from components.java
-        group = project.group
-        artifactId = project.archivesBaseName
-
-        artifact sourcesJar
-        artifact javadocJar
-        artifact bundlePlugin
-
-        pom {
-          name = esplugin.name
-          description = esplugin.description
-          // Added automatically by ES plugin.
-          // url = 'https://github.com/carrot2/elasticsearch-carrot2'
-          inceptionYear = "2013"
-          artifactId 'elasticsearch-carrot2'
-          licenses {
-            license {
-              name = 'The Apache License, Version 2.0'
-              url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-          }
-          organization {
-            name = "Carrot Search s.c."
-            url = "https://www.carrotsearch.com"
-          }
-          developers {
-            developer {
-              id = 'stanislaw.osinski'
-              name = 'Stanisław Osiński'
-              email = 'stanislaw.osinski@carrotsearch.com'
-            }
-            developer {
-              id = 'dawid.weiss'
-              name = 'Dawid Weiss'
-              email = 'dawid.weiss@carrotsearch.com'
-            }
-          }
-          // Added automatically by ES plugin.
-          /*
-          scm {
-            connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
-            developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-            // url = 'https://github.com/carrot2/elasticsearch-carrot2'
-          }
-           */
-        }
-      }
-    }
-  }
-
-  signing {
-    sign publishing.publications.maven
-  }
-
-  task publishToSonatype() {
-    dependsOn publishMavenPublicationToSonatypeRepository
-  }
-
-  tasks.matching { it.path == ":publishMavenPublicationToBuildRepository" }.all {
-    doFirst {
-      delete mavenBuildRepo
-    }
-  }
-
-  task publishToLocal() {
-    group "Publishing"
-    description "Publish Maven artifacts locally to " + file(mavenBuildRepo)
-
-    dependsOn ":publishMavenPublicationToBuildRepository"
-  }
-
-  task sonatypeBundle(type: Zip) {
-    group "Publishing"
-    description "Prepare a sonatype bundle archive with all artifacts."
-
-    dependsOn publishToLocal
-
-    archiveFileName = "bundle-${project.archivesBaseName}-${project.version}.zip"
-    destinationDirectory = file("${buildDir}/sonatype")
-
-    from(file("${mavenBuildRepo}/org/carrot2/elasticsearch-carrot2/${project.version}"), {
-    })
-  }
+    includeEmptyDirs = false
+    into 'config'
+  })
 }
