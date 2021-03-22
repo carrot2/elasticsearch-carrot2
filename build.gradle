@@ -68,7 +68,6 @@ dependencies {
   testCompile "com.fasterxml.jackson.core:jackson-databind:2.10.4"
 
   testCompile "org.assertj:assertj-core:3.13.2"
-  testCompile "org.elasticsearch.client:transport:${versions.elasticsearch}"
 
   testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
@@ -94,6 +93,12 @@ targetCompatibility = 11
 
 // We don't have unit tests, only integration tests.
 test.enabled = false
+
+// Disable security manager for ClusteringActionRestIT
+// TODO: rewrite the test somehow?
+javaRestTest {
+  systemProperty 'tests.security.manager', 'false'
+}
 
 // Add plugin configuration files to each testClusters instance.
 // 'extraConfigFile' doesn't allow directories, only files, so we
