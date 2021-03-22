@@ -42,8 +42,7 @@ configure(rootProject) {
         pom {
           name = esplugin.name
           description = esplugin.description
-          // Added automatically by ES plugin.
-          // url = 'https://github.com/carrot2/elasticsearch-carrot2'
+
           inceptionYear = "2013"
           artifactId 'elasticsearch-carrot2'
           licenses {
@@ -69,8 +68,10 @@ configure(rootProject) {
             }
           }
 
-          // Added automatically by ES plugin.
+          // TODO: ES 7.10.0 hack: fails if uncommented (can't define one's own because
+          // es build plugin force-adds its own versions).
           /*
+          url = 'https://github.com/carrot2/elasticsearch-carrot2'
           scm {
             connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
             developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
@@ -87,10 +88,13 @@ configure(rootProject) {
   }
 
   task publishToSonatype() {
+    group "Publishing"
+    description "Publish to SonaType Nexus."
+
     dependsOn publishMavenPublicationToSonatypeRepository
   }
 
-  task publishToLocal() {
+  task publishToBuild() {
     group "Publishing"
     description "Publish Maven artifacts locally to ${mavenBuildRepo}"
 
