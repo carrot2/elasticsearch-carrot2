@@ -1,7 +1,7 @@
 buildscript {
   ext {
     localversions = [
-        es : "7.10.1",
+        es : "7.10.2",
         c2 : "4.0.4"
     ]
   }
