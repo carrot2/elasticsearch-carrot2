@@ -1,7 +1,8 @@
 {
   "algorithms": {
     "documentation": "",
-    "stability" : "stable", 
+    "stability" : "stable",
+    "visibility": "public",
     "url": {
       "paths": [
         {

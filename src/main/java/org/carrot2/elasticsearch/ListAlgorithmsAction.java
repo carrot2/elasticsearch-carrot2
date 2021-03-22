@@ -132,7 +132,11 @@ public class ListAlgorithmsAction
         TransportService transportService,
         ClusteringContext controllerSingleton,
         ActionFilters actionFilters) {
-      super(ListAlgorithmsAction.NAME, actionFilters, transportService.getTaskManager());
+      super(
+          ListAlgorithmsAction.NAME,
+          actionFilters,
+          transportService.getLocalNodeConnection(),
+          transportService.getTaskManager());
       this.controllerSingleton = controllerSingleton;
       transportService.registerRequestHandler(
           ListAlgorithmsAction.NAME,

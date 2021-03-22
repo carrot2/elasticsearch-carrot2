@@ -55,7 +55,11 @@ public class ClusteringActionTransport
       TransportSearchAction searchAction,
       ClusteringContext controllerSingleton,
       ActionFilters actionFilters) {
-    super(ClusteringAction.NAME, actionFilters, transportService.getTaskManager());
+    super(
+        ClusteringAction.NAME,
+        actionFilters,
+        transportService.getLocalNodeConnection(),
+        transportService.getTaskManager());
 
     this.searchAction = searchAction;
     this.context = controllerSingleton;

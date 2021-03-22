@@ -45,11 +45,11 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
   public static final String PLUGIN_NAME = "elasticsearch-carrot2";
 
   /** All algorithm providers. */
-  private LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders =
+  private final LinkedHashMap<String, ClusteringAlgorithmProvider> algorithmProviders =
       new LinkedHashMap<>();
 
   /** All language component providers. */
-  private Map<String, List<LanguageComponentsProvider>> languageComponentProviders =
+  private final Map<String, List<LanguageComponentsProvider>> languageComponentProviders =
       new LinkedHashMap<>();
 
   private final boolean transportClient;

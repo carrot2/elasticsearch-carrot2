@@ -1,7 +1,7 @@
 buildscript {
   ext {
     localversions = [
-        es : "7.10.2",
+        es : "7.11.2",
         c2 : "4.0.4"
     ]
   }
@@ -108,14 +108,6 @@ testClusters.all {
     extraConfigFile 'elasticsearch-carrot2/' + file.name, file
   }
 }
-
-// TODO: ES 7.10.0 hack: fails if set to true.
-loggerUsageCheck.enabled = false
-
-// Turn off internal ES audits.
-licenseHeaders.enabled = false
-dependencyLicenses.enabled = false
-thirdPartyAudit.enabled = false
 
 // Unpack and bundle the default resources with the plugin.
 bundlePlugin {
