@@ -1,3 +1,4 @@
+
 package org.carrot2.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,3 +1,4 @@
+
 package org.carrot2.elasticsearch;
 
 import java.io.ByteArrayOutputStream;
@@ -48,11 +49,6 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
   @Override
   protected Settings nodeSettings(int nodeOrdinal) {
     return Settings.builder().put(super.nodeSettings(nodeOrdinal)).build();
-  }
-
-  @Override
-  protected boolean addMockHttpTransport() {
-    return false;
   }
 
   @Override

@@ -1,3 +1,4 @@
+
 package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;

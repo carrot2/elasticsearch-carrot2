@@ -1,4 +1,3 @@
-
 buildscript {
   ext {
     version_es = '7.10.0'
@@ -18,12 +17,12 @@ buildscript {
 plugins {
   id 'java-library'
   id 'idea'
-  id 'com.diffplug.gradle.spotless' version "4.5.1" apply false
+  id 'com.diffplug.spotless' version "5.8.2" apply false
 }
 
 apply plugin: 'elasticsearch.esplugin'
+apply plugin: 'elasticsearch.java-rest-test'
 apply plugin: 'elasticsearch.yaml-rest-test'
-apply plugin: 'elasticsearch.internal-cluster-test'
 
 apply from: file('gradle/validation/spotless.gradle')
 
@@ -73,6 +72,13 @@ dependencies {
 
   testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
   testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
+
+  // Let the javaRestTest see the classpath of main and tests.
+  javaRestTestImplementation project.sourceSets.main.runtimeClasspath
+  javaRestTestImplementation project.sourceSets.test.runtimeClasspath
+
+  // TODO: ES 7.10.0 hack: missing log4j classes?
+  yamlRestTestImplementation "org.apache.logging.log4j:log4j-core:2.11.1"
 }
 
 configurations.all { config ->
@@ -110,6 +116,13 @@ bundlePlugin {
 // Disable POM validation inside ES infrastructure.
 tasks.matching {it.path in [":validateMavenPom", ":validateNebulaPom"]}.all { task ->
   task.enabled = false
+}
+
+testClusters.all {
+  // extraConfigFile doesn't allow directories, only files, so we need to add each individually
+  fileTree(dir: 'src/main/config').each { file ->
+    extraConfigFile 'elasticsearch-carrot2/' + file.name, file
+  }
 }
 
 // Configure publishing.

@@ -1,3 +1,4 @@
+
 package org.carrot2.elasticsearch;
 
 import java.util.List;
@@ -10,12 +11,14 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.lucene.util.LuceneTestCase;
 import org.assertj.core.api.Assertions;
 import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.elasticsearch.common.xcontent.XContentType;
 
 /** REST API tests for {@link ClusteringAction}. */
+@LuceneTestCase.AwaitsFix(bugUrl = "Rewrite!")
 public class ClusteringActionRestIT extends SampleIndexTestCase {
 
   private XContentType xtype = randomFrom(XContentType.values());

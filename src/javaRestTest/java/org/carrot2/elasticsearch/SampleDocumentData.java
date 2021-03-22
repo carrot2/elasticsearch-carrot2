@@ -1,3 +1,4 @@
+
 package org.carrot2.elasticsearch;
 
 /** Sample "documents" for tests. */
