@@ -89,7 +89,7 @@ configure(rootProject) {
 
   task publishToSonatype() {
     group "Publishing"
-    description "Publish to SonaType Nexus."
+    description "Publish to SonaType Nexus at ${publishing.repositories.sonatype.url}."
 
     dependsOn publishMavenPublicationToSonatypeRepository
   }
