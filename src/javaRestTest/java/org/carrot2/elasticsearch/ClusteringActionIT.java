@@ -1,9 +1,6 @@
 
 package org.carrot2.elasticsearch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,9 +20,16 @@ import org.carrot2.language.LanguageComponentsLoader;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.bytes.BytesArray;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.ObjectPath;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
@@ -273,14 +277,10 @@ public class ClusteringActionIT extends SampleIndexTestCase {
             .actionGet();
     checkValid(resultWithHits);
     checkJsonSerialization(resultWithHits);
-    // get JSON output
-    XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
-    builder.startObject();
-    resultWithHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
-    builder.endObject();
 
-    ObjectNode jsonWithHits = (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
-    Assertions.assertThat(jsonWithHits.has("hits")).isTrue();
+    var asMap = asMap(resultWithHits);
+    Assertions.assertThat(ObjectPath.<Object>eval("hits.total.value", asMap)).isEqualTo(96);
+    Assertions.assertThat((List<?>) ObjectPath.eval("hits.hits", asMap)).isNotEmpty();
 
     // without hits
     ClusteringActionResponse resultWithoutHits =
@@ -296,72 +296,26 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     checkValid(resultWithoutHits);
     checkJsonSerialization(resultWithoutHits);
 
-    // get JSON output
-    builder = XContentFactory.jsonBuilder().prettyPrint();
-    builder.startObject();
-    resultWithoutHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
-    builder.endObject();
-    ObjectNode jsonWithoutHits =
-        (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
-
-    ObjectWriter ow = new ObjectMapper().writerWithDefaultPrettyPrinter();
-    Assertions.assertThat(jsonWithoutHits.get("hits").get("hits").size()).isEqualTo(0);
-
-    // insert hits into jsonWithoutHits
-    jsonWithoutHits.set("hits", jsonWithHits.get("hits"));
-
-    // 'took' can vary, so ignore it
-    jsonWithoutHits.remove("took");
-    jsonWithHits.remove("took");
-
-    // info can vary (clustering-millis, output_hits), so ignore it
-    jsonWithoutHits.remove("info");
-    jsonWithHits.remove("info");
-
-    // profile can vary
-    jsonWithoutHits.remove("profile");
-    jsonWithHits.remove("profile");
-
-    // now they should match
-    String json1 = ow.writeValueAsString(jsonWithHits);
-    logger.debug("--> with:\n" + json1);
-    String json2 = ow.writeValueAsString(jsonWithoutHits);
-    logger.debug("--> without:\n" + json2);
-    Assertions.assertThat(json1).isEqualTo(json2);
+    asMap = asMap(resultWithoutHits);
+    Assertions.assertThat(ObjectPath.<Object>eval("hits.total.value", asMap)).isEqualTo(96);
+    Assertions.assertThat((List<?>) ObjectPath.eval("hits.hits", asMap)).isEmpty();
   }
 
-  public void testMaxHits() throws IOException {
-    // same search with and without hits
-    SearchRequestBuilder req =
-        client
-            .prepareSearch()
-            .setIndices(INDEX_TEST)
-            .setSize(2)
-            .setQuery(QueryBuilders.termQuery("content", "data"))
-            .setFetchSource(new String[] {"content"}, null);
-
-    // Limit the set of hits to just top 2.
-    ClusteringActionResponse limitedHits =
-        new ClusteringActionRequestBuilder(client)
-            .setQueryHint("data mining")
-            .setMaxHits(2)
-            .setAlgorithm(STCClusteringAlgorithm.NAME)
-            .addSourceFieldMapping("title", LogicalField.TITLE)
-            .setCreateUngroupedDocumentsCluster(true)
-            .setSearchRequest(req)
-            .execute()
-            .actionGet();
-    checkValid(limitedHits);
-    checkJsonSerialization(limitedHits);
-
-    Assertions.assertThat(limitedHits.getSearchResponse().getHits().getHits()).hasSize(2);
-
-    // get JSON output
+  private Map<String, Object> asMap(ClusteringActionResponse resultWithHits) throws IOException {
     XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
     builder.startObject();
-    limitedHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
+    resultWithHits.toXContent(builder, ToXContent.EMPTY_PARAMS);
     builder.endObject();
-    ObjectNode json = (ObjectNode) new ObjectMapper().readTree(Strings.toString(builder));
-    Assertions.assertThat(json.get("hits").get("hits").size()).isEqualTo(2);
+
+    Map<String, Object> responseJson;
+    try (XContentParser parser =
+        XContentHelper.createParser(
+            NamedXContentRegistry.EMPTY,
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
+            new BytesArray(Strings.toString(builder)),
+            XContentType.JSON)) {
+      responseJson = parser.mapOrdered();
+    }
+    return responseJson;
   }
 }

@@ -63,10 +63,6 @@ dependencies {
     exclude group: "com.carrotsearch", module: "hppc"
   })
 
-  testCompile "com.fasterxml.jackson.core:jackson-core:2.10.4"
-  testCompile "com.fasterxml.jackson.core:jackson-annotations:2.10.4"
-  testCompile "com.fasterxml.jackson.core:jackson-databind:2.10.4"
-
   testCompile "org.assertj:assertj-core:3.13.2"
 
   // Let the javaRestTest see the classpath of main and tests.
