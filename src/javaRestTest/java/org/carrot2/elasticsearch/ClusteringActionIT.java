@@ -328,7 +328,7 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     Assertions.assertThat(limitedHits.getSearchResponse().getHits().getHits()).hasSize(2);
 
     var asMap = asMap(limitedHits);
-    Assertions.assertThat(ObjectPath.<Object>eval("hits.total.value", asMap)).isEqualTo(2);
+    Assertions.assertThat(ObjectPath.<Object>eval("hits.total.value", asMap)).isEqualTo(96);
     Assertions.assertThat((List<?>) ObjectPath.eval("hits.hits", asMap)).hasSize(2);
   }
 
