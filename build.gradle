@@ -73,13 +73,6 @@ dependencies {
   yamlRestTestImplementation "org.apache.logging.log4j:log4j-core:${versions.log4j}"
 }
 
-// Ensure consistency for test dependencies.
-configurations.all { config ->
-  resolutionStrategy {
-    force "commons-logging:commons-logging:${versions.commonslogging}"
-  }
-}
-
 // Set target compatibility
 sourceCompatibility = 11
 targetCompatibility = 11
