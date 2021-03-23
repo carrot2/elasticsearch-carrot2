@@ -1,6 +1,6 @@
 {
   "algorithms": {
-    "documentation": "",
+    "documentation": "List all available clustering algorithms.",
     "stability" : "stable",
     "visibility": "public",
     "url": {

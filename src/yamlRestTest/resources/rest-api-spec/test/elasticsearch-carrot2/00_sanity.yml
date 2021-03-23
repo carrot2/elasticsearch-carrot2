@@ -1,11 +1,8 @@
-"Plugin loaded":
+"Test that the clustering plugin is loaded":
     - do:
-        cluster.state: {}
+          cat.plugins:
+              local: true
+              h: component
 
-    - set: { master_node: master }
-
-    - do:
-        nodes.info: {}
-
-    - match:  { nodes.$master.plugins.0.name: "elasticsearch-carrot2"  }
-    - match:  { nodes.$master.plugins.0.classname:  "org.carrot2.elasticsearch.ClusteringPlugin" }
+    - match:
+          $body: /^elasticsearch-carrot2\n$/

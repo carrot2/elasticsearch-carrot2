@@ -69,9 +69,6 @@ dependencies {
 
   testCompile "org.assertj:assertj-core:3.13.2"
 
-  testCompile "org.apache.httpcomponents:httpclient:${versions.httpclient}"
-  testCompile "org.apache.httpcomponents:httpcore:${versions.httpcore}"
-
   // Let the javaRestTest see the classpath of main and tests.
   javaRestTestImplementation project.sourceSets.main.runtimeClasspath
   javaRestTestImplementation project.sourceSets.test.runtimeClasspath
