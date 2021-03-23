@@ -301,6 +301,37 @@ public class ClusteringActionIT extends SampleIndexTestCase {
     Assertions.assertThat((List<?>) ObjectPath.eval("hits.hits", asMap)).isEmpty();
   }
 
+  public void testMaxHits() throws IOException {
+    // same search with and without hits
+    SearchRequestBuilder req =
+        client
+            .prepareSearch()
+            .setIndices(INDEX_TEST)
+            .setSize(2)
+            .setQuery(QueryBuilders.termQuery("content", "data"))
+            .setFetchSource(new String[] {"content"}, null);
+
+    // Limit the set of hits to just top 2.
+    ClusteringActionResponse limitedHits =
+        new ClusteringActionRequestBuilder(client)
+            .setQueryHint("data mining")
+            .setMaxHits(2)
+            .setAlgorithm(STCClusteringAlgorithm.NAME)
+            .addSourceFieldMapping("title", LogicalField.TITLE)
+            .setCreateUngroupedDocumentsCluster(true)
+            .setSearchRequest(req)
+            .execute()
+            .actionGet();
+    checkValid(limitedHits);
+    checkJsonSerialization(limitedHits);
+
+    Assertions.assertThat(limitedHits.getSearchResponse().getHits().getHits()).hasSize(2);
+
+    var asMap = asMap(limitedHits);
+    Assertions.assertThat(ObjectPath.<Object>eval("hits.total.value", asMap)).isEqualTo(2);
+    Assertions.assertThat((List<?>) ObjectPath.eval("hits.hits", asMap)).hasSize(2);
+  }
+
   private Map<String, Object> asMap(ClusteringActionResponse resultWithHits) throws IOException {
     XContentBuilder builder = XContentFactory.jsonBuilder().prettyPrint();
     builder.startObject();
