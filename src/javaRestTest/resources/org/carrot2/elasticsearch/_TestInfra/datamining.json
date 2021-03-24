@@ -1,0 +1,1002 @@
+[
+  {
+    "url": "http://en.wikipedia.org/wiki/Data_mining",
+    "title": "Data mining - Wikipedia, the free encyclopedia",
+    "content": "Article about knowledge-discovery in databases (KDD), the practice of automatically searching large stores of data for patterns."
+  },
+  {
+    "url": "http://www.ccsu.edu/datamining/resources.html",
+    "title": "CCSU - Data Mining",
+    "content": "A collection of Data Mining links edited by the Central Connecticut State University ... Graduate Certificate Program. Data Mining Resources. Resources. Groups ..."
+  },
+  {
+    "url": "http://www.kdnuggets.com/",
+    "title": "KDnuggets: Data Mining, Web Mining, and Knowledge Discovery",
+    "content": "Newsletter on the data mining and knowledge industries, offering information on data mining, knowledge discovery, text mining, and web mining software, courses, jobs, publications, and meetings."
+  },
+  {
+    "url": "http://en.wikipedia.org/wiki/Data-mining",
+    "title": "Data mining - Wikipedia, the free encyclopedia",
+    "content": "Data mining is considered a subfield within the Computer Science field of knowledge discovery. ... claim to perform \"data mining\" by automating the creation ..."
+  },
+  {
+    "url": "http://www.anderson.ucla.edu/faculty/jason.frand/teacher/technologies/palace/datamining.htm",
+    "title": "Data Mining: What is Data Mining?",
+    "content": "Outlines what knowledge discovery, the process of analyzing data from different perspectives and summarizing it into useful information, can do and how it works."
+  },
+  {
+    "url": "http://www.the-data-mine.com/",
+    "title": "Data Mining - Home Page (Misc)",
+    "content": "Provides information about data mining also known as knowledge discovery in databases (KDD) or simply knowledge discovery. List software, events, organizations, and people working in data mining."
+  },
+  {
+    "url": "http://www.spss.com/data_mining/",
+    "title": "Data Mining Software, Data Mining Applications and Data Mining Solutions",
+    "content": "... complete data mining customer ... Data mining applications, on the other hand, embed ... it, our daily lives are influenced by data mining applications. ..."
+  },
+  {
+    "url": "http://datamining.typepad.com/data_mining/",
+    "title": "Data Mining: Text Mining, Visualization and Social Media",
+    "content": "Commentary on text mining, data mining, social media and data visualization. ... Opinion Mining Startups ... in sentiment mining, deriving tuples of ..."
+  },
+  {
+    "url": "http://www.statsoft.com/textbook/stdatmin.html",
+    "title": "Data Mining Techniques",
+    "content": "Outlines the crucial concepts in data mining, defines the data warehousing process, and offers examples of computational and graphical exploratory data analysis techniques."
+  },
+  {
+    "url": "http://answers.yahoo.com/question/index?qid=1006040419333",
+    "title": "<b>answers.yahoo.com</b>/question/index?qid=1006040419333",
+    "content": "Generally, data mining (sometimes called data or knowledge discovery) is the ... Midwest grocery chain used the data mining capacity of Oracle software to ..."
+  },
+  {
+    "url": "http://www.ccsu.edu/datamining/master.html",
+    "title": "CCSU - Data Mining",
+    "content": "Details on how to apply to the Master of Science in data mining may be found here. ... All data mining majors are classified for business purposes as part-time ..."
+  },
+  {
+    "url": "http://databases.about.com/od/datamining/a/datamining.htm",
+    "title": "Data Mining: An Introduction",
+    "content": "About.com article on how businesses are discovering new trends and patterns of behavior that previously went unnoticed through data mining, automated statistical analysis techniques."
+  },
+  {
+    "url": "http://www.thearling.com/",
+    "title": "Data Mining and Analytic Technologies (Kurt Thearling)",
+    "content": "Kurt Thearling's site dedicated to sharing information about data mining, the automated extraction of hidden predictive information from databases, and other analytic technologies."
+  },
+  {
+    "url": "http://www.sas.com/technologies/analytics/datamining/index.html",
+    "title": "Data Mining Software and Text Mining | SAS",
+    "content": "Data mining is the process of selecting, exploring and modeling large amounts of ... The knowledge gleaned from data and text mining can be used to fuel ..."
+  },
+  {
+    "url": "http://databases.about.com/od/datamining/Data_Mining_and_Data_Warehousing.htm",
+    "title": "Data Mining and Data Warehousing",
+    "content": "From data mining tutorials to data warehousing techniques, you'll find it all! ... Administration Design Development Data Mining Database Training Careers Reviews ..."
+  },
+  {
+    "url": "http://www.oracle.com/technology/products/bi/odm/index.html",
+    "title": "Oracle Data Mining",
+    "content": "Oracle Data Mining Product Center ... Using data mining functionality embedded in Oracle Database 10g, you can find ... Mining High-Dimensional Data for ..."
+  },
+  {
+    "url": "http://www.ncdm.uic.edu/",
+    "title": "National Center for Data Mining - Welcome",
+    "content": "Conducts research in: scaling algorithms, applications and systems to massive data sets, developing algorithms, applications, and systems for mining distributed data, and establishing standard languages, protocols, and services for data mining and predictive modeling."
+  },
+  {
+    "url": "http://research.microsoft.com/dmx/DataMining/default.aspx",
+    "title": "Data Mining Project",
+    "content": "A long term Knowledge Discovery and Data Mining project which has the current ... Read more about how data mining is integrated into SQL server. Contact Us ..."
+  },
+  {
+    "url": "http://www.dmg.org/",
+    "title": "Data Mining Group - DMG",
+    "content": "... high performance networking, internet computing, data mining and related areas. ... Peter Stengard, Oracle Data Mining Technologies. prudsys AG, Chemnitz, ..."
+  },
+  {
+    "url": "http://datamining.typepad.com/data_mining/2006/05/the_truth_about.html",
+    "title": "Data Mining: Text Mining, Visualization and Social Media: The Truth About Blogs",
+    "content": "Commentary on text mining, data mining, social media and data visualization. ... Data Mining points to the latest papers from the 3rd International Workshop on ..."
+  },
+  {
+    "url": "http://searchsqlserver.techtarget.com/sDefinition/0,,sid87_gci211901,00.html",
+    "title": "What is data mining? - a definition from Whatis.com - see also: data miner, data analysis",
+    "content": "Data mining is the analysis of data for relationships that have not previously been discovered. ... Data mining techniques are used in a many research areas, ..."
+  },
+  {
+    "url": "http://www.thearling.com/text/dmwhite/dmwhite.htm",
+    "title": "An Introduction to Data Mining",
+    "content": "Data mining, the extraction of hidden predictive information from large ... prospective analyses offered by data mining move beyond the analyses of ..."
+  },
+  {
+    "url": "http://www.oracle.com/solutions/business_intelligence/data-mining.html",
+    "title": "Oracle Data Mining",
+    "content": "Using data mining functionality embedded in ... Oracle Data Mining JDeveloper and SQL Developer ... Oracle Magazine: Using the Oracle Data Mining API ..."
+  },
+  {
+    "url": "http://www.amazon.com/tag/data%20mining",
+    "title": "Amazon.com: data mining",
+    "content": "A community about data mining. Tag and discover new products. ... Data Mining (Paperback) Data Mining: Practical Machine Learning Tools and Techniques, Second Edition ..."
+  },
+  {
+    "url": "http://ocw.mit.edu/OcwWeb/Sloan-School-of-Management/15-062Data-MiningSpring2003/CourseHome/index.htm",
+    "title": "MIT OpenCourseWare | Sloan School of Management | 15.062 Data Mining, Spring 2003 | Home",
+    "content": "... class of methods known as data mining that assists managers in recognizing ... Data mining is a rapidly growing field that is concerned with developing ..."
+  },
+  {
+    "url": "http://www.sas.com/offices/europe/sweden/2746.html",
+    "title": "Om Data Mining och Text Mining. Ta fram säkra beslutsunderlag med Data Miningverktyg från SAS Institute.",
+    "content": "SAS Insitutes business intelligence ger värdefull kunskap till hela din ... Tillämpningen av data mining sträcker sig över många branscher och områden. ..."
+  },
+  {
+    "url": "http://www.dmoz.org/Computers/Software/Databases/Data_Mining/",
+    "title": "Open Directory - Computers: Software: Databases: Data Mining",
+    "content": "Data Mining and Knowledge Discovery - A peer-reviewed journal publishing ... In assessing the potential of data mining based marketing campaigns one needs to ..."
+  },
+  {
+    "url": "http://www.investorhome.com/mining.htm",
+    "title": "Investor Home - Data Mining",
+    "content": "Data Mining or Data Snooping is the practice of searching for relationships and ... up by making a case study in data mining out of the Motley Fool's Foolish Four. ..."
+  },
+  {
+    "url": "http://www.amazon.com/Data-Mining-Concepts-Techniques-Management/dp/1558604898",
+    "title": "Amazon.com: Data Mining: Concepts and Techniques (The Morgan Kaufmann Series in Data Management Systems): Jiawei Han...",
+    "content": "Amazon.com: Data Mining: Concepts and Techniques (The Morgan Kaufmann Series in Data Management Systems): Jiawei Han,Micheline Kamber: Books"
+  },
+  {
+    "url": "http://www.monografias.com/trabajos/datamining/datamining.shtml",
+    "title": "Data Mining - Monografias.com",
+    "content": "Data Mining, la extracción de información oculta y predecible de grandes bases ... Las herramientas de Data Mining predicen futuras tendencias y comportamientos, ..."
+  },
+  {
+    "url": "http://www.megaputer.com/data_mining.php",
+    "title": "Data Mining Technology - Megaputer",
+    "content": "Data Mining Technology from Megaputer ... Typical tasks addressed by data mining include: ... Yet, data mining requires far more than just machine learning. ..."
+  },
+  {
+    "url": "http://datamining.itsc.uah.edu/",
+    "title": "itsc data mining solutions center",
+    "content": ""
+  },
+  {
+    "url": "http://www.dmreview.com/specialreports/20050503/1026882-1.html",
+    "title": "Hard Hats for Data Miners: Myths and Pitfalls of Data Mining",
+    "content": "This article debunks several myths about data mining and presents a plan of action to avoid some of the pitfalls. ... a typical data mining conference or ..."
+  },
+  {
+    "url": "http://research.microsoft.com/dmx/",
+    "title": "Data Management, Exploration and Mining- Home",
+    "content": "The Data Management Exploration and Mining Group (DMX) ... Our research effort in data mining focuses on ensuring that traditional ..."
+  },
+  {
+    "url": "http://www.biomedcentral.com/info/about/datamining",
+    "title": "BioMed Central | about us | Data mining research",
+    "content": "... a collection of links to publications on the subject of biomedical text mining. Data mining Open Access research - an article in the 8 September 2003 edition of ..."
+  },
+  {
+    "url": "http://www.datapult.com/Data_Mining.htm",
+    "title": "Data Mining",
+    "content": "Data Mining Services provide customers with tools to quickly sift through the ... into Datapult Central for use with Data Mining tools and other Datapult products. ..."
+  },
+  {
+    "url": "http://www.siam.org/meetings/sdm02/",
+    "title": "SIAM International Conference on Data Mining",
+    "content": "SIAM International Conference on Data Mining, co-Sponsored by AHPCRC and ... Clustering High Dimensional Data and its Applications. Mining Scientific Datasets ..."
+  },
+  {
+    "url": "http://dir.yahoo.com/Computers_and_Internet/Software/Databases/Data_Mining/",
+    "title": "Data Mining in the Yahoo! Directory",
+    "content": "Learn about data mining and knowledge discovery, the process of finding patterns ... Cross Industry Standard Process for Data Mining (CRISP-DM) ..."
+  },
+  {
+    "url": "http://www.llnl.gov/str/Kamath.html",
+    "title": "Data Mining",
+    "content": "... Sapphire-a semiautomated, flexible data-mining software infrastructure. ... Data mining is not a new field. ... scale, scientific data-mining efforts such ..."
+  },
+  {
+    "url": "http://www.sqlserverdatamining.com/",
+    "title": "SQL Server Data Mining > Home",
+    "content": "SQL Server Data Mining Portal ... information about our exciting data mining features. ... CTP of Microsoft SQL Server 2008 Data Mining Add-Ins for Office 2007 ..."
+  },
+  {
+    "url": "http://www.dbmsmag.com/9807m01.html",
+    "title": "DBMS - DBMS Data Mining Solutions Supplement",
+    "content": "As recently as two years ago, data mining was a new concept for many people. Data mining products were new and marred by unpolished interfaces. ..."
+  },
+  {
+    "url": "http://www.oclc.org/research/projects/mining",
+    "title": "Data mining [OCLC - Projects]",
+    "content": "Describes the goals, methodology, and timing of the Data mining project."
+  },
+  {
+    "url": "http://www.the-data-mine.com/bin/view/Misc/IntroductionToDataMining",
+    "title": "Data Mining - Introduction To Data Mining (Misc)",
+    "content": "Some example application areas are listed under Applications Of Data Mining ... Crows Introduction - \"Introduction to Data Mining and Knowledge Discovery\"- http: ..."
+  },
+  {
+    "url": "http://www.pentaho.com/products/data_mining/",
+    "title": "Pentaho Commercial Open Source Business Intelligence: Data Mining",
+    "content": "... (BI) to the next level by adding data mining and workflow to the mix. ... Pentaho Data Mining is differentiated by its open, standards-compliant nature, ..."
+  },
+  {
+    "url": "http://www.unf.edu/~selfayou/html/data_mining.html",
+    "title": "Data Mining",
+    "content": "This course approaches data mining topics from an Artificial Intelligence ... The course will also cover Applications and Trends in Data Mining. Textbook: ..."
+  },
+  {
+    "url": "http://www.statsoft.com/products/dataminer.htm",
+    "title": "Data Mining Software & Predictive Modeling Solutions",
+    "content": "data mining software & predictive modeling sold online by statsoft.com. ... of automated and ready-to-deploy data mining solutions for a wide variety of ..."
+  },
+  {
+    "url": "http://gosset.wharton.upenn.edu/wiki/index.php/Main_Page",
+    "title": "Main Page - Knowledge Discovery",
+    "content": "The Penn Data Mining Group develops principled means of modeling and ... knowledge of specific application areas to develop new approaches to data mining. ..."
+  },
+  {
+    "url": "http://www.twocrows.com/glossary.htm",
+    "title": "Two Crows: Data mining glossary",
+    "content": "Data mining terms concisely defined. ... Accuracy is an important factor in assessing the success of data mining. ... data mining ..."
+  },
+  {
+    "url": "http://www.cdc.gov/niosh/mining/data/",
+    "title": "NIOSH Mining: MSHA Data File Downloads | CDC/NIOSH",
+    "content": "MSHA accident, injury, employment, and production data files in SPSS and dBase formats ... Data files on mining accidents, injuries, fatalities, employment, ..."
+  },
+  {
+    "url": "http://www.cartdatamining.com/",
+    "title": "Salford Data mining 2006",
+    "content": "Objective | Previous Conferences | Call for Abstracts | LATEST INFO ..."
+  },
+  {
+    "url": "http://www.inductis.com/",
+    "title": "Data Mining | Focused Data Mining For Discovery To Assist Management",
+    "content": "Inductis offers high-level data mining services to assist management decisions ... The Data Mining Shootout ...more>> ISOTech 2006 - The Insurance Technology ..."
+  },
+  {
+    "url": "http://www.datamininglab.com/",
+    "title": "Elder Research: Predictive Analytics & Data Mining Consulting",
+    "content": "Provides consulting and short courses in data mining and pattern discovery patterns in data."
+  },
+  {
+    "url": "http://www.microsoft.com/sql/technologies/dm/default.mspx",
+    "title": "Microsoft SQL Server: Data Mining",
+    "content": "Microsoft SQL Server Data Mining helps you explore your business data and discover patterns to reveal the hidden trends about your products, customer, market, and ..."
+  },
+  {
+    "url": "http://www.dataminingcasestudies.com/",
+    "title": "Data Mining Case Studies",
+    "content": "Recognizing outstanding practical contributions in the field of data mining. ... case studies are one of the most discussed topics at data mining conferences. ..."
+  },
+  {
+    "url": "http://www.webopedia.com/TERM/D/data_mining.html",
+    "title": "What is data mining? - A Word Definition From the Webopedia Computer Dictionary",
+    "content": "This page describes the term data mining and lists other pages on the Web where you can find additional information. ... Data Mining and Analytic Technologies ..."
+  },
+  {
+    "url": "http://www.cs.waikato.ac.nz/~ml/weka/book.html",
+    "title": "Data Mining: Practical Machine Learning Tools and Techniques",
+    "content": "Book. Data Mining: Practical Machine Learning Tools and Techniques (Second Edition) ... Explains how data mining algorithms work. ..."
+  },
+  {
+    "url": "http://www.datamining.com/",
+    "title": "Predictive Modeling and Predictive Analytics Solutions | Enterprise Miner Software from Insightful Software",
+    "content": "Insightful Enterprise Miner - Enterprise data mining for predictive modeling and predictive analytics."
+  },
+  {
+    "url": "http://www.sra.com/services/index.asp?id=153",
+    "title": "SRA International - Data Mining Solutions",
+    "content": "... and business who ask these questions are finding solutions through data mining. ... Data mining is the process of discovering previously unknown relationships in ..."
+  },
+  {
+    "url": "http://en.wiktionary.org/wiki/data_mining",
+    "title": "data mining - Wiktionary",
+    "content": "Data mining. Wikipedia. data mining. a technique for searching large-scale databases for patterns; used mainly to ... Czech: data mining n., dolování dat n. ..."
+  },
+  {
+    "url": "http://www.datamining.org/",
+    "title": "data mining institute",
+    "content": ""
+  },
+  {
+    "url": "http://videolectures.net/Top/Computer_Science/Data_Mining/",
+    "title": "Videolectures category: Data Mining",
+    "content": "Next Generation Data Mining Tools: Power laws and self-similarity for graphs, ... Parallel session 4 - Hands-on section Data mining with R. Luis Torgo. 1 comment ..."
+  },
+  {
+    "url": "http://www2008.org/CFP/RP-data_mining.html",
+    "title": "WWW2008 CFP - WWW 2008 Call For Papers: Refereed Papers - Data Mining",
+    "content": "WWW2008 - The 17th International World Wide Web Conference - Beijing, China (21 - 25 April 2008) Hosted by Beihang Universit ... data mining, machine ..."
+  },
+  {
+    "url": "http://answers.yahoo.com/question/index?qid=20070227091350AAVDlI1",
+    "title": "what is data mining?",
+    "content": "... the purchases of customers, a data mining system could identify those customers ... A simple example of data mining, often called Market Basket Analysis, ..."
+  },
+  {
+    "url": "http://clubs.yahoo.com/clubs/datamining",
+    "title": "datamining2 : Data Mining Club - 1600+ members!!",
+    "content": "datamining2: Data Mining Club - 1600+ members!"
+  },
+  {
+    "url": "http://www.siam.org/meetings/sdm01/",
+    "title": "First SIAM International Conference on Data Mining",
+    "content": "The field of data mining draws upon extensive work in areas such as statistics, ... recent results in data mining, including applications, algorithms, software, ..."
+  },
+  {
+    "url": "http://www.statserv.com/datamining.html",
+    "title": "St@tServ - About Data Mining",
+    "content": "St@tServ Data Mining page ... Data mining in molecular biology, by Alvis Brazma. Graham Williams page. Knowledge Discovery and Data Mining Resources, ..."
+  },
+  {
+    "url": "http://www.springer.com/computer/database+management+&+information+retrieval/journal/10618",
+    "title": "Data Mining and Knowledge Discovery - Data Mining and Knowledge Discovery Journals, Books & Online Media | Springer",
+    "content": "Technical journal focused on the theory, techniques, and practice for extracting information from large databases."
+  },
+  {
+    "url": "http://msdn2.microsoft.com/en-us/library/ms174949.aspx",
+    "title": "Data Mining Concepts",
+    "content": "Data mining is frequently described as &quot;the process of extracting ... Creating a data mining model is a dynamic and iterative process. ..."
+  },
+  {
+    "url": "http://www.cs.wisc.edu/dmi/",
+    "title": "DMI:Data Mining Institute",
+    "content": "Data Mining Institute at UW-Madison ... The Data Mining Institute (DMI) was ... Corporation with the support of the Data Mining Group of Microsoft Research. ..."
+  },
+  {
+    "url": "http://www.dataminingconsultant.com/",
+    "title": "DataMiningConsultant.com",
+    "content": "... Website for Data Mining Methods and ... data mining at Central Connecticut State University, he ... also provides data mining consulting and statistical ..."
+  },
+  {
+    "url": "http://www.dmreview.com/channels/data_mining.html",
+    "title": "Data Mining",
+    "content": "... business intelligence, data warehousing, data mining, CRM, analytics, ... M2007 Data Mining Conference Hitting 10th Year and Going Strong ..."
+  },
+  {
+    "url": "http://www.unc.edu/~xluan/258/datamining.html",
+    "title": "Data Mining",
+    "content": "What is the current state of data mining? The immediate future ... Data Mining is the process of extracting knowledge hidden from large volumes of ..."
+  },
+  {
+    "url": "http://www.data-miners.com/",
+    "title": "Data Miners Inc. We wrote the book on data mining!",
+    "content": "Data mining consultancy; services include predictive modeling, consulting, and seminars."
+  },
+  {
+    "url": "http://www.versiontracker.com/dyn/moreinfo/macosx/27607",
+    "title": "Data Mining 2.2.2 software download - Mac OS X - VersionTracker",
+    "content": "Find Data Mining downloads, reviews, and updates for Mac OS X including commercial software, shareware and freeware on VersionTracker.com."
+  },
+  {
+    "url": "http://www.webtechniques.com/archives/2000/01/greening/",
+    "title": "New Architect: Features",
+    "content": "Article by Dan Greening on data mining techniques applied to analyzing and making decisions from web data. ... and business analysts use data-mining techniques. ..."
+  },
+  {
+    "url": "http://www.networkdictionary.com/software/DataMining.php",
+    "title": "Data Mining | NetworkDictionary",
+    "content": "Data Mining is the automated extraction of hidden predictive information from databases. ... The data mining tools can make this leap. ..."
+  },
+  {
+    "url": "http://www.youtube.com/watch?v=wqpMyQMi0to",
+    "title": "YouTube - What is Data Mining? - February 19, 2008",
+    "content": "Association Labratory President and CEO Dean West discusses Data Mining and how it can be applied to associations. ... Data Mining Association Forum Dean West ..."
+  },
+  {
+    "url": "http://www.cs.sfu.ca/~han/DM_Book.html",
+    "title": "Book page",
+    "content": "Chapter 4. Data Mining Primitives, Languages, and System Architectures ... Chapter 9. Mining Complex Types of Data ... to Microsoft's OLE DB for Data Mining ..."
+  },
+  {
+    "url": "http://www.twocrows.com/",
+    "title": "Two Crows data mining home page",
+    "content": "Dedicated to the development, marketing, sales and support of tools for knowledge discovery to make data mining accessible and easy to use."
+  },
+  {
+    "url": "http://www.autonlab.org/tutorials",
+    "title": "Statistical Data Mining Tutorials",
+    "content": "Includes a set of tutorials on many aspects of statistical data mining, including the foundations of probability, the foundations of statistical data analysis, and most of the classic machine learning and data mining algorithms."
+  },
+  {
+    "url": "http://ecommerce.ncsu.edu/technology/topic_Datamining.html",
+    "title": "E-commerce Technology: Data Mining",
+    "content": "\"Web usage mining: discovery and applications of web usage patterns from web data\" ... Patterns and Trends by Applying OLAP and Data Mining Technology on Web Logs. ..."
+  },
+  {
+    "url": "http://www.teradata.com/t/page/106002/index.html",
+    "title": "Teradata Data Mining Warehouse Solution",
+    "content": "... a high-powered analytic warehouse that streamlines the data mining process. ... while building the analytic model using your favorite data mining tool. ..."
+  },
+  {
+    "url": "http://datamining.japati.net/",
+    "title": "Indo Datamining",
+    "content": "Apa yang bisa dan tidak bisa dilakukan data mining ? ... Iko Pramudiono \"&raquo ... Apa itu data mining ? Iko Pramudiono \"&raquo. artikel lainnya \" tutorial ..."
+  },
+  {
+    "url": "http://www.affymetrix.com/products/software/specific/dmt.affx",
+    "title": "Affymetrix - Data Mining Tool (DMT) (Unsupported - Archived Product)",
+    "content": "Affymetrix is dedicated to developing state-of-the-art technology for acquiring, analyzing, and managing complex genetic ... The Data Mining Tool (DMT) ..."
+  },
+  {
+    "url": "http://www.pcc.qub.ac.uk/tec/courses/datamining/stu_notes/dm_book_1.html",
+    "title": "Data Mining Student Notes, QUB",
+    "content": "2 - Data Mining Functions. 2.1 - Classification. 2.2 - Associations ... 5 - Data Mining Examples. 5.1 - Bass Brewers. 5.2 - Northern Bank. 5.3 - TSB Group PLC ..."
+  },
+  {
+    "url": "http://www.spss.com/text_mining_for_clementine/",
+    "title": "Text Mining for Clementine | Improve the accuracy of data mining",
+    "content": "Text Mining for Clementine from SPSS enables you to use text data to improve the accuracy of predictive models. ... and about data mining in general. ..."
+  },
+  {
+    "url": "http://www.open-mag.com/features/Vol_16/datamining/datamining.htm",
+    "title": "Data Mining",
+    "content": "Without data mining, a merchant isn't even close to leveraging what customers want and will buy. ... Data mining is to be found in applications like bio ..."
+  },
+  {
+    "url": "http://wordpress.com/tag/data-mining/",
+    "title": "Data Mining — Blogs, Pictures, and more on WordPress",
+    "content": "Going Beyond the Numbers: Context-Sensitive Data Mining ... Data mining examples ... many websites employing data mining technology to provide recommendation ..."
+  },
+  {
+    "url": "http://www.dmbenchmarking.com/",
+    "title": "Benchmarking- Data Mining Benchmarking Association",
+    "content": "Association of companies and organizations working to identify \"best in class\" data mining processes through benchmarking studies."
+  },
+  {
+    "url": "http://www.dataentryindia.com/data_processing/data_mining.php",
+    "title": "Data Mining, Data Mining Process, Data Mining Techniques, Outsourcing Mining Data Services",
+    "content": "... Walmart, Fundraising Data Mining, Data Mining Activities, Web-based Data Mining, ... in many industries makes us the best choice for your data mining needs. ..."
+  },
+  {
+    "url": "http://www.target.com/Data-Mining-Applications-International-Information/dp/1853127299",
+    "title": "Data Mining V: Data Mining, Text Mining... [Hardcover] | Target.com",
+    "content": "Shop for Data Mining V: Data Mining, Text Mining and Their Business Applications : Fifth International Conference on Data Mining (Management Information System) at"
+  },
+  {
+    "url": "http://www.cs.ubc.ca/~rng/research/datamining/data_mining.htm",
+    "title": "Data Mining",
+    "content": "... varying degrees of success, the data mining tools developed thus far, by and ... (a) we should recognize that data mining is a multi-step process, and that (b) ..."
+  },
+  {
+    "url": "http://jcp.org/en/jsr/detail?id=73",
+    "title": "The Java Community Process(SM) Program - JSRs: Java Specification Requests - detail JSR# 73",
+    "content": "Currently, there is no widely agreed upon, standard API for data mining. By using JDMAPI, implementers of data mining applications can expose a single, ..."
+  },
+  {
+    "url": "http://www.microsoft.com/spain/sql/technologies/dm/default.mspx",
+    "title": "Microsoft SQL Server2005: Data Mining",
+    "content": "Data Mining es la tecnología BI que le ayudará a construir modelos analíticos complejos e integrar esos modelos con sus operaciones comerciales."
+  },
+  {
+    "url": "http://www.bos.frb.org/economic/nerr/rr2000/q3/mining.htm",
+    "title": "Regional Review: Mining Data",
+    "content": "Although data mining by itself is not going to get the Celtics to the playoffs, ... then, firms that specialize in data-mining software have been developing a ..."
+  },
+  {
+    "url": "http://www.scianta.com/technology/datamining.htm",
+    "title": "Data Mining",
+    "content": "... are excellent candidates for data mining, fault prediction, problem diagnosis, ... Data Mining uses this theory to support Link and Affinity Group analysis – an ..."
+  },
+  {
+    "url": "http://www.gusconstan.com/DataMining/index.htm",
+    "title": "Discovery and Mining",
+    "content": "Verification-Driven Data Mining. Advantages of Symbolic Classifiers. Manual vs. Automatic ... Currently, data mining solutions have been developed by large software ..."
+  },
+  {
+    "url": "http://www.dataminingconsultant.com/DKD.htm",
+    "title": "DataMiningConsultant.com",
+    "content": "Companion Website for Data Mining Methods and Models ... \"This is an excellent introductory book on data mining. ... An Introduction to Data Mining at Amazon.com ..."
+  },
+  {
+    "url": "http://www.pfaw.org/pfaw/general/default.aspx?oid=9717",
+    "title": "People For the American Way - Data Mining",
+    "content": "data mining, civil liberties, civil rights, terrorism, september 11th, anti-terrorism, ashcroft, government intrusion, privacy, email, patriot, american"
+  },
+  {
+    "url": "http://dm1.cs.uiuc.edu/",
+    "title": "Data Mining Research Group",
+    "content": "... conducting research in various areas in data mining and other related fields. ... on Data Mining (SDM'08), (full paper), Atlanta, GA, April 2007. ..."
+  },
+  {
+    "url": "http://www.dawid.tv/",
+    "title": "dawid.tv",
+    "content": "Watch free videos on dawid.tv. Now Playing: DAWID DRIF ... About. Dawid. Bielawa - Poland. Friends: 1. Last Login: ... View All Members of dawid.tv. Tag Cloud ..."
+  },
+  {
+    "url": "http://www.dawid.co.za/",
+    "title": "DAWID",
+    "content": "Welkom by: Dawid Bredenkamp se webtuiste. Foto's. Skakels. Kontak ..."
+  },
+  {
+    "url": "http://www.dawid-nowak.org/",
+    "title": "Dawid Nowak",
+    "content": "Dawid Nowak Home Page ... Resume. Gallery. Thailand. Still in Thailand. Into Laos. Through Laos To Cambodia. RSS feeds for lazy technically oriented people ..."
+  },
+  {
+    "url": "http://dawid.digitalart.org/",
+    "title": "dawid.digitalart.org - Profile of Dawid Michalczyk",
+    "content": "A gallery of masterfully created works of digital art. ... Dawid Michalczyk \" Send Private Message \" Send an E-mail. Art Gallery (13) Guestbook ..."
+  },
+  {
+    "url": "http://www.dawid.nu/index.php?ID=4",
+    "title": "dawid :: images / commercial work :: advertising & illustrations",
+    "content": "The official site of photographer Dawid, Björn Dawidsson. Fotograf Dawid - Björn Dawidsson ... references: AB Vin & Sprit, Apple, Berliner, Bond, Ericsson, ..."
+  },
+  {
+    "url": "http://www.dawidphotography.com/",
+    "title": "Photographer London UK, Dawid de Greeff © 2007 , Digital photographer - Portfolio",
+    "content": "South African born Dawid & Annemarie de Greeff are International digital ... NAME. EMAIL. MESSAGE ..."
+  },
+  {
+    "url": "http://www.anniedawid.com/",
+    "title": ": : Annie Dawid : : Author and Photographer",
+    "content": "Annie Dawid is the author of Resurrection City: A Novel of Jonestown (to be ... Annie Dawid lives and writes in the Sangre de Cristo range of South-Central Colorado. ..."
+  },
+  {
+    "url": "http://en.wikipedia.org/wiki/Dawid_Janowski",
+    "title": "Dawid Janowski - Wikipedia, the free encyclopedia",
+    "content": "Dawid Markelowicz Janowski (in English usually called David Janowski) (born 25 ... Dawid Janowski died on January 15, 1927 of tuberculosis. ..."
+  },
+  {
+    "url": "http://www.dawid.nu/index.php?ID=2",
+    "title": "dawid :: images / art :: COMP",
+    "content": "The official site of photographer Dawid, Björn Dawidsson. Fotograf Dawid - Björn Dawidsson ... dawid : images / art : COMP: Series photographed during the mid 80's. ..."
+  },
+  {
+    "url": "http://en.wikipedia.org/wiki/Dawid",
+    "title": "Dawid - Wikipedia, the free encyclopedia",
+    "content": "Dawid. From Wikipedia, the free encyclopedia. Jump to: navigation, search. Dawid may refer to the following people: David, the biblical King David ..."
+  },
+  {
+    "url": "http://www.myspace.com/dawidszczesny",
+    "title": "MySpace.com - dawid szczesny - Wroclaw - www.myspace.com/dawidszczesny",
+    "content": "MySpace music profile for dawid szczesny with tour dates, songs, videos, pictures, blogs, band information, downloads and more"
+  },
+  {
+    "url": "http://www.art.eonworks.com/",
+    "title": "Computer wallpaper, stock illustration, Sci-Fi art, Fantasy art, Surreal art, Space art, Abstract art - posters, ...",
+    "content": "Digital Art of Dawid Michalczyk. Unique posters, prints, wallpapers and wall calendars. ... the official website of Dawid Michalczyk - a freelance illustrator ..."
+  },
+  {
+    "url": "http://www.surfski.info/content/view/384/147/",
+    "title": "Surf Ski . Info - Dawid Mocke King of the Harbour 2007",
+    "content": "Surf Ski information and news. Training tips from the experts, equipment, getting started guides, surfski reviews, photos ...links and stories."
+  },
+  {
+    "url": "http://www.agentsbase.com/",
+    "title": "Agent's Base",
+    "content": "Dawid Kasperowicz. Get Firefox. Get Google Ads. Affiliates ... By Dawid | February 28, 2008 - 12:05 pm - Posted in Technology ..."
+  },
+  {
+    "url": "http://www.target.com/Dawid-Dawidsson-Bjorn/dp/3882437243",
+    "title": "Dawid [Hardcover] | Target Official Site",
+    "content": "Shop for Dawid at Target. Choose from a wide range of Books. Expect More, Pay Less at Target.com"
+  },
+  {
+    "url": "http://www.dawid.tobiasz.org/",
+    "title": "Dawid",
+    "content": "Dawid. Fotografia stanowi w?asno?? autora. Kopiowanie i rozpowszechnianie ... Copyright by Dawid Tobiasz [Fotografia stanowi w?asno?? autora. ..."
+  },
+  {
+    "url": "http://juliedawid.co.uk/",
+    "title": "Julie Dawid :",
+    "content": "birthing support scotland. Poetical Fusion Folk. Words. Band. Listen. Contact. Copyright © 2004 Julie Dawid. All Rights reserved. Powered by Accidental Media ..."
+  },
+  {
+    "url": "http://conference.dawid.uni.wroc.pl/index.php?lang=iso-8859-2",
+    "title": "konferencja - Welcome",
+    "content": "Joomla - the dynamic portal engine and content management system ... The 1st Symposium of Pedagogy and Psychology PhD Students. Monday, 13 February 2006 ..."
+  },
+  {
+    "url": "http://www.ibe.unesco.org/publications/ThinkersPdf/dawide.pdf",
+    "title": "Jan Wladyslaw Dawid",
+    "content": "All his life, Jan Wladyslaw Dawid was closely associated with the teaching ... Dawid who believed that these experiments were fundamental to the blossoming and ..."
+  },
+  {
+    "url": "http://www.dawid-posciel.pl/",
+    "title": "www.<b>dawid-posciel.pl</b>",
+    "content": ""
+  },
+  {
+    "url": "http://www.dawidrurkowski.com/",
+    "title": "Dawid Rurkowski - portfolio",
+    "content": "Dawid Rurkowski online webdesign portfolio ... My name is Dawid, I am a web designer with a real passion to my work. ... © Copyright 2007 Dawid Rurkowski All ..."
+  },
+  {
+    "url": "http://conference.dawid.uni.wroc.pl/index.php?option=com_content&task=blogsection&id=20&Itemid=49%E2%8C%A9=iso-8859-2",
+    "title": "konferencja - Warsztaty",
+    "content": "Joomla - the dynamic portal engine and content management system ... Karolina Pietras is a psychologist, business trainer and PhD student at Faculty ..."
+  },
+  {
+    "url": "http://chess.about.com/library/persons/blp-jano.htm",
+    "title": "Famous Chess Players - Dawid Janowsky",
+    "content": "Beginners Improve Your Game Play Chess Online Chess Downloads Computers and ... Dawid Janowsky. Unsuccessful challenger for World Championship ..."
+  },
+  {
+    "url": "http://www.pbase.com/dawidwnuk",
+    "title": "Dawid Wnuk's Photo Galleries at pbase.com",
+    "content": "All images on this site copyrighted by DAWID WNUK. Please contact me if you would like to purchase or licence a photograph. Portraiture ..."
+  },
+  {
+    "url": "http://dawid-witos.nazwa.pl/chylu/en/index.php?link=news",
+    "title": "...Official Website of Michael Chylinski...",
+    "content": "Welcome to chylinski.info- the official web site of Polish National Team and ... We invite you to visite our service and write your opinions on forum. A few ..."
+  },
+  {
+    "url": "http://photoexposed.com/",
+    "title": "photoeXposed.com",
+    "content": "Dawid Slaski-Sawicki Photography"
+  },
+  {
+    "url": "http://vids.myspace.com/index.cfm?fuseaction=vids.individual&VideoID=7370487",
+    "title": "MySpaceTV Videos: Edyp trailer by dawid",
+    "content": "Edyp trailer by dawid Watch it on MySpace Videos. ... Posted by: dawid. Runtime: 0:52. Plays: 43. Comments: 0. Reinkarnacje - \"Czy to mi..."
+  },
+  {
+    "url": "http://www.linkedin.com/in/dawidmadon",
+    "title": "LinkedIn: Dawid Mado?",
+    "content": "Dawid Mado?'s professional profile on LinkedIn. ... Dawid Mado?. ORACLE DBA at Apriso and Information Technology and Services Consultant ..."
+  },
+  {
+    "url": "http://www.linkedin.com/pub/1/878/410",
+    "title": "LinkedIn: Dawid Tracz",
+    "content": "Dawid Tracz's professional profile on LinkedIn. ... Dawid Tracz's Experience. Graphician, WebDesigner, InterfaceDesigner. DreamLab Onet.pl Sp. ..."
+  },
+  {
+    "url": "http://profiles.friendster.com/13547484",
+    "title": "Friendster - Dawid Martin",
+    "content": "Friendster: ; location: Poland, PL; Kiedrowice, Warsaw (Poland),Jogja (Indonesia); Warsaw Gamelan Group, Bosso, Tepellere, Mandala, Suita Etnik, Konco-Konco Blues ..."
+  },
+  {
+    "url": "http://www.genevievedawid.com/",
+    "title": "Genevieve Dawid mentor, lecturer and author",
+    "content": "Author of the Achiever's Journey a real self help book for dyslexics, Genevieve Dawid offers a unique approach to mentoring and personal development."
+  },
+  {
+    "url": "http://www.last.fm/music/dawid+szczesny",
+    "title": "dawid szczesny – Music at Last.fm",
+    "content": "People who like dawid szczesny also like Masayasu Tzboguchi Trio, Ametsub, ... Dawid Szcz?sny performed in Poland, Germany (in 2005 invited by Kata Adamek and ..."
+  },
+  {
+    "url": "http://vids.myspace.com/index.cfm?fuseaction=vids.individual&videoid=2028359840",
+    "title": "MySpaceTV Videos: paka 2007-1 by dawid",
+    "content": "paka 2007-1 by dawid Watch it on MySpace Videos. ... Posted by: dawid. Runtime: 0:52. Plays: 43. Comments: 0. Reinkarnacje - \"Czy to mi..."
+  },
+  {
+    "url": "http://dawid.secondbrain.com/",
+    "title": "Dawid's profile page - Second Brain_ - All Your Content",
+    "content": "Dawid. People first, strategy second ... Dawid's recent updates. February 07 2008. Wimbledon ... Posted by Dawid on Second Brain February 05 2008. Post comment ..."
+  },
+  {
+    "url": "http://www.ushmm.org/wlc/article.php?lang=en&ModuleId=10007294",
+    "title": "Dawid Sierakowiak",
+    "content": "Dawid was an avid reader and an excellent observer. Throughout Dawid's imprisonment in the Lodz ghetto he made sure to write about ..."
+  },
+  {
+    "url": "http://www.ctbodyartist.com/",
+    "title": "CT Body Artist | Chrys Dawid (203) 255-1875",
+    "content": "CT Body Artist, Chrys Dawid (203) 255-1875 Professional Body painting service. From Advertising Champaigns to Private parties, make your statement & Marketing goals ..."
+  },
+  {
+    "url": "http://www.amazon.com/phrase/Dawid-Sierakowiak",
+    "title": "Amazon.com: \"Dawid Sierakowiak\": Key Phrase page",
+    "content": "Key Phrase page for Dawid Sierakowiak: Books containing the phrase Dawid Sierakowiak ... Key Phrases: Dawid Sierakowiak, United States, New York, Niutek ..."
+  },
+  {
+    "url": "http://www.planetizen.com/user/403/track",
+    "title": "Irvin Dawid | Planetizen",
+    "content": "Irvin Dawid. 0. 2 weeks 20 hours ago. news ... Irvin Dawid. 1. 3 weeks 5 days ago. news. Traffic Crashes Cost Twice as Much as Congestion ..."
+  },
+  {
+    "url": "http://www.ushmm.org/wlc/idcard.php?lang=en&ModuleId=10006389",
+    "title": "Dawid Szpiro",
+    "content": "Dawid was the older of two sons born to Jewish parents in Warsaw. ... of Warsaw's Jewish district, where Dawid and his brother, Shlomo, attended Jewish schools. ..."
+  },
+  {
+    "url": "http://groups.yahoo.com/group/dawid",
+    "title": "dawid : Katechetyczne Forum Dyskusyjne",
+    "content": "dawid · Katechetyczne Forum Dyskusyjne. Home. Messages ... Lista dyskusyjna strony internetowej DAWID. Most Recent Messages (View All) (Group by Topic) ..."
+  },
+  {
+    "url": "http://www.blogger.com/profile/01359115939699161533",
+    "title": "Blogger: User Profile: Dawid",
+    "content": "Push-Button Publishing. Dawid. Blogs. Blog Name. Team Members. Midwest Petanque Alliance BLOG ... MGal hdarpini chilipepper diveborabora DanDan Mike A testerin ..."
+  },
+  {
+    "url": "http://www.blogger.com/profile/15768169977536938605",
+    "title": "Blogger: User Profile: David",
+    "content": "kilconriola Credo Perpétua Amanda Liturgeist Chris + AMDG + +Miguel Vinuesa+ Royal Girl ... roydosan chrysogonus Brownthing Aristotle Boeciana Amanda Lactantius Juan ..."
+  },
+  {
+    "url": "http://www.babynamer.com/Dawid",
+    "title": "Dawid on BabyNamer",
+    "content": "For parents-to-be who want to confidently choose potential names for their baby, ... Dawid. Meaning: Its source is a ... baby name page for boy name Dawid. ..."
+  },
+  {
+    "url": "http://profile.myspace.com/index.cfm?fuseaction=user.viewprofile&friendid=38408574",
+    "title": "MySpace.com - Dawid - 26 - Male - FR - www.myspace.com/trastaroots",
+    "content": "MySpace profile for Dawid with pictures, videos, personal blog, interests, information about me and more ... yo dawid, ya un gars de ta région (koubiak) qui ..."
+  },
+  {
+    "url": "http://www.imdb.com/name/nm1058743/",
+    "title": "Dawid Kruiper",
+    "content": "Actor: Liebe. Macht. Blind.. Visit IMDb for Photos, Filmography, Discussions, Bio, News, Awards, Agent, Fan Sites. ... on IMDb message board for Dawid Kruiper ..."
+  },
+  {
+    "url": "http://citeseer.ist.psu.edu/context/55656/0",
+    "title": "Citations: Conditional independence in statistical theory - Dawid (ResearchIndex)",
+    "content": "A. P. Dawid. Conditional independence in statistical theory (with discussion). J. Roy. ... To capture Dawid s property for overlapping sets, Pearl introduces ..."
+  },
+  {
+    "url": "http://www.dawid.pl/gb/main.php",
+    "title": "Systemy ogrodzeniowe, ta?my, sita, siatki - DAWID Cz?stochowa",
+    "content": "Firma DAWID - Producent siatki ogrodzeniowej, bram, furtek, paneli D-1, D-2 itp. Cz?stochowa. ... DAWID Company has a long-standing tradition which has been ..."
+  },
+  {
+    "url": "http://www.imdb.com/name/nm2014139/",
+    "title": "Dawid Jakubowski",
+    "content": "Miscellaneous Crew: Once Upon a Knight. Visit IMDb for Photos, Filmography, Discussions, Bio, News, Awards, Agent, Fan Sites."
+  },
+  {
+    "url": "http://www.lclark.edu/cgi-bin/shownews.cgi?1011726000.1",
+    "title": "Dawid publishes Lily in the Desert",
+    "content": "Lewis & Clark College: Dawid publishes <i>Lily in the Desert</i> ... Annie Dawid is one of those all-too-rare writers who fully inhabits each ..."
+  },
+  {
+    "url": "http://dir.nichd.nih.gov/lmg/lmgdevb.htm",
+    "title": "Igor Dawid Lab Home Page",
+    "content": "Dawid Lab. Welcome to Igor Dawid's lab in the Laboratory of Molecular Genetics, ... National Institute of Child Health and Human Development, National ..."
+  },
+  {
+    "url": "http://www.ucl.ac.uk/~ucak06d/",
+    "title": "Philip Dawid",
+    "content": "DEPARTMENT OF STATISTICAL SCIENCE. UNIVERSITY COLLEGE LONDON. A. Philip Dawid ... Professor A. P. Dawid, Department of Statistical Science, University College London, ..."
+  },
+  {
+    "url": "http://www.pbase.com/dawidwnuk/profile",
+    "title": "pbase Artist Dawid Wnuk",
+    "content": "View Galleries : Dawid Wnuk has 5 galleries and 487 images online. ... My name is Dawid and I'm a photographer from Warsaw, Poland. ..."
+  },
+  {
+    "url": "http://dawidfrederik.deviantart.com/",
+    "title": "DawidFrederik on deviantART",
+    "content": "Art - community of artists and those devoted to art. ... Dawid Frederik Strauss. Profile Gallery Faves Journal. Status: deviantART Subscriber ..."
+  },
+  {
+    "url": "http://citeseer.ist.psu.edu/context/332153/0",
+    "title": "Citations: Statistical theory - Dawid (ResearchIndex)",
+    "content": "Dawid, P. (1984). Statistical theory. The prequential approach (with discussion) . Journal of the Royal Statistical Society A, 147:178--292."
+  },
+  {
+    "url": "http://www.infinitee-designs.com/Dawid-Michalczyk.htm",
+    "title": "Dawid Michalczyk Artist of the Month Space Art",
+    "content": "Artist of the Month, Dawid Michalczyk Abstract 3D Space Art, Visions, computer graphics, 2D illustration, sci-fi, fantasy, digital art"
+  },
+  {
+    "url": "http://www.myspace.com/dawidgatti",
+    "title": "MySpace.com - dawid - 26 - Male - www.myspace.com/dawidgatti",
+    "content": "MySpace profile for dawid with pictures, videos, personal blog, interests, information about me and more ... to meet: dawid's Friend Space (Top 1) dawid has 1 ..."
+  },
+  {
+    "url": "http://ezinearticles.com/?expert=Genevieve_Dawid",
+    "title": "Genevieve Dawid - EzineArticles.com Expert Author",
+    "content": "Genevieve Dawid is a published author and highly successful ... Genevieve Dawid's Extended ... [Business:Management] Genevieve Dawid explores the history of ..."
+  },
+  {
+    "url": "http://www.artnet.com/artist/698445/dawid-bjorn-dawidsson.html",
+    "title": "Dawid (Bjorn Dawidsson) on artnet",
+    "content": "Dawid (Bjorn Dawidsson) (Swedish, 1949) - Find works of art, auction results & sale prices of artist Dawid (Bjorn Dawidsson) at galleries and auctions worldwide."
+  },
+  {
+    "url": "http://www.glennshafer.com/assets/downloads/other12.pdf",
+    "title": "Comments on \"Causal Inference without Counterfactuals\" by A.P. Dawid",
+    "content": "Phil Dawid's elegant ... ted from discussions of causality with Phil Dawid over many years. ... ground with those who tout counterfactual variables, Dawid ..."
+  },
+  {
+    "url": "http://www.primerica.com/dawidkmiotek",
+    "title": "Primerica Financial Services : Dawid Ireneusz Kmiotek",
+    "content": "Primerica is in the business of ... Buy Term & Invest the Difference. The Theory of Decreasing ... About Dawid Ireneusz Kmiotek. Office Directions ..."
+  },
+  {
+    "url": "http://www.youtube.com/watch?v=tEKmrUhCMFo",
+    "title": "YouTube - Dawid Janczyk POLAND u-19 - BELGIUM u-19 (4-1)",
+    "content": "Dawid Janczyk (Legia Warsaw) ... Dawid Janczy gral w sandecji nowy sacz i raz gralem z nim(ja gralem w sokol ... Dawid Janczyk (Legia Warsaw) (less) Added: ..."
+  },
+  {
+    "url": "http://www.miniclip.com/games/david/en/",
+    "title": "David - Miniclip Games - Play Free Games",
+    "content": "Help David find the Lost Sheep and avoid the rampaging wild animals ... Hotmail, AOL, Yahoo Mail & other online email services. ..."
+  },
+  {
+    "url": "http://product.half.ebay.com/_W0QQprZ62221",
+    "title": "The Diary of Dawid Sierakowiak | Books at Half.com",
+    "content": "Buy The Diary of Dawid Sierakowiak by Dawid Sierakowiak, Kamil Turowski (1998) at Half.com. Find new and used books and save more than half off at Half.com."
+  },
+  {
+    "url": "http://www.primerica.com/PrimericaRep?rep=dawidkmiotek&pageName=about",
+    "title": "About Dawid Ireneusz Kmiotek",
+    "content": "Primerica is in the business of ... About Dawid Ireneusz Kmiotek. Office Directions ... Dawid Ireneusz Kmiotek. DISTRICT LEADER. Mutual Funds ..."
+  },
+  {
+    "url": "http://www.dawid.tobiasz.org/Monachium%20-%20Dachau/index.html",
+    "title": "Dawid/Monachium - Dachau",
+    "content": "Dawid \" Monachium - Dachau. Fotografia stanowi w?asno?? autora. Kopiowanie i ... Copyright by Dawid Tobiasz [Fotografia stanowi w?asno?? autora. ..."
+  },
+  {
+    "url": "http://www.davidwilkerson.org/",
+    "title": "David Wilkerson | World Challenge",
+    "content": ""
+  },
+  {
+    "url": "http://www.statslab.cam.ac.uk/~apd/index.html",
+    "title": "Philip Dawid",
+    "content": "PHILIP DAWID. Professor of Statistics. Contact Details. Professor A. P. Dawid, ... Valencia International Meetings on Bayesian Statistics. Bayesians Worldwide ..."
+  },
+  {
+    "url": "http://ideas.repec.org/e/poc8.html",
+    "title": "Dawid Zochowski at IDEAS",
+    "content": "Dawid Zochowski: current contact information and listing of economic research of this author provided by RePEc/IDEAS ... Pruski, Jerzy & ?ochowski, Dawid, 2005. ..."
+  },
+  {
+    "url": "http://www.scrumalliance.org/profiles/15472-dawid-mielnik",
+    "title": "Scrum Alliance - Profile: Dawid Mielnik",
+    "content": "Dawid has five years of professional experience in telecommunications business. ... Dawid is a Warsaw University of Technology graduate with a BSc in ..."
+  },
+  {
+    "url": "http://www.flickr.com/photos/dawidwalega/",
+    "title": "Flickr: Photos from 11September",
+    "content": "Flickr is almost certainly the best online photo management and sharing ... Explore Page Last 7 Days Interesting Calendar A Year Ago Today World Map Places ..."
+  },
+  {
+    "url": "http://www.youtube.com/watch?v=UOMk0M0hBNQ",
+    "title": "YouTube - Grembach Vigo Zgierz - Dawid Korona Rzeszów 8-1",
+    "content": "Grembach Vigo Zgierz - Dawid Korona Rzeszów 8-1 w Pucharze Polski ... Grembach Vigo Zgierz Dawid Korona Rzeszów futsal ?ód? kolejarz clearex hurtap puchar polski ..."
+  },
+  {
+    "url": "http://www.amazon.com/Diary-Dawid-Sierakowiak-Notebooks-Ghetto/dp/0195122852",
+    "title": "Amazon.com: The Diary of Dawid Sierakowiak: Five Notebooks from the Lodz Ghetto: Dawid Sierakowiak,Lawrence L. ...",
+    "content": "Amazon.com: The Diary of Dawid Sierakowiak: Five Notebooks from the Lodz Ghetto: Dawid Sierakowiak,Lawrence L. Langer,Alan Adelson,Kamil Turowski: Books"
+  },
+  {
+    "url": "http://shopping.yahoo.com/p:Kimberley%20Jim:1808599509",
+    "title": "Kimberley Jim - DVD at Yahoo! Shopping",
+    "content": "Yahoo! Shopping is the best place to comparison shop for Kimberley Jim - DVD. Compare products, compare prices, read reviews and merchant ratings."
+  },
+  {
+    "url": "http://www.ctfaceart.com/",
+    "title": "CT Face Art (203) 255-1875 - Chrys Dawid CTFaceArt@aol.com",
+    "content": "Award winning Face Painting for children through adults. ... CT FACE ART is owned and operated by Chrys Dawid. CT FACE ART is CT's finest face painting service. ..."
+  },
+  {
+    "url": "http://www.discogs.com/artist/Dawid+Szczesny",
+    "title": "Dawid Szczesny",
+    "content": "Submissions Drafts Collection Wantlist Favorites Watchlist Friends ... Dawid Szczesny / artists (D) Real Name: Dawid Szcz?sny. URLs: ..."
+  },
+  {
+    "url": "http://www.shop.com/+-p94105045-st.shtml",
+    "title": "York Ferry Annie Dawid - SHOP.COM",
+    "content": "Shop for York Ferry Annie Dawid at Shop.com. $1.99 - york ferry annie dawid language:english, format:paperback, fiction/non-fiction:fiction, publisher:cane hill pr,"
+  },
+  {
+    "url": "http://www.the-artists.org/artistsblog/posts/st_content_001.cfm?id=2600",
+    "title": "Dawid Michalczyk ...the-artists.org",
+    "content": "Dawid Michalczyk; portfolio & art news...the-artists.org, modern and contemporary art ... Dawid Michalczyk. Conflicting emotions. Suburbs 2100. After the ..."
+  },
+  {
+    "url": "http://www.dcorfield.pwp.blueyonder.co.uk/2006/06/dawid-on-probabilities.html",
+    "title": "Philosophy of Real Mathematics: Dawid on probabilities",
+    "content": "... reading group ran through Phil Dawid's Probability, Causality and the Empirical ... Dawid (pronounced 'David') holds a Bayesian position, made evident in his ..."
+  },
+  {
+    "url": "http://www.cs.put.poznan.pl/dweiss/xml/index.xml?lang=en",
+    "title": "Dawid Weiss - Main page",
+    "content": "Dawid Weiss, PhD. Institute of Computing Science. Poznan University of Technology. ul. ... (Available as RSS) (c) Dawid Weiss. All rights reserved unless stated ..."
+  },
+  {
+    "url": "http://www.dawid.eu/",
+    "title": "dawid.eu",
+    "content": "Hier entsteht dawid.eu ... dawid.eu. Hier entsteht in Kürze das Projekt. dawid.eu. info@dawid.eu ..."
+  },
+  {
+    "url": "http://www.local.com/results.aspx?keyword=Dawid+Frank+B+Inc&location=06890",
+    "title": "Dawid Frank B Inc in Southport, CT (Connecticut) @ Local.com",
+    "content": "Dawid Frank B Inc located in Southport, CT (Connecticut). Find contact info, maps and directions for local contractors and home improvement services at Local.com."
+  },
+  {
+    "url": "http://www.anniedawid.com/shortfiction.htm",
+    "title": ": : Annie Dawid : : Short Fiction",
+    "content": "Annie Dawid is the author of Resurrection City: A Novel of Jonestown (to be ... Copyright © 2007 Annie Dawid. Web Site Design by Chameleon Web Design ..."
+  },
+  {
+    "url": "http://dawid.ca/",
+    "title": "www.dawid.ca",
+    "content": "I was in such a huge mistake. (Dawid Bober) ... 2006-02-26 Skating - Agnieszka, Joanna, Michal, Dawid (Nathan Phillips Square – Toronto) ..."
+  },
+  {
+    "url": "http://www.planetizen.com/?q=about/correspondent/dawid",
+    "title": "Irvin Dawid | Planetizen",
+    "content": "Irvin Dawid is a long-time Sierra Club activist, having worked in transportation, ... Irvin Dawid. Leo Vazquez. Mary Reynolds. Michael Dudley. Mike Lydon ..."
+  },
+  {
+    "url": "http://www.sourcekibitzer.org/Bio.ext?sp=l6",
+    "title": "SourceKibitzer - Bio - Dawid Weiss",
+    "content": "Dawid Weiss - Bio. Dawid Weiss. The founder of the Carrot2 project. Adjunct professor at the Laboratory of Intelligent Decision Support Systems ..."
+  },
+  {
+    "url": "http://www.lulu.com/content/815029",
+    "title": "MD by Marcin and Dawid Witukiewicz (Music & Audio) in Electronic & Dance",
+    "content": "MD by Marcin and Dawid Witukiewicz (Music & Audio) in Electronic & Dance : Music ... Music inspierd by the photography of Marcin and Dawid. ..."
+  },
+  {
+    "url": "http://www.juliedawid.co.uk/index.php?page=Band",
+    "title": "Julie Dawid : Halfwise",
+    "content": "the songs of prize winning folk singer and poet Julie Dawid. ... Also a lover and keeper of fish, professional storyteller Julie Dawid ..."
+  },
+  {
+    "url": "http://www.jewishencyclopedia.com/view.jsp?artid=38&letter=M",
+    "title": "JewishEncyclopedia.com - MAGEN DAWID",
+    "content": "The hexagram formed by the combination of two equilateral triangles; used as the ... The \"Magen Dawid,\" therefore, probably did not originate withinRabbinism, the ..."
+  },
+  {
+    "url": "http://www.lulu.com/content/815298",
+    "title": "MD Photography by Marcin and Dawid Witukiewicz (Book) in Arts & Photography",
+    "content": "... This is a book feturing some of Marcin and Dawid Witukiewicz photographic work. ... by Marcin and Dawid Witukiewicz. Share This. Report this item. Preview ..."
+  },
+  {
+    "url": "http://finance.yahoo.com/q?s=dawid.x",
+    "title": "DAWID.X: Summary for DIA Sep 2008 134.0000 call - Yahoo! Finance",
+    "content": "Get detailed information on DIA Sep 2008 134.0000 call (DAWID.X) including quote performance, Real-Time ECN, technical chart analysis, key stats, insider ..."
+  },
+  {
+    "url": "http://www.bikepics.com/members/dawid/",
+    "title": "BikePics - Dawid's Member Page on BikePics.Com",
+    "content": "Dawid's Member Page. Member: dawid. Name: Dawid. From: ... You must be a BikePics Member and be logged in to message members. Current: 1998 Suzuki GS 500 ..."
+  },
+  {
+    "url": "http://www.david-banner.com/main.html",
+    "title": "David Banner",
+    "content": "Universal Records \\ SRC \\ Artists \\ David Banner ..."
+  },
+  {
+    "url": "http://www.dawid.com.pl/",
+    "title": "Kinga Dawid",
+    "content": "PORTRAITS by Kinga Dawid. Copying, dissemination, forwarding, printing and/or ... All rights reserved. Copyright C 2006 Kinga Dawid ..."
+  },
+  {
+    "url": "http://www.bikepics.com/members/devdawid/",
+    "title": "BikePics - dawid's Member Page on BikePics.Com",
+    "content": "dawid's Member Page. Member: devdawid. Name: dawid. From: Poland. Message: You must be a BikePics Member and be logged in to message members. Current: 2002 ..."
+  },
+  {
+    "url": "http://dawid.bracka.pl/",
+    "title": "Portfolio",
+    "content": "google | portfolio | klan mortal. google | portfolio | klan mortal ..."
+  },
+  {
+    "url": "http://amiestreet.com/dawid",
+    "title": "Amie Street - DaWid's Music Store",
+    "content": "Amie Street empowers musicians to release, and music fans to discover, new and ... music from DaWid. recommendations (3) more info. SELECT: All, None, Free ..."
+  },
+  {
+    "url": "http://markoff.pl/",
+    "title": "Dawid Markoff Photography",
+    "content": "Nude, Fashion and Portrait photography"
+  },
+  {
+    "url": "http://www.archinect.com/schoolblog/blog.php?id=C0_372_39",
+    "title": "Archinect : Schoolblog : UC DAAP (Dawid)",
+    "content": "UC DAAP (Dawid) (002) a couple of quotes and a mini thesis rant. Oct 02 2006, 6 comments ... UC DAAP (Dawid) (001) it's the year of the thesis. Sep 06 2006, 4 ..."
+  },
+  {
+    "url": "http://groups.yahoo.com/group/dawid/rss",
+    "title": "dawid : RSS / XML",
+    "content": "dawid: Katechetyczne Forum Dyskusyjne ... Sign In. dawid · Katechetyczne Forum Dyskusyjne. Home. Messages. Members Only. Post. Files ..."
+  },
+  {
+    "url": "http://cssoff.com/2007/06/14/and-the-winner-is-dawid-lizak/",
+    "title": "CSS OFF",
+    "content": "And the Winner is Dawid Lizak. View the winning entry. Dawid Lizak is from ??czna – a ... Dawid is currently expanding his knowledge of JavaScript, usability, ..."
+  }
+]

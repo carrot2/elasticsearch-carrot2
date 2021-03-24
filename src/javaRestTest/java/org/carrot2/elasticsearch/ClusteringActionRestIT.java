@@ -1,14 +1,14 @@
 
 package org.carrot2.elasticsearch;
 
+import static org.carrot2.elasticsearch.TestInfra.TestDocument;
+import static org.carrot2.elasticsearch.TestInfra.jsonResource;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.carrot2.clustering.Document;
 import org.carrot2.clustering.stc.STCClusteringAlgorithm;
 import org.carrot2.elasticsearch.ClusteringAction.RestClusteringAction;
 import org.carrot2.language.LanguageComponentsLoader;
@@ -38,8 +37,8 @@ import org.junit.Before;
 
 /** REST API tests for {@link ClusteringAction}. */
 public class ClusteringActionRestIT extends ESRestTestCase {
-  protected static final String INDEX_TEST = "test";
-  protected static final String INDEX_EMPTY = "empty";
+  protected static final String INDEX_RNDLANG = "test";
+  protected static final String INDEX_NOLANG = "empty";
 
   @Before
   public void setupData() throws IOException {
@@ -63,7 +62,7 @@ public class ClusteringActionRestIT extends ESRestTestCase {
   }
 
   public void testGetClusteringRequest() throws Exception {
-    var request = new Request("GET", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("GET", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
     request.addParameter("q", "data mining");
     request.addParameter("_source", "url,title,content");
@@ -92,34 +91,34 @@ public class ClusteringActionRestIT extends ESRestTestCase {
   }
 
   public void testNonexistentFields() throws Exception {
-    var request = new Request("POST", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("POST", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
 
     postNoError("post_nonexistent_fields.json");
   }
 
   public void testNonexistentAlgorithmId() throws Exception {
-    var request = new Request("POST", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("POST", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
-    request.setJsonEntity(jsonResource("post_nonexistent_algorithmId.json"));
+    request.setJsonEntity(jsonResource(getClass(), "post_nonexistent_algorithmId.json"));
 
     expectErrorResponseWithMessage(
         request, HttpURLConnection.HTTP_BAD_REQUEST, "No such algorithm: _nonexistent_");
   }
 
   public void testInvalidSearchQuery() throws Exception {
-    var request = new Request("POST", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("POST", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
-    request.setJsonEntity(jsonResource("post_invalid_query.json"));
+    request.setJsonEntity(jsonResource(getClass(), "post_invalid_query.json"));
 
     expectErrorResponseWithMessage(
         request, HttpURLConnection.HTTP_BAD_REQUEST, "parsing_exception");
   }
 
   public void testPropagatingAlgorithmException() throws Exception {
-    var request = new Request("POST", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("POST", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
-    request.setJsonEntity(jsonResource("post_invalid_attribute_value.json"));
+    request.setJsonEntity(jsonResource(getClass(), "post_invalid_attribute_value.json"));
 
     expectErrorResponseWithMessage(
         request, HttpURLConnection.HTTP_INTERNAL_ERROR, "Clustering error: Value must be <= 1.0");
@@ -167,9 +166,9 @@ public class ClusteringActionRestIT extends ESRestTestCase {
   }
 
   public Map<String, Object> postNoError(String jsonResource) throws Exception {
-    var request = new Request("POST", "/" + INDEX_TEST + "/" + RestClusteringAction.NAME);
+    var request = new Request("POST", "/" + INDEX_RNDLANG + "/" + RestClusteringAction.NAME);
     request.addParameter("pretty", "true");
-    request.setJsonEntity(jsonResource(jsonResource));
+    request.setJsonEntity(jsonResource(getClass(), jsonResource));
     return checkHttpResponseContainsClusters(request);
   }
 
@@ -195,40 +194,32 @@ public class ClusteringActionRestIT extends ESRestTestCase {
     String[] languages = new LanguageComponentsLoader().load().languages().toArray(String[]::new);
     Arrays.sort(languages);
 
-    index(
-        INDEX_TEST,
-        Stream.of(SampleDocumentData.SAMPLE_DATA)
-            .map(
-                t ->
-                    new FieldMapDocument(
-                        Map.of(
-                            "url", t[0],
-                            "title", t[1],
-                            "content", t[2],
-                            "lang", "English",
-                            "rndlang", languages[rnd.nextInt(languages.length)]))));
+    List<TestDocument> docs = TestInfra.load("datamining.json");
 
     index(
-        INDEX_EMPTY,
-        Stream.of(SampleDocumentData.SAMPLE_DATA)
+        INDEX_RNDLANG,
+        docs.stream()
             .map(
-                t ->
-                    new FieldMapDocument(
-                        Map.of(
-                            "url", t[0],
-                            "title", t[1],
-                            "content", t[2]))));
+                doc ->
+                    doc.cloneWith(
+                        Map.ofEntries(
+                            Map.entry("lang", "English"),
+                            Map.entry("rndlang", languages[rnd.nextInt(languages.length)])))));
+
+    index(INDEX_NOLANG, docs.stream());
   }
 
-  public static void index(String index, Stream<? extends Document> docStream) throws IOException {
+  public static void index(String index, Stream<TestDocument> docStream) throws IOException {
     if (indexExists(index)) {
       return;
     }
 
-    List<Document> docs = docStream.collect(Collectors.toList());
+    List<TestDocument> docs = docStream.collect(Collectors.toList());
 
-    Set<String> fields = new LinkedHashSet<>();
-    docs.forEach(doc -> doc.visitFields((f, __) -> fields.add(f)));
+    Set<String> fields =
+        docs.stream()
+            .flatMap(doc -> doc.fields().stream().map(Map.Entry::getKey))
+            .collect(Collectors.toSet());
 
     var xc = XContentFactory.jsonBuilder().startObject();
     for (String field : fields) {
@@ -253,32 +244,11 @@ public class ClusteringActionRestIT extends ESRestTestCase {
                   .endObject()));
       bulk.append("\n");
 
-      var json = XContentFactory.jsonBuilder().startObject();
-      doc.visitFields(
-          (f, v) -> {
-            try {
-              json.field(f, v);
-            } catch (IOException e) {
-              throw new UncheckedIOException(e);
-            }
-          });
-      json.endObject();
-
-      bulk.append(Strings.toString(json));
+      bulk.append(doc.toJson().replaceAll("[\r\n]+", " "));
       bulk.append("\n");
     }
+    System.out.println(bulk.toString());
     request.setJsonEntity(bulk.toString());
     client().performRequest(request);
-  }
-
-  private String jsonResource(String resourceName) throws IOException {
-    return new String(resource(resourceName), StandardCharsets.UTF_8);
-  }
-
-  private byte[] resource(String resourceName) throws IOException {
-    try (InputStream is =
-        getClass().getResourceAsStream("_" + getClass().getSimpleName() + "/" + resourceName)) {
-      return is.readAllBytes();
-    }
   }
 }

@@ -111,22 +111,22 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
       Arrays.sort(languages);
 
       BulkRequestBuilder bulk = client.prepareBulk();
-      for (String[] data : SampleDocumentData.SAMPLE_DATA) {
-        bulk.add(
-            client
-                .prepareIndex()
-                .setIndex(INDEX_TEST)
-                .setType("test")
-                .setSource(
-                    XContentFactory.jsonBuilder()
-                        .startObject()
-                        .field("url", data[0])
-                        .field("title", data[1])
-                        .field("content", data[2])
-                        .field("lang", "English")
-                        .field("rndlang", languages[rnd.nextInt(languages.length)])
-                        .endObject()));
-      }
+      TestInfra.load("datamining.json").stream()
+          .map(
+              doc ->
+                  doc.cloneWith(
+                      Map.ofEntries(
+                          Map.entry("lang", "English"),
+                          Map.entry("rndlang", languages[rnd.nextInt(languages.length)]))))
+          .forEach(
+              doc -> {
+                bulk.add(
+                    client
+                        .prepareIndex()
+                        .setIndex(INDEX_TEST)
+                        .setType("test")
+                        .setSource(doc.toXContent()));
+              });
 
       bulk.add(
           client
@@ -134,12 +134,8 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
               .setIndex(INDEX_EMPTY)
               .setType("empty")
               .setSource(
-                  XContentFactory.jsonBuilder()
-                      .startObject()
-                      .field("url", "")
-                      .field("title", "")
-                      .field("content", "")
-                      .endObject()));
+                  new TestInfra.TestDocument(Map.of("url", "", "title", "", "content", ""))
+                      .toXContent()));
 
       bulk.execute().actionGet();
       flushAndRefresh(INDEX_TEST);
