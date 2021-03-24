@@ -15,7 +15,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 /** An {@link ActionResponse} for {@link ClusteringAction}. */
 public class ClusteringActionResponse extends ActionResponse implements ToXContent {
   /** Clustering-related response fields. */
-  static final class Fields {
+  public static final class Fields {
     static final String SEARCH_RESPONSE = "search_response";
     static final String CLUSTERS = "clusters";
     static final String INFO = "info";
@@ -35,7 +35,7 @@ public class ClusteringActionResponse extends ActionResponse implements ToXConte
     static final String TIMED_OUT = "timed_out";
 
     /** {@link Fields#INFO} keys. */
-    static final class Info {
+    public static final class Info {
       public static final String ALGORITHM = "algorithm";
       public static final String SEARCH_MILLIS = "search-millis";
       public static final String CLUSTERING_MILLIS = "clustering-millis";
