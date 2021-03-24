@@ -22,7 +22,7 @@ To install from sources (master branch), run:
 
     ./gradlew clean build
 
-then install with:
+then install with (use full path):
 
     Linux:
     bin/elasticsearch-plugin install file:/.../(plugin)/build/distributions/*.zip
@@ -30,9 +30,9 @@ then install with:
     Windows:
     bin\elasticsearch-plugin install file:///c:/.../(plugin)/build/distributions/*.zip
 
-Should the plugin installed show a popup to request additional
-permissions for the plugin you have to accept such a prompt. Plugin
-versions for Carrot2 4.0.0+ do not require any extra permissions.
+If plugin installation shows a popup to request additional
+permissions, you have to accept it. Plugin versions for Carrot2 4.0.0+ do not
+require any extra permissions.
 
 
 Usage
