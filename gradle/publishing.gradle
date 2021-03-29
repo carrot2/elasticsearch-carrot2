@@ -40,9 +40,6 @@ configure(rootProject) {
         artifact bundlePlugin
 
         pom {
-          name = esplugin.name
-          description = esplugin.description
-
           inceptionYear = "2013"
           artifactId 'elasticsearch-carrot2'
           licenses {
@@ -68,15 +65,17 @@ configure(rootProject) {
             }
           }
 
-          // TODO: ES 7.10.0 hack: fails if uncommented (can't define one's own because
-          // es build plugin force-adds its own versions).
-          /*
           url = 'https://github.com/carrot2/elasticsearch-carrot2'
           scm {
             connection = 'scm:git:https://github.com/carrot2/elasticsearch-carrot2'
             developerConnection = 'scm:git:git@github.com:carrot2/elasticsearch-carrot2.git'
-            // url = 'https://github.com/carrot2/elasticsearch-carrot2'
+            url = 'https://github.com/carrot2/elasticsearch-carrot2'
           }
+
+          // ES HACK: 7.12.0: es build plugin force-adds its own versions.
+          /*
+          name = esplugin.name
+          description = esplugin.description
            */
         }
       }
