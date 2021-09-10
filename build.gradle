@@ -1,8 +1,8 @@
 buildscript {
   ext {
     localversions = [
-        es : "7.12.0",
-        c2 : "4.2.1"
+        es : "7.13.4",
+        c2 : "4.3.1"
     ]
   }
 
@@ -59,11 +59,11 @@ dependencies {
     transitive false
   })
 
-  compile("org.carrot2:carrot2-core:${localversions.c2}", {
+  api("org.carrot2:carrot2-core:${localversions.c2}", {
     exclude group: "com.carrotsearch", module: "hppc"
   })
 
-  testCompile "org.assertj:assertj-core:3.13.2"
+  testImplementation "org.assertj:assertj-core:3.13.2"
 
   // Let the javaRestTest see the classpath of main and tests.
   javaRestTestImplementation project.sourceSets.main.runtimeClasspath
@@ -102,3 +102,8 @@ bundlePlugin {
 
 // Configure publishing.
 apply from: file('gradle/publishing.gradle')
+
+// TODO: ES 7.13.4 hack. We generate our own POM.
+tasks.matching { it.path == ":validateElasticPom" }.all { Task t ->
+  enabled = false
+}

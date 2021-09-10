@@ -18,7 +18,6 @@ import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.network.NetworkAddress;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -37,11 +36,6 @@ import org.junit.Before;
 public abstract class SampleIndexTestCase extends ESIntegTestCase {
   protected String restBaseUrl;
   protected Client client;
-
-  @Override
-  protected Settings nodeSettings(int nodeOrdinal) {
-    return Settings.builder().put(super.nodeSettings(nodeOrdinal)).build();
-  }
 
   @Override
   protected Collection<Class<? extends Plugin>> nodePlugins() {
