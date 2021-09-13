@@ -45,7 +45,7 @@ by some local HTTP server). Add the following to ES/config/elasticsearch.yml:
 ```
 # Allow localhost cross-origin requests.
 http.cors.enabled: true
-http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/cdn\.rawgit\.com(:[0-9]+)?)/
+http.cors.allow-origin: /(null)|(https?:\/\/localhost(:[0-9]+)?)|(https?:\/\/carrot2\.github\.io(:[0-9]+)?)/
 ```
 
 More information about security implications of enabling CORS are here:
@@ -56,11 +56,10 @@ Finally, start ES and open up the documentation in your browser
   
 (plugin sources)/doc/index.html
 
-The above regular expression enables CORS headers from cdn.rawgit.com, so you can open 
-the documentation directly from there (use HTTPS if ES is accessed via
-HTTPS):
+The above regular expression enables CORS headers from github, so you can open 
+the documentation directly from there:
 
-http://carrot2.github.io/elasticsearch-carrot2/
+https://carrot2.github.io/elasticsearch-carrot2/
 
 CURL request examples are available here:
 
