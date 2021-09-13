@@ -22,9 +22,9 @@ import org.carrot2.language.LanguageComponentsProvider;
 import org.carrot2.language.LoadedLanguages;
 import org.carrot2.util.ChainedResourceLookup;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.common.SuppressForbidden;
 import org.elasticsearch.common.component.AbstractLifecycleComponent;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.core.SuppressForbidden;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
 

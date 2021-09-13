@@ -3,6 +3,7 @@
 configure(rootProject) {
   apply plugin: 'maven-publish'
   apply plugin: 'signing'
+  apply plugin: 'java-library'
 
   ext {
     mavenBuildRepo = file("${buildDir}/maven")
@@ -35,9 +36,9 @@ configure(rootProject) {
         group = project.group
         artifactId = project.archivesBaseName
 
-        artifact sourcesJar
-        artifact javadocJar
-        artifact bundlePlugin
+        // artifact  sourcesJar
+        // artifact  javadocJar
+        // artifact  bundlePlugin
 
         pom {
           inceptionYear = "2013"
