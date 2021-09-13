@@ -60,7 +60,7 @@ The above regular expression enables CORS headers from cdn.rawgit.com, so you ca
 the documentation directly from there (use HTTPS if ES is accessed via
 HTTPS):
 
-http://cdn.rawgit.com/carrot2/elasticsearch-carrot2/master/doc/index.html
+http://carrot2.github.io/elasticsearch-carrot2/
 
 CURL request examples are available here:
 
