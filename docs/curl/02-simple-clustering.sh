@@ -35,5 +35,7 @@ curl -XPOST -H "Content-Type: application/json" 'http://localhost:9200/test/test
     "query_hint": "data mining",
     "field_mapping": {
         "title"  : ["_source.title", "_source.content"]
-    }
+    },
+    "language": "English",
+    "algorithm": "Lingo"
 }'
