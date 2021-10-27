@@ -46,5 +46,7 @@ curl -H "Content-Type: application/json" -XPOST 'http://localhost:9200/test/test
     "field_mapping": {
         "title"  : ["_source.title"],
         "content": ["highlight.content"]
-    }
+    },
+    "language": "English",
+    "algorithm": "Lingo"
 }'
