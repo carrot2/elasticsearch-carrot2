@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.TestInfra.TestDocument;
@@ -147,8 +146,7 @@ public class ClusteringActionRestIT extends ESRestTestCase {
         .describedAs(responseDescription)
         .isEqualTo(expectedStatus);
 
-    XContentType xContentType =
-        XContentType.fromMediaTypeOrFormat(response.getHeader("Content-Type"));
+    XContentType xContentType = XContentType.fromMediaType(response.getHeader("Content-Type"));
     try (XContentParser parser =
         XContentHelper.createParser(
             NamedXContentRegistry.EMPTY,

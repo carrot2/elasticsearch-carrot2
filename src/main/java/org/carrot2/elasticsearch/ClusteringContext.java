@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.nio.file.Files;
@@ -58,7 +57,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
       Path pluginConfigPath = esConfig.resolve(ClusteringPlugin.PLUGIN_NAME);
 
       if (!Files.isDirectory(pluginConfigPath)) {
-        throw new ElasticsearchException("Missing configuration folder?: {}", pluginConfigPath);
+        //throw new ElasticsearchException("Missing configuration folder?: {}", pluginConfigPath);
       }
 
       Settings.Builder builder = Settings.builder();
@@ -160,7 +159,9 @@ public class ClusteringContext extends AbstractLifecycleComponent {
     }
   }
 
-  /** @return Return a list of available algorithm component identifiers. */
+  /**
+   * @return Return a list of available algorithm component identifiers.
+   */
   public LinkedHashMap<String, ClusteringAlgorithmProvider> getAlgorithms() {
     return algorithmProviders;
   }

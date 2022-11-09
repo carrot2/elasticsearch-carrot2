@@ -7,7 +7,7 @@ doIndex = function(progressFn) {
   var sampleData;
 
   function _doIndex() {
-    var url = window.ES_URL + "/test/test/" + i;
+    var url = window.ES_URL + "/test/_doc/" + i;
 
     if (i < sampleData.length) {
       $.post(url, JSON.stringify(sampleData[i]), function(result) {

@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import com.carrotsearch.randomizedtesting.annotations.Name;

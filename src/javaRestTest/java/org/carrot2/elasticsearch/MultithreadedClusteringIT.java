@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.util.ArrayList;
@@ -8,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.assertj.core.api.Assertions;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.internal.Client;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
@@ -38,7 +37,6 @@ public class MultithreadedClusteringIT extends SampleIndexTestCase {
                         client
                             .prepareSearch()
                             .setIndices(INDEX_TEST)
-                            .setTypes("test")
                             .setSize(100)
                             .setQuery(QueryBuilders.termQuery("content", "data"))
                             .highlighter(

@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.util.ArrayList;
@@ -55,11 +54,7 @@ public class ClusteringActionTransport
       TransportSearchAction searchAction,
       ClusteringContext controllerSingleton,
       ActionFilters actionFilters) {
-    super(
-        ClusteringAction.NAME,
-        actionFilters,
-        transportService.getLocalNodeConnection(),
-        transportService.getTaskManager());
+    super(ClusteringAction.NAME, actionFilters, transportService.getTaskManager());
 
     this.searchAction = searchAction;
     this.context = controllerSingleton;
@@ -77,6 +72,7 @@ public class ClusteringActionTransport
       final ActionListener<ClusteringActionResponse> listener) {
     final long tsSearchStart = System.nanoTime();
     searchAction.execute(
+        task,
         clusteringRequest.getSearchRequest(),
         new ActionListener<>() {
           @Override
@@ -265,7 +261,7 @@ public class ClusteringActionTransport
     InternalAggregations _internalAggregations = null;
     if (response.getAggregations() != null) {
       _internalAggregations =
-          new InternalAggregations(toInternal(response.getAggregations().asList()), null);
+          InternalAggregations.from(toInternal(response.getAggregations().asList()));
     }
 
     SearchHits _searchHits =
@@ -467,6 +463,7 @@ public class ClusteringActionTransport
     public void messageReceived(
         final ClusteringActionRequest request, final TransportChannel channel, Task task) {
       execute(
+          task,
           request,
           new ActionListener<>() {
             @Override

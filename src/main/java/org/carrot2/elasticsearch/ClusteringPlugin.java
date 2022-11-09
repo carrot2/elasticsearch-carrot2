@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.util.ArrayList;
@@ -14,10 +13,10 @@ import org.carrot2.clustering.ClusteringAlgorithmProvider;
 import org.carrot2.language.LanguageComponentsProvider;
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.internal.Client;
 import org.elasticsearch.cluster.metadata.IndexNameExpressionResolver;
 import org.elasticsearch.cluster.node.DiscoveryNodes;
+import org.elasticsearch.cluster.routing.allocation.decider.AllocationDeciders;
 import org.elasticsearch.cluster.service.ClusterService;
 import org.elasticsearch.common.io.stream.NamedWriteableRegistry;
 import org.elasticsearch.common.settings.ClusterSettings;
@@ -34,6 +33,7 @@ import org.elasticsearch.rest.RestController;
 import org.elasticsearch.rest.RestHandler;
 import org.elasticsearch.script.ScriptService;
 import org.elasticsearch.threadpool.ThreadPool;
+import org.elasticsearch.tracing.Tracer;
 import org.elasticsearch.watcher.ResourceWatcherService;
 import org.elasticsearch.xcontent.NamedXContentRegistry;
 
@@ -52,13 +52,10 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
   private final Map<String, List<LanguageComponentsProvider>> languageComponentProviders =
       new LinkedHashMap<>();
 
-  private final boolean transportClient;
   private final boolean pluginEnabled;
 
   public ClusteringPlugin(Settings settings) {
     this.pluginEnabled = settings.getAsBoolean(DEFAULT_ENABLED_PROPERTY_NAME, true);
-    this.transportClient =
-        TransportClient.CLIENT_TYPE.equals(Client.CLIENT_TYPE_SETTING_S.get(settings));
 
     // load our own class loader's extensions.
     loadExtensions(getClass().getClassLoader());
@@ -102,9 +99,11 @@ public class ClusteringPlugin extends Plugin implements ExtensiblePlugin, Action
       NodeEnvironment nodeEnvironment,
       NamedWriteableRegistry namedWriteableRegistry,
       IndexNameExpressionResolver indexNameExpressionResolver,
-      Supplier<RepositoriesService> repositoriesServiceSupplier) {
+      Supplier<RepositoriesService> repositoriesServiceSupplier,
+      Tracer tracer,
+      AllocationDeciders allocationDeciders) {
     List<Object> components = new ArrayList<>();
-    if (pluginEnabled && !transportClient) {
+    if (pluginEnabled) {
       components.add(
           new ClusteringContext(
               environment,

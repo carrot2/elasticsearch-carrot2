@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.util.HashMap;
@@ -6,7 +5,7 @@ import java.util.Map;
 import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.client.ElasticsearchClient;
+import org.elasticsearch.client.internal.Client;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.xcontent.NamedXContentRegistry;
 import org.elasticsearch.xcontent.XContentType;
@@ -15,7 +14,7 @@ import org.elasticsearch.xcontent.XContentType;
 public class ClusteringActionRequestBuilder
     extends ActionRequestBuilder<ClusteringActionRequest, ClusteringActionResponse> {
 
-  public ClusteringActionRequestBuilder(ElasticsearchClient client) {
+  public ClusteringActionRequestBuilder(Client client) {
     super(client, ClusteringAction.INSTANCE, new ClusteringActionRequest());
   }
 

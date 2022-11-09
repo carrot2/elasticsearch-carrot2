@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import static org.elasticsearch.action.ValidateActions.addValidationError;
@@ -19,6 +18,7 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.xcontent.LoggingDeprecationHandler;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.xcontent.DeprecationHandler;
@@ -26,6 +26,7 @@ import org.elasticsearch.xcontent.NamedXContentRegistry;
 import org.elasticsearch.xcontent.XContentBuilder;
 import org.elasticsearch.xcontent.XContentFactory;
 import org.elasticsearch.xcontent.XContentParser;
+import org.elasticsearch.xcontent.XContentParserConfiguration;
 import org.elasticsearch.xcontent.XContentType;
 
 /** An {@link ActionRequest} for {@link ClusteringAction}. */
@@ -256,12 +257,13 @@ public class ClusteringActionRequest extends ActionRequest implements IndicesReq
 
         XContentBuilder builder =
             XContentFactory.contentBuilder(XContentType.JSON).map(searchRequestMap);
+        XContentParserConfiguration parserConfig =
+            XContentParserConfiguration.EMPTY
+                .withRegistry(xContentRegistry)
+                .withDeprecationHandler(LoggingDeprecationHandler.INSTANCE);
         XContentParser searchXParser =
             XContentFactory.xContent(XContentType.JSON)
-                .createParser(
-                    xContentRegistry,
-                    DeprecationHandler.THROW_UNSUPPORTED_OPERATION,
-                    Strings.toString(builder));
+                .createParser(parserConfig, Strings.toString(builder));
         SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.fromXContent(searchXParser);
         searchRequest.source(searchSourceBuilder);
       }
@@ -427,7 +429,7 @@ public class ClusteringActionRequest extends ActionRequest implements IndicesReq
     boolean hasAttributes = (attributes != null);
     out.writeBoolean(hasAttributes);
     if (hasAttributes) {
-      out.writeMap(attributes);
+      out.writeMap(attributes, StreamOutput::writeString, StreamOutput::writeGenericValue);
     }
   }
 

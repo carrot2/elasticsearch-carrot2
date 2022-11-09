@@ -5,7 +5,7 @@ allprojects { prj ->
 
     spotless {
       java {
-        googleJavaFormat('1.9')
+        googleJavaFormat('1.15.0')
         licenseHeaderFile rootProject.file("gradle/validation/spotless/source-header.txt")
         lineEndings 'UNIX'
         endWithNewline()

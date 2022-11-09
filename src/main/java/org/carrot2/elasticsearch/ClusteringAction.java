@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
@@ -19,13 +18,13 @@ import org.apache.logging.log4j.Logger;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ActionType;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.client.node.NodeClient;
+import org.elasticsearch.client.internal.node.NodeClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.Writeable;
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.rest.BaseRestHandler;
-import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestRequest;
+import org.elasticsearch.rest.RestResponse;
 import org.elasticsearch.rest.action.search.RestSearchAction;
 import org.elasticsearch.xcontent.XContentBuilder;
 
@@ -70,8 +69,7 @@ public class ClusteringAction extends ActionType<ClusteringActionResponse> {
     }
 
     @Override
-    @SuppressWarnings({"try", "deprecation"})
-    public RestChannelConsumer prepareRequest(RestRequest request, NodeClient client)
+    protected RestChannelConsumer prepareRequest(RestRequest request, NodeClient client)
         throws IOException {
       // A POST request must have a body.
       if (request.method() == POST && !request.hasContent()) {
@@ -103,10 +101,11 @@ public class ClusteringAction extends ActionType<ClusteringActionResponse> {
       switch (request.method()) {
         case POST:
           searchRequest.indices(Strings.splitStringByCommaToArray(request.param("index")));
-          searchRequest.types(Strings.splitStringByCommaToArray(request.param("type")));
           actionBuilder.setSearchRequest(searchRequest);
           actionBuilder.setSource(
-              request.content(), request.getXContentType(), request.getXContentRegistry());
+              request.content(),
+              request.getXContentType(),
+              request.contentParserConfig().registry());
           break;
 
         case GET:
@@ -151,7 +150,7 @@ public class ClusteringAction extends ActionType<ClusteringActionResponse> {
                     response.toXContent(builder, request);
                     builder.endObject();
                     channel.sendResponse(
-                        new BytesRestResponse(response.getSearchResponse().status(), builder));
+                        new RestResponse(response.getSearchResponse().status(), builder));
                   } catch (Exception e) {
                     logger.debug("Failed to emit response.", e);
                     onFailure(e);

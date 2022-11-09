@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.io.IOException;
@@ -15,10 +14,10 @@ import java.util.stream.Collectors;
 import org.carrot2.clustering.Document;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.xcontent.DeprecationHandler;
-import org.elasticsearch.xcontent.NamedXContentRegistry;
 import org.elasticsearch.xcontent.XContentBuilder;
 import org.elasticsearch.xcontent.XContentFactory;
 import org.elasticsearch.xcontent.XContentParser;
+import org.elasticsearch.xcontent.XContentParserConfiguration;
 import org.elasticsearch.xcontent.json.JsonXContent;
 
 /** Facade loading sample document data. */
@@ -70,9 +69,11 @@ final class TestInfra {
   public static List<TestDocument> load(String resource) throws IOException {
     var json = jsonResource(TestInfra.class, resource);
 
-    try (XContentParser parser =
-        JsonXContent.jsonXContent.createParser(
-            NamedXContentRegistry.EMPTY, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, json)) {
+    var parserConfig =
+        XContentParserConfiguration.EMPTY.withDeprecationHandler(
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION);
+
+    try (XContentParser parser = JsonXContent.jsonXContent.createParser(parserConfig, json)) {
       return parser.list().stream()
           .map(
               entry -> {

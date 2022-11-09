@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import java.io.IOException;
@@ -15,7 +14,7 @@ import org.carrot2.elasticsearch.ClusteringActionResponse.Fields;
 import org.carrot2.language.LanguageComponentsLoader;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.internal.Client;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.network.NetworkAddress;
 import org.elasticsearch.plugins.Plugin;
@@ -23,12 +22,11 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.test.ESIntegTestCase;
 import org.elasticsearch.xcontent.DeprecationHandler;
-import org.elasticsearch.xcontent.NamedXContentRegistry;
 import org.elasticsearch.xcontent.ToXContent;
 import org.elasticsearch.xcontent.XContentBuilder;
 import org.elasticsearch.xcontent.XContentFactory;
 import org.elasticsearch.xcontent.XContentParser;
-import org.elasticsearch.xcontent.XContentType;
+import org.elasticsearch.xcontent.XContentParserConfiguration;
 import org.elasticsearch.xcontent.json.JsonXContent;
 import org.junit.Before;
 
@@ -42,11 +40,6 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     return Collections.singletonList(ClusteringPlugin.class);
   }
 
-  @Override
-  protected Collection<Class<? extends Plugin>> transportClientPlugins() {
-    return nodePlugins();
-  }
-
   protected static final String INDEX_TEST = "test";
   protected static final String INDEX_EMPTY = "empty";
 
@@ -54,7 +47,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
   public void createTestIndex() throws Exception {
     // Delete any previously indexed content.
     client = client();
-    if (!client.admin().indices().prepareExists(INDEX_TEST).get().isExists()) {
+    if (!client.admin().indices().prepareCreate(INDEX_TEST).get().isAcknowledged()) {
       String testTemplate =
           "{"
               + "  \"test\": {"
@@ -82,12 +75,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
               + "}";
 
       CreateIndexResponse response =
-          client
-              .admin()
-              .indices()
-              .prepareCreate(INDEX_TEST)
-              .addMapping("test", testTemplate, XContentType.JSON)
-              .get();
+          client.admin().indices().prepareCreate(INDEX_TEST).setMapping("test", testTemplate).get();
       Assertions.assertThat(response.isAcknowledged()).isTrue();
 
       response =
@@ -95,7 +83,7 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
               .admin()
               .indices()
               .prepareCreate(INDEX_EMPTY)
-              .addMapping("empty", emptyTemplate, XContentType.JSON)
+              .setMapping("empty", emptyTemplate)
               .get();
       Assertions.assertThat(response.isAcknowledged()).isTrue();
 
@@ -114,19 +102,13 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
                           Map.entry("rndlang", languages[rnd.nextInt(languages.length)]))))
           .forEach(
               doc -> {
-                bulk.add(
-                    client
-                        .prepareIndex()
-                        .setIndex(INDEX_TEST)
-                        .setType("test")
-                        .setSource(doc.toXContent()));
+                bulk.add(client.prepareIndex().setIndex(INDEX_TEST).setSource(doc.toXContent()));
               });
 
       bulk.add(
           client
               .prepareIndex()
               .setIndex(INDEX_EMPTY)
-              .setType("empty")
               .setSource(
                   new TestInfra.TestDocument(Map.of("url", "", "title", "", "content", ""))
                       .toXContent()));
@@ -193,9 +175,10 @@ public abstract class SampleIndexTestCase extends ESIntegTestCase {
     builder.endObject();
     String json = Strings.toString(builder);
 
-    try (XContentParser parser =
-        JsonXContent.jsonXContent.createParser(
-            NamedXContentRegistry.EMPTY, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, json)) {
+    XContentParserConfiguration parserConfig =
+        XContentParserConfiguration.EMPTY.withDeprecationHandler(
+            DeprecationHandler.THROW_UNSUPPORTED_OPERATION);
+    try (XContentParser parser = JsonXContent.jsonXContent.createParser(parserConfig, json)) {
       Map<String, Object> mapAndClose = parser.map();
       Assertions.assertThat(mapAndClose).as("json-result").containsKey(Fields.CLUSTERS);
     }

@@ -1,4 +1,3 @@
-
 package org.carrot2.elasticsearch;
 
 import static org.carrot2.elasticsearch.LoggerUtils.emitErrorResponse;
@@ -18,16 +17,16 @@ import org.elasticsearch.action.ActionResponse;
 import org.elasticsearch.action.ActionType;
 import org.elasticsearch.action.support.ActionFilters;
 import org.elasticsearch.action.support.TransportAction;
-import org.elasticsearch.client.ElasticsearchClient;
-import org.elasticsearch.client.node.NodeClient;
+import org.elasticsearch.client.internal.ElasticsearchClient;
+import org.elasticsearch.client.internal.node.NodeClient;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
 import org.elasticsearch.rest.BaseRestHandler;
-import org.elasticsearch.rest.BytesRestResponse;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.rest.RestRequest.Method;
+import org.elasticsearch.rest.RestResponse;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.tasks.Task;
 import org.elasticsearch.threadpool.ThreadPool;
@@ -132,11 +131,7 @@ public class ListAlgorithmsAction
         TransportService transportService,
         ClusteringContext controllerSingleton,
         ActionFilters actionFilters) {
-      super(
-          ListAlgorithmsAction.NAME,
-          actionFilters,
-          transportService.getLocalNodeConnection(),
-          transportService.getTaskManager());
+      super(ListAlgorithmsAction.NAME, actionFilters, transportService.getTaskManager());
       this.controllerSingleton = controllerSingleton;
       transportService.registerRequestHandler(
           ListAlgorithmsAction.NAME,
@@ -162,8 +157,9 @@ public class ListAlgorithmsAction
           final ListAlgorithmsActionRequest request, final TransportChannel channel, Task task)
           throws Exception {
         execute(
+            task,
             request,
-            new ActionListener<ListAlgorithmsActionResponse>() {
+            new ActionListener<>() {
               @Override
               public void onResponse(ListAlgorithmsActionResponse response) {
                 try {
@@ -230,7 +226,7 @@ public class ListAlgorithmsAction
                     builder.startObject();
                     response.toXContent(builder, request);
                     builder.endObject();
-                    channel.sendResponse(new BytesRestResponse(RestStatus.OK, builder));
+                    channel.sendResponse(new RestResponse(RestStatus.OK, builder));
                   } catch (Exception e) {
                     logger.debug("Failed to emit response.", e);
                     onFailure(e);
