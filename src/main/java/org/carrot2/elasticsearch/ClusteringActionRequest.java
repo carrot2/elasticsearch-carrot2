@@ -19,14 +19,14 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
-import org.elasticsearch.common.xcontent.DeprecationHandler;
-import org.elasticsearch.common.xcontent.NamedXContentRegistry;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentHelper;
-import org.elasticsearch.common.xcontent.XContentParser;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.xcontent.DeprecationHandler;
+import org.elasticsearch.xcontent.NamedXContentRegistry;
+import org.elasticsearch.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.XContentFactory;
+import org.elasticsearch.xcontent.XContentParser;
+import org.elasticsearch.xcontent.XContentType;
 
 /** An {@link ActionRequest} for {@link ClusteringAction}. */
 public class ClusteringActionRequest extends ActionRequest implements IndicesRequest.Replaceable {
@@ -193,7 +193,7 @@ public class ClusteringActionRequest extends ActionRequest implements IndicesReq
   }
 
   /**
-   * Parses some {@link org.elasticsearch.common.xcontent.XContent} and fills in the request.
+   * Parses some {@link org.elasticsearch.xcontent.XContent} and fills in the request.
    *
    * @param source arg
    * @param xContentType arg

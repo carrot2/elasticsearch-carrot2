@@ -34,7 +34,7 @@ import org.elasticsearch.search.aggregations.InternalAggregation;
 import org.elasticsearch.search.aggregations.InternalAggregations;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.internal.InternalSearchResponse;
-import org.elasticsearch.search.profile.SearchProfileShardResults;
+import org.elasticsearch.search.profile.SearchProfileResults;
 import org.elasticsearch.tasks.Task;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportChannel;
@@ -271,8 +271,8 @@ public class ClusteringActionTransport
     SearchHits _searchHits =
         new SearchHits(trimmedHits, allHits.getTotalHits(), allHits.getMaxScore());
 
-    SearchProfileShardResults _searchProfileShardResults =
-        new SearchProfileShardResults(response.getProfileResults());
+    SearchProfileResults _searchProfileShardResults =
+        new SearchProfileResults(response.getProfileResults());
 
     InternalSearchResponse _searchResponse =
         new InternalSearchResponse(

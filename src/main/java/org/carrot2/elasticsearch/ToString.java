@@ -3,9 +3,9 @@ package org.carrot2.elasticsearch;
 
 import java.io.IOException;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.xcontent.ToXContent;
+import org.elasticsearch.xcontent.XContentBuilder;
+import org.elasticsearch.xcontent.XContentFactory;
 
 /** Reusable stuff related to {@link Object#toString()} implementations. */
 final class ToString {

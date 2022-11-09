@@ -3,6 +3,11 @@ ElasticSearch-Carrot2 Change Log
 
 ================ master ====================
 
+================ ElasticSearch-Carrot2 7.17.7 ===================
+
+* ES 7.17.7 compatibility build (manually verified).
+* Upgrade to Carrot2 4.3.1.
+
 ================ ElasticSearch-Carrot2 7.14.1 ===================
 
 * ES 7.14.1 compatibility build (manually verified).

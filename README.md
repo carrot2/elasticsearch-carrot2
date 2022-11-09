@@ -89,8 +89,9 @@ Lingo3G 2.x will be supported via a separate
 [extension plugin](https://github.com/carrotsearch/elasticsearch-lingo3g).
 
 | Clustering Plugin | Elasticsearch          | Carrot2     |     Lingo3G   |
-| ---               |                    --- | ---         |     ---       |
+|-------------------|                    --- | ---         |     ---       |
 | (master branch)   |                        | 4.3.1       | ext-plugin    |
+| 7.17.7 →          |                        | 4.3.1       | ext-plugin    |
 | 7.14.1 →          |                        | 4.3.1       | ext-plugin    |
 | 7.13.4 →          |                        | 4.3.1       | ext-plugin    |
 | 7.12.0 →          |                        | 4.2.1       | ext-plugin    |

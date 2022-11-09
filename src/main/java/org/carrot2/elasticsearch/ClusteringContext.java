@@ -50,6 +50,7 @@ public class ClusteringContext extends AbstractLifecycleComponent {
   }
 
   @SuppressForbidden(reason = "C2 integration (File API)")
+  @SuppressWarnings("removal")
   @Override
   protected void doStart() throws ElasticsearchException {
     try {
