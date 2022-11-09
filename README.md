@@ -16,7 +16,7 @@ In order to install a stable version of the plugin,
 run ElasticSearch's `plugin` utility (remember to pick the
 ES-compatible version of the plugin from the table below!).
 
-    bin/elasticsearch-plugin install org.carrot2:elasticsearch-carrot2:7.14.1
+    bin/elasticsearch-plugin install org.carrot2:elasticsearch-carrot2:7.17.7
 
 To install from sources (master branch), run:
 
