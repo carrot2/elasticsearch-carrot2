@@ -30,7 +30,7 @@ apply from: file('gradle/validation/spotless.gradle')
 
 // This plugin's version (typically must match that of ES).
 // For bugfix releases against the same ES version, you can add a bugfix suffix.
-def bugfix = ""
+def bugfix = ".2"
 version = "${localversions.es}${bugfix}"
 group = 'org.carrot2'
 
