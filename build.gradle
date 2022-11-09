@@ -68,13 +68,13 @@ dependencies {
   javaRestTestImplementation project.sourceSets.main.runtimeClasspath
   javaRestTestImplementation project.sourceSets.test.runtimeClasspath
 
-  // TODO: ES 7.10.0-7.17.7 hack: missing log4j classes?
-  yamlRestTestRuntimeClasspath "org.apache.logging.log4j:log4j-core:2.17.1"
+  // Add missing log4j classes to runtime.
+  yamlRestTestRuntimeOnly "org.apache.logging.log4j:log4j-core:2.17.1"
 }
 
 // Set target compatibility
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = 17
+targetCompatibility = 17
 
 // We don't have unit tests, only integration tests.
 test.enabled = false
@@ -82,7 +82,12 @@ test.enabled = false
 // Add plugin configuration files to each testClusters instance.
 // 'extraConfigFile' doesn't allow directories, only files, so we
 // need to add each individually
-testClusters.all {
+testClusters.configureEach {
+  testDistribution = 'DEFAULT'
+
+  setting 'xpack.security.enabled', 'false'
+  setting 'xpack.ml.enabled', 'false'
+
   fileTree(dir: 'src/main/config').each { file ->
     extraConfigFile 'elasticsearch-carrot2/' + file.name, file
   }
