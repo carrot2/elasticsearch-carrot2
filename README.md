@@ -101,6 +101,7 @@ Discontinued version branches:
 | Clustering Plugin | Elasticsearch          | Carrot2     | Lingo3G       |
 | ---               |                    --- | ---         | ---           |
 | 7.11.2 →          |                        | 4.0.4       | ext-plugin    |
+| 7.10.2.2          | 7.10.2                 | 4.3.1       | ext-plugin    |
 | 7.10.0 → 7.10.2   |                        | 4.0.4       | ext-plugin    |
 | 7.9.2 → 7.9.3     |                        | 4.0.4       | ext-plugin    |
 | 7.8.1             |                        | 4.0.4       | ext-plugin    |
